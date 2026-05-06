@@ -1,6 +1,12 @@
 package com.example.spellcoach.presentation.practice
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,8 +25,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.presentation.components.LearningCard
 import com.example.spellcoach.presentation.components.PrimaryButton
 import com.example.spellcoach.presentation.components.SpellCoachTopBar
+import com.example.spellcoach.presentation.theme.PrimaryBlueStrong
 
 @Composable
 fun PracticeScreen(
@@ -106,7 +115,7 @@ fun PracticeScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.VolumeUp,
+                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                             contentDescription = "Listen",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
@@ -155,35 +164,72 @@ fun PracticeScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            LearningCard(modifier = Modifier.fillMaxWidth()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFE3F2FD)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "i", color = Color(0xFF0B6B8C), fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(Modifier.width(10.dp))
+            if (state.hintsEnabled) {
+                val nudgeHints = state.feedbackCorrect == false && !state.showHints
+
+                OutlinedButton(
+                    onClick = viewModel::showHints,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, if (nudgeHints) Color(0xFFF59E0B) else PrimaryBlueStrong)
+                ) {
                     Text(
-                        text = "Need a hint? Use a letter chip below.",
-                        color = Color(0xFF334155),
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp
+                        text = if (state.showHints) "Letter hints shown" else "Show Letter Hints",
+                        fontWeight = FontWeight.Bold,
+                        color = if (nudgeHints) Color(0xFFB45309) else PrimaryBlueStrong,
+                        fontSize = 16.sp
                     )
                 }
-            }
+                if (nudgeHints) {
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = viewModel::showHints, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        Text(
+                            text = "Tip: try a hint to get unstuck",
+                            color = Color(0xFFB45309),
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
 
-            Spacer(Modifier.height(12.dp))
+                AnimatedVisibility(
+                    visible = state.showHints,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 4 }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 4 })
+                ) {
+                    Column {
+                        Spacer(Modifier.height(12.dp))
+                        LearningCard(modifier = Modifier.fillMaxWidth()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFE3F2FD)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = "i", color = Color(0xFF0B6B8C), fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = "Tap letters to help spell the word.",
+                                    color = Color(0xFF334155),
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
 
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(state.letters) { ch ->
-                    LetterChip(letter = ch, onClick = { viewModel.appendLetter(ch) })
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(state.letters) { ch ->
+                                LetterChip(letter = ch, onClick = { viewModel.appendLetter(ch) })
+                            }
+                        }
+                    }
                 }
             }
         }

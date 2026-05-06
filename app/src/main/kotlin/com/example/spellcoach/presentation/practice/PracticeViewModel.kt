@@ -29,6 +29,8 @@ data class PracticeUiState(
     val currentIndex: Int = 0,
     val input: String = "",
     val letters: List<String> = emptyList(),
+    val hintsEnabled: Boolean = true,
+    val showHints: Boolean = false,
     val sessionCorrect: Int = 0,
     val incorrectSubmissions: Int = 0,
     val loading: Boolean = true,
@@ -72,15 +74,29 @@ class PracticeViewModel @Inject constructor(
                     words = practiceWords,
                     letters = letters,
                     loading = false,
-                    audioEnabled = settings.audioEnabled
+                    audioEnabled = settings.audioEnabled,
+                    hintsEnabled = settings.letterHintsEnabled,
+                    showHints = false
                 )
             }
         }
         viewModelScope.launch {
             observeSettingsUseCase().collect { s ->
-                _state.update { it.copy(audioEnabled = s.audioEnabled) }
+                _state.update { cur ->
+                    cur.copy(
+                        audioEnabled = s.audioEnabled,
+                        hintsEnabled = s.letterHintsEnabled,
+                        showHints = if (s.letterHintsEnabled) cur.showHints else false
+                    )
+                }
                 tts.setSpeechRate(s.speechRate)
             }
+        }
+    }
+
+    fun showHints() {
+        _state.update { cur ->
+            if (!cur.hintsEnabled) cur.copy(showHints = false) else cur.copy(showHints = true)
         }
     }
 
@@ -143,7 +159,8 @@ class PracticeViewModel @Inject constructor(
                             letters = shuffleLetters(nextWord.text),
                             feedbackCorrect = true,
                             animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
-                            input = ""
+                            input = "",
+                            showHints = false
                         )
                     }
                 }

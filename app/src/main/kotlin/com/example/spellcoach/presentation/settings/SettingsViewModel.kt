@@ -49,6 +49,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setLetterHintsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            updateSettings { it.copy(letterHintsEnabled = enabled) }
+        }
+    }
+
     fun setSpeechRate(rate: Float) {
         viewModelScope.launch {
             updateSettings { it.copy(speechRate = rate) }

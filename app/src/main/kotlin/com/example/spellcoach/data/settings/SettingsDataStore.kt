@@ -30,6 +30,7 @@ class SettingsDataStore @Inject constructor(
         val requiredCorrect = intPreferencesKey("required_correct_answers")
         val mistakeBehavior = stringPreferencesKey("mistake_behavior")
         val audioEnabled = booleanPreferencesKey("audio_enabled")
+        val letterHintsEnabled = booleanPreferencesKey("letter_hints_enabled")
         val speechRate = floatPreferencesKey("speech_rate")
         val rewardSounds = booleanPreferencesKey("reward_sounds")
         val animations = booleanPreferencesKey("animations")
@@ -47,6 +48,7 @@ class SettingsDataStore @Inject constructor(
                 runCatching { MistakeBehavior.valueOf(it) }.getOrDefault(MistakeBehavior.DECREASE_PROGRESS)
             } ?: MistakeBehavior.DECREASE_PROGRESS,
             audioEnabled = prefs[Keys.audioEnabled] ?: true,
+            letterHintsEnabled = prefs[Keys.letterHintsEnabled] ?: true,
             speechRate = prefs[Keys.speechRate] ?: 1f,
             rewardSoundsEnabled = prefs[Keys.rewardSounds] ?: true,
             animationsEnabled = prefs[Keys.animations] ?: true
@@ -73,6 +75,7 @@ class SettingsDataStore @Inject constructor(
                     runCatching { MistakeBehavior.valueOf(it) }.getOrDefault(MistakeBehavior.DECREASE_PROGRESS)
                 } ?: MistakeBehavior.DECREASE_PROGRESS,
                 audioEnabled = prefs[Keys.audioEnabled] ?: true,
+                letterHintsEnabled = prefs[Keys.letterHintsEnabled] ?: true,
                 speechRate = prefs[Keys.speechRate] ?: 1f,
                 rewardSoundsEnabled = prefs[Keys.rewardSounds] ?: true,
                 animationsEnabled = prefs[Keys.animations] ?: true
@@ -81,6 +84,7 @@ class SettingsDataStore @Inject constructor(
             prefs[Keys.requiredCorrect] = next.requiredCorrectAnswers
             prefs[Keys.mistakeBehavior] = next.mistakeBehavior.name
             prefs[Keys.audioEnabled] = next.audioEnabled
+            prefs[Keys.letterHintsEnabled] = next.letterHintsEnabled
             prefs[Keys.speechRate] = next.speechRate
             prefs[Keys.rewardSounds] = next.rewardSoundsEnabled
             prefs[Keys.animations] = next.animationsEnabled

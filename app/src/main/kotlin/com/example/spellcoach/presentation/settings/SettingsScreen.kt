@@ -18,10 +18,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -44,6 +44,7 @@ import com.example.spellcoach.domain.model.MistakeBehavior
 import com.example.spellcoach.presentation.components.LearningCard
 import com.example.spellcoach.presentation.components.SpellCoachTopBar
 import com.example.spellcoach.presentation.theme.PrimaryBlue
+import java.util.Locale
 
 @Composable
 fun SettingsScreen(
@@ -156,7 +157,7 @@ fun SettingsScreen(
                             .background(Color(0xFFF3E8FF)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.TrendingDown, contentDescription = null, tint = Color(0xFF7E22CE))
+                        Icon(Icons.AutoMirrored.Filled.TrendingDown, contentDescription = null, tint = Color(0xFF7E22CE))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
@@ -178,7 +179,7 @@ fun SettingsScreen(
                 Spacer(Modifier.height(14.dp))
                 MistakeOptionRow(
                     title = "Decrease progress",
-                    icon = Icons.Filled.TrendingDown,
+                    icon = Icons.AutoMirrored.Filled.TrendingDown,
                     selected = settings.mistakeBehavior == MistakeBehavior.DECREASE_PROGRESS,
                     onClick = { viewModel.setMistakeBehavior(MistakeBehavior.DECREASE_PROGRESS) }
                 )
@@ -207,7 +208,7 @@ fun SettingsScreen(
                                 .background(Color(0xFFD1FAE5)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Filled.VolumeUp, contentDescription = null, tint = Color(0xFF166534))
+                            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = Color(0xFF166534))
                         }
                         Spacer(Modifier.width(12.dp))
                         Column {
@@ -228,6 +229,39 @@ fun SettingsScreen(
                     Switch(
                         checked = settings.audioEnabled,
                         onCheckedChange = viewModel::setAudioEnabled,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF2E7D32)
+                        )
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            LearningCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "Enable Letter Hints",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1C1E)
+                        )
+                        Text(
+                            text = "Show optional letter chips during practice.",
+                            color = Color(0xFF44474E),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Switch(
+                        checked = settings.letterHintsEnabled,
+                        onCheckedChange = viewModel::setLetterHintsEnabled,
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = Color(0xFF2E7D32)
@@ -262,7 +296,7 @@ fun SettingsScreen(
                     )
                 )
                 Text(
-                    text = "${String.format("%.1f", settings.speechRate)}×",
+                    text = String.format(Locale.US, "%.1f×", settings.speechRate),
                     fontWeight = FontWeight.Bold,
                     color = PrimaryBlue,
                     fontSize = 14.sp
