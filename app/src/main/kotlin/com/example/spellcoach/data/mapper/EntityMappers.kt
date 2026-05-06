@@ -6,8 +6,7 @@ import com.example.spellcoach.domain.model.Word
 import com.example.spellcoach.domain.model.WordList
 
 private fun chipsForListName(name: String): List<String> = when (name) {
-    "Week 1: Core Vocabulary" -> listOf("Animal Kingdom", "Action Verbs")
-    "Space Adventure" -> listOf("Difficulty: Medium")
+    "" -> listOf("")
     else -> emptyList()
 }
 

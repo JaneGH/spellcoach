@@ -37,10 +37,4 @@ class WordListsViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = WordListsUiState(loading = true)
         )
-
-    init {
-        viewModelScope.launch {
-            wordRepository.seedSampleDataIfEmpty()
-        }
-    }
 }

@@ -1,9 +1,15 @@
 package com.example.spellcoach.presentation.addwords
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,8 +49,13 @@ import com.example.spellcoach.presentation.components.PrimaryButton
 import com.example.spellcoach.presentation.components.SaveGreenButton
 import com.example.spellcoach.presentation.components.SpellCoachTopBar
 import com.example.spellcoach.presentation.components.WordChip
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddWordsScreen(
     onBack: () -> Unit,
@@ -52,6 +63,28 @@ fun AddWordsScreen(
     viewModel: AddWordsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    val pdfPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri ->
+            // persist read permission for future reads during process lifetime
+            if (uri != null) {
+                runCatching {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+            }
+            viewModel.importFromPdf(uri)
+        }
+    )
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> viewModel.importFromImage(uri) }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { e ->
@@ -62,6 +95,9 @@ fun AddWordsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .imePadding()
+            .padding(horizontal = 16.dp)
             .background(Color(0xFFF8FAFF))
     ) {
         SpellCoachTopBar(
@@ -79,6 +115,19 @@ fun AddWordsScreen(
                 .padding(horizontal = 16.dp)
         ) {
             LearningCard(modifier = Modifier.fillMaxWidth()) {
+
+                OutlinedTextField(
+                    value = state.listName,
+                    onValueChange = viewModel::setListName,
+                    placeholder = {
+                        Text("Enter list name")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                )
+
+                Spacer(Modifier.height(12.dp))
+
                 Text(
                     text = "TYPE OR PASTE WORDS",
                     color = Color(0xFF94A3B8),
@@ -119,7 +168,8 @@ fun AddWordsScreen(
                 iconBg = Color(0xFFCFFAE5),
                 icon = Icons.Filled.PictureAsPdf,
                 title = "Import from PDF",
-                subtitle = "Upload worksheets"
+                subtitle = "Upload worksheets",
+                onClick = { pdfPicker.launch(arrayOf("application/pdf")) }
             )
 
             Spacer(Modifier.height(12.dp))
@@ -128,7 +178,14 @@ fun AddWordsScreen(
                 iconBg = Color(0xFFE9D5FF),
                 icon = Icons.Filled.CameraAlt,
                 title = "Scan from Photo",
-                subtitle = "Snap a picture"
+                subtitle = "Snap a picture",
+                onClick = {
+                    imagePicker.launch(
+                        PickVisualMediaRequest.Builder()
+                            .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            .build()
+                    )
+                }
             )
 
             Spacer(Modifier.height(16.dp))
@@ -160,6 +217,16 @@ fun AddWordsScreen(
 
             Spacer(Modifier.height(10.dp))
 
+            if (state.isImporting) {
+                Text(
+                    text = "Importing...",
+                    color = Color(0xFF0B6B8C),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+
             val dash = PathEffect.dashPathEffect(floatArrayOf(12f, 10f), 0f)
             Box(
                 modifier = Modifier
@@ -176,9 +243,15 @@ fun AddWordsScreen(
                     }
                     .padding(14.dp)
             ) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(state.previewWords) { w ->
-                        WordChip(word = w, onRemove = { viewModel.removeWord(w) })
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    state.previewWords.forEach { w ->
+                        WordChip(
+                            word = w,
+                            onRemove = { viewModel.removeWord(w) }
+                        )
                     }
                 }
             }
@@ -210,9 +283,14 @@ private fun ImportCard(
     iconBg: Color,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
-    subtitle: String
+    subtitle: String,
+    onClick: () -> Unit
 ) {
-    LearningCard(modifier = Modifier.fillMaxWidth()) {
+    LearningCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier

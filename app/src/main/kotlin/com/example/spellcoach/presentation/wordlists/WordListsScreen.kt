@@ -67,9 +67,7 @@ fun WordListsScreen(
                 showBack = false,
                 onBack = {},
                 brandTitle = "SpellCoach",
-                brandAccent = "My Lists",
                 screenTitle = null,
-                heroTitle = "My Lists",
                 subtitleBelowBrand = "Keep track of your spelling progress across different groups."
             )
             LazyColumn(

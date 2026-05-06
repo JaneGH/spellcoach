@@ -13,5 +13,4 @@ interface WordRepository {
     suspend fun deleteWordList(listId: Long)
     suspend fun getWordListName(listId: Long): String?
     suspend fun getWordById(wordId: Long): Word?
-    suspend fun seedSampleDataIfEmpty()
 }
