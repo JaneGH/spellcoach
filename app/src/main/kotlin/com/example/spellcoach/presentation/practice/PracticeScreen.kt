@@ -457,7 +457,7 @@ fun PracticeScreen(
 
                     Spacer(Modifier.height(12.dp))
 
-                    if (state.hintsEnabled) {
+                    if (state.hintsEnabled && state.input.isNotBlank()) {
                         HintsSection(
                             showHints = state.showHints,
                             nudgeHints = state.feedbackCorrect == false && !state.showHints,
