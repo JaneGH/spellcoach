@@ -1,5 +1,7 @@
 package com.example.spellcoach.presentation.settings
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -39,12 +42,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.spellcoach.R
 import com.example.spellcoach.data.tts.TtsAvailability
 import com.example.spellcoach.domain.model.MistakeBehavior
 import com.example.spellcoach.presentation.components.LearningCard
@@ -414,7 +421,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color(0xFF0B6B8C).copy(alpha = 0.25f))
+                    .background(Color(0xFF0B6B8C).copy(alpha = 0.6f))
                     .clickable { viewModel.openTtsSettings() }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
@@ -443,6 +450,17 @@ fun SettingsScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     modifier = Modifier.padding(16.dp)
+                )
+
+
+                Image(
+                    painter = painterResource(R.drawable.fox_happy2),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 8.dp, bottom = 6.dp)
+                        .size(84.dp)
+
                 )
             }
         }

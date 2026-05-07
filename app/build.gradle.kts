@@ -78,6 +78,7 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
 
     implementation("com.google.mlkit:digital-ink-recognition:18.1.0")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
