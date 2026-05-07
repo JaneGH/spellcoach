@@ -7,9 +7,9 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,25 +35,22 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Undo
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -71,8 +68,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -98,8 +95,8 @@ import com.google.mlkit.vision.digitalink.DigitalInkRecognizerOptions
 import com.google.mlkit.vision.digitalink.Ink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 @Composable
 fun PracticeScreen(
@@ -160,16 +157,21 @@ fun PracticeScreen(
         showWrongAnswerCard,
         showCorrectAnswerCard,
         state.words.isEmpty(),
-        state.loading
+        state.loading,
+        inputMode
     ) {
         if (
             !state.loading &&
             state.words.isNotEmpty() &&
+            inputMode == PracticeInputMode.Keyboard &&
             !showWrongAnswerCard &&
             !showCorrectAnswerCard
         ) {
             kotlinx.coroutines.delay(60)
-            focusRequester.requestFocus()
+
+            runCatching {
+                focusRequester.requestFocus()
+            }
         }
     }
 
@@ -263,7 +265,12 @@ fun PracticeScreen(
                     onNextWord = {
                         showCorrectAnswerCard = false
                         viewModel.onInputChange("")
-                        viewModel.listen()
+
+                        if (state.currentIndex >= state.words.lastIndex) {
+                            onFinished()
+                        } else {
+                            viewModel.listen()
+                        }
                     }
                 )
             }
@@ -298,7 +305,7 @@ fun PracticeScreen(
 
                         Box(
                             modifier = Modifier
-                                .size(76.dp)
+                                .size(70.dp)
                                 .clip(CircleShape)
                                 .background(Color(0xFF0B6B8C))
                                 .clickable { viewModel.listen() },
@@ -311,22 +318,14 @@ fun PracticeScreen(
                                 modifier = Modifier.size(28.dp)
                             )
                         }
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "LISTEN",
-                            color = Color(0xFF0B6B8C),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "Tap to hear the word again",
-                            color = Color(0xFF334155),
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp
-                        )
-
-                        Spacer(Modifier.height(14.dp))
+                        Spacer(Modifier.height(5.dp))
+//                        Text(
+//                            text = "LISTEN",
+//                            color = Color(0xFF0B6B8C),
+//                            fontWeight = FontWeight.Bold,
+//                            fontSize = 12.sp
+//                        )
+//                        Spacer(Modifier.height(10.dp))
 
                         SingleChoiceSegmentedButtonRow(
                             modifier = Modifier.fillMaxWidth()
@@ -347,7 +346,7 @@ fun PracticeScreen(
                             }
                         }
 
-                        Spacer(Modifier.height(18.dp))
+                        Spacer(Modifier.height(5.dp))
 
                         val current = state.words.getOrNull(state.currentIndex)
                         val required = state.requiredCorrectAnswers.coerceAtLeast(1)
@@ -359,9 +358,7 @@ fun PracticeScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
-                            Spacer(Modifier.height(10.dp))
-                            HorizontalDivider(color = Color(0xFFE2E8F0))
-                            Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(5.dp))
                         }
 
                         AnimatedVisibility(
