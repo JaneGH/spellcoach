@@ -74,8 +74,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
 
-    // Offline OCR (free)
     implementation("com.google.mlkit:text-recognition:16.0.1")
+
+    implementation("com.google.mlkit:digital-ink-recognition:18.1.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
