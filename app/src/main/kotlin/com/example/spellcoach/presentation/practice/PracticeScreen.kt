@@ -109,8 +109,18 @@ fun PracticeScreen(
         }
     }
 
-    LaunchedEffect(showWrongAnswerCard, showCorrectAnswerCard) {
-        if (!showWrongAnswerCard && !showCorrectAnswerCard) {
+    LaunchedEffect(
+        showWrongAnswerCard,
+        showCorrectAnswerCard,
+        state.words.isEmpty(),
+        state.loading
+    ) {
+        if (
+            !state.loading &&
+            state.words.isNotEmpty() &&
+            !showWrongAnswerCard &&
+            !showCorrectAnswerCard
+        ) {
             kotlinx.coroutines.delay(60)
             focusRequester.requestFocus()
         }

@@ -112,17 +112,17 @@ fun AddWordsScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            LearningCard(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = state.listName,
+                onValueChange = viewModel::setListName,
+                placeholder = {
+                    Text("Enter list name")
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp)
+            )
 
-                OutlinedTextField(
-                    value = state.listName,
-                    onValueChange = viewModel::setListName,
-                    placeholder = {
-                        Text("Enter list name")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp)
-                )
+            LearningCard(modifier = Modifier.fillMaxWidth()) {
 
                 Spacer(Modifier.height(12.dp))
 
