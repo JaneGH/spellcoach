@@ -363,6 +363,7 @@ fun PracticeScreen(
                                     spacedCorrectWord = spacedCorrectWord,
                                     onTryAgain = {
                                         viewModel.onInputChange("")
+                                        viewModel.clearFeedback()
                                         showWrongAnswerCard = false
                                         viewModel.listen()
                                     }

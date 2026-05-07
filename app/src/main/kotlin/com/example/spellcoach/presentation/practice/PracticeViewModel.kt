@@ -180,6 +180,12 @@ class PracticeViewModel @Inject constructor(
         _state.update { it.copy(animationHint = PracticeAnimHint.None, wordJustMastered = false) }
     }
 
+    fun clearFeedback() {
+        _state.update {
+            it.copy(feedbackCorrect = null)
+        }
+    }
+
     fun checkWord() {
         val w = currentWord() ?: return
         viewModelScope.launch {
@@ -200,7 +206,6 @@ class PracticeViewModel @Inject constructor(
                 val newSessionCorrect = _state.value.sessionCorrect + 1
                 val total = _state.value.allWords.size
 
-                // Update local snapshot so UI can show per-word progress immediately.
                 val updatedAllWords = _state.value.allWords.toMutableList().also { list ->
                     val idx = list.indexOfFirst { it.id == result.updatedWord.id }
                     if (idx >= 0) list[idx] = result.updatedWord
@@ -210,7 +215,6 @@ class PracticeViewModel @Inject constructor(
                     if (idx >= 0) list[idx] = result.updatedWord
                 }
 
-                // Move forward; if the word is mastered it will be filtered out by flow, but we still advance in this snapshot.
                 _state.update {
                     it.copy(
                         sessionCorrect = newSessionCorrect,
