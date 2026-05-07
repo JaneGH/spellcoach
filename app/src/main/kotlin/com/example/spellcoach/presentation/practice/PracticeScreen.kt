@@ -194,10 +194,13 @@ fun PracticeScreen(
             .fillMaxSize()
             .background(Color(0xFFF8FAFF))
     ) {
-        val progressText = if (state.words.isEmpty()) {
-            "0 / 0 words"
+        val totalWords = state.allWords.size
+        val required = state.requiredCorrectAnswers.coerceAtLeast(1)
+        val masteredWords = state.allWords.count { it.correctCount >= required }
+        val progressText = if (totalWords <= 0) {
+            "0 / 0 mastered"
         } else {
-            "${(state.currentIndex + 1).coerceAtMost(state.words.size)} / ${state.words.size} words"
+            "$masteredWords / $totalWords mastered"
         }
         SpellCoachTopBar(
             showBack = true,
@@ -262,8 +265,8 @@ fun PracticeScreen(
                     .padding(horizontal = 24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val total = state.words.size.coerceAtLeast(0)
-                val completed = (state.currentIndex + 1).coerceIn(0, total)
+                val total = totalWords.coerceAtLeast(0)
+                val completed = masteredWords.coerceIn(0, total)
                 CorrectAnswerSuccessCard(
                     completed = completed,
                     total = total,
@@ -271,7 +274,6 @@ fun PracticeScreen(
                     wordProgressText = run {
                         val curWord = state.words.getOrNull(state.currentIndex)
                         if (curWord == null) "" else {
-                            val required = state.requiredCorrectAnswers.coerceAtLeast(1)
                             val cur = curWord.correctCount.coerceIn(0, required)
                             "Progress: $cur / $required"
                         }
@@ -361,7 +363,7 @@ fun PracticeScreen(
                         if (current != null) {
                             val cur = current.correctCount.coerceIn(0, required)
                             Text(
-                                text = "Progress: $cur / $required",
+                                text = "Word Progress: $cur / $required",
                                 color = Color(0xFF475569),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp

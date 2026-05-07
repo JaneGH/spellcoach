@@ -276,7 +276,9 @@ private fun WordListCard(
                         showResetConfirm = false
                         onResetProgress()
                     }
-                ) { Text("Reset") }
+                ) { Text(
+                    text = "Reset",
+                    color = Color.White) }
             },
             dismissButton = {
                 OutlinedButton(onClick = { showResetConfirm = false }) { Text("Cancel") }
