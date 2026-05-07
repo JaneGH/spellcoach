@@ -16,9 +16,12 @@ import com.example.spellcoach.domain.usecase.ProcessSpellingResultUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -46,6 +49,10 @@ data class PracticeUiState(
 
 enum class PracticeAnimHint { None, BounceOk, ShakeWrong }
 
+sealed interface PracticeEvent {
+    data object Finished : PracticeEvent
+}
+
 @HiltViewModel
 class PracticeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -64,6 +71,9 @@ class PracticeViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(PracticeUiState(listId = listId))
     val state: StateFlow<PracticeUiState> = _state.asStateFlow()
+
+    private val _events = MutableSharedFlow<PracticeEvent>(extraBufferCapacity = 1)
+    val events: SharedFlow<PracticeEvent> = _events.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -153,11 +163,8 @@ class PracticeViewModel @Inject constructor(
         _state.update { it.copy(animationHint = PracticeAnimHint.None, wordJustMastered = false) }
     }
 
-    fun checkWord(onFinishedNavigate: () -> Unit) {
-        val w = currentWord() ?: run {
-            viewModelScope.launch { finishSession(onFinishedNavigate) }
-            return
-        }
+    fun checkWord() {
+        val w = currentWord() ?: return
         viewModelScope.launch {
             val settings = observeSettingsUseCase().first()
             val result = processSpelling(
@@ -182,34 +189,14 @@ class PracticeViewModel @Inject constructor(
                 }
 
                 // Move forward; if the word is mastered it will be filtered out by flow, but we still advance in this snapshot.
-                val nextIndex = (_state.value.currentIndex + 1).coerceAtMost(updatedWords.size)
-                if (nextIndex >= total) {
-                    _state.update {
-                        it.copy(
-                            sessionCorrect = newSessionCorrect,
-                            animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
-                            feedbackCorrect = true,
-                            input = "",
-                            words = updatedWords,
-                            wordJustMastered = justMastered
-                        )
-                    }
-                    finishSession(newSessionCorrect, onFinishedNavigate)
-                } else {
-                    val nextWord = updatedWords[nextIndex]
-                    _state.update {
-                        it.copy(
-                            sessionCorrect = newSessionCorrect,
-                            currentIndex = nextIndex,
-                            letters = shuffleLetters(nextWord.text),
-                            feedbackCorrect = true,
-                            animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
-                            input = "",
-                            showHints = false,
-                            words = updatedWords,
-                            wordJustMastered = justMastered
-                        )
-                    }
+                _state.update {
+                    it.copy(
+                        sessionCorrect = newSessionCorrect,
+                        feedbackCorrect = true,
+                        animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
+                        words = updatedWords,
+                        wordJustMastered = justMastered
+                    )
                 }
             } else {
                 sound.playRetry()
@@ -226,17 +213,52 @@ class PracticeViewModel @Inject constructor(
         }
     }
 
+    fun onNextWord() {
+        val cur = _state.value
+
+        // Always reset UI flags/input when user explicitly proceeds.
+        _state.update {
+            it.copy(
+                feedbackCorrect = null,
+                input = "",
+                showHints = false,
+                wordJustMastered = false
+            )
+        }
+
+        // Determine next step based on current unmastered snapshot.
+        val words = cur.words
+        if (words.isEmpty()) {
+            viewModelScope.launch { finishSessionAndEmit() }
+            return
+        }
+
+        val nextIndex = (cur.currentIndex + 1)
+        if (nextIndex >= words.size) {
+            viewModelScope.launch { finishSessionAndEmit() }
+            return
+        }
+
+        val nextWord = words[nextIndex]
+        _state.update {
+            it.copy(
+                currentIndex = nextIndex,
+                letters = shuffleLetters(nextWord.text)
+            )
+        }
+        listen()
+    }
+
     fun resetListProgress() {
         viewModelScope.launch {
             wordRepository.resetProgress(listId)
         }
     }
 
-    private suspend fun finishSession(finalCorrect: Int, onNavigate: () -> Unit) {
+    private suspend fun finishSession(finalCorrect: Int) {
         val s = _state.value
         val total = s.words.size
         if (total == 0) {
-            onNavigate()
             return
         }
         val perfect = s.incorrectSubmissions == 0
@@ -254,11 +276,15 @@ class PracticeViewModel @Inject constructor(
             )
         )
         sound.playCompletion()
-        onNavigate()
     }
 
-    private suspend fun finishSession(onNavigate: () -> Unit) {
-        finishSession(_state.value.sessionCorrect, onNavigate)
+    private suspend fun finishSession() {
+        finishSession(_state.value.sessionCorrect)
+    }
+
+    private suspend fun finishSessionAndEmit() {
+        finishSession()
+        _events.emit(PracticeEvent.Finished)
     }
 
     private fun currentWord(): Word? =

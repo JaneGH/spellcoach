@@ -147,6 +147,12 @@ fun PracticeScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { e ->
+            if (e is PracticeEvent.Finished) onFinished()
+        }
+    }
+
     LaunchedEffect(state.currentIndex, state.feedbackCorrect) {
         when (state.feedbackCorrect) {
             false -> {
@@ -203,7 +209,7 @@ fun PracticeScreen(
             subtitleBelowBrand = null
         )
 
-        if (!state.loading && state.words.isEmpty()) {
+        if (!state.loading && state.words.isEmpty() && !showCorrectAnswerCard) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -257,28 +263,22 @@ fun PracticeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 val total = state.words.size.coerceAtLeast(0)
-                val completed = state.currentIndex.coerceIn(0, total)
+                val completed = (state.currentIndex + 1).coerceIn(0, total)
                 CorrectAnswerSuccessCard(
                     completed = completed,
                     total = total,
                     showWordMastered = state.wordJustMastered,
                     wordProgressText = run {
-                        val prevWord = state.words.getOrNull((state.currentIndex - 1).coerceAtLeast(0))
-                        if (prevWord == null) "" else {
+                        val curWord = state.words.getOrNull(state.currentIndex)
+                        if (curWord == null) "" else {
                             val required = state.requiredCorrectAnswers.coerceAtLeast(1)
-                            val cur = prevWord.correctCount.coerceIn(0, required)
+                            val cur = curWord.correctCount.coerceIn(0, required)
                             "Progress: $cur / $required"
                         }
                     },
                     onNextWord = {
                         showCorrectAnswerCard = false
-                        viewModel.onInputChange("")
-
-                        if (state.currentIndex >= state.words.lastIndex) {
-                            onFinished()
-                        } else {
-                            viewModel.listen()
-                        }
+                        viewModel.onNextWord()
                     }
                 )
             }
@@ -494,7 +494,7 @@ fun PracticeScreen(
                                                 keyboardActions = KeyboardActions(
                                                     onNext = {
                                                         showWrongAnswerCard = false
-                                                        viewModel.checkWord(onFinished)
+                                                        viewModel.checkWord()
                                                     }
                                                 ),
 
@@ -517,7 +517,7 @@ fun PracticeScreen(
                                                 text = "Check Word   →",
                                                 onClick = {
                                                     showWrongAnswerCard = false
-                                                    viewModel.checkWord(onFinished)
+                                                    viewModel.checkWord()
                                                 },
                                                 containerColor = Color(0xFF0B6B8C)
                                             )
@@ -531,7 +531,7 @@ fun PracticeScreen(
                                             onRecognized = { recognized ->
                                                 // Reuse existing ViewModel flow.
                                                 viewModel.onInputChange(recognized)
-                                                viewModel.checkWord(onFinished)
+                                                viewModel.checkWord()
                                             }
                                         )
                                     }
@@ -626,6 +626,7 @@ private fun HandwritingInputPanel(
     val strokes = remember { mutableStateListOf<HandwritingStroke>() }
     var isRecognizing by remember { mutableStateOf(false) }
     var detectedText by rememberSaveable { mutableStateOf("") }
+    var recognizeTick by remember { mutableStateOf(0) }
 
     val cardShape = RoundedCornerShape(32.dp)
     val border = Color(0xFF0F172A).copy(alpha = 0.08f)
@@ -633,9 +634,22 @@ private fun HandwritingInputPanel(
     val uiBlack = Color(0xFF0F172A)
     val subtleText = Color(0xFF111827).copy(alpha = 0.68f)
 
-    val submitGradient = Brush.linearGradient(
-        colors = listOf(Color(0xFF2F80FF), Color(0xFF1B5CFF), Color(0xFF3DA6FF))
-    )
+    LaunchedEffect(recognizeTick) {
+        if (strokes.isEmpty()) {
+            detectedText = ""
+            return@LaunchedEffect
+        }
+        // Debounce after the last finished stroke / edit.
+        kotlinx.coroutines.delay(700)
+        if (isRecognizing || strokes.isEmpty()) return@LaunchedEffect
+
+        isRecognizing = true
+        val recognized = runCatching {
+            recognizeInkWord(recognizer = recognizer, strokes = strokes.toList())
+        }.getOrNull().orEmpty()
+        detectedText = recognized
+        isRecognizing = false
+    }
 
     Box(
         modifier = modifier
@@ -675,10 +689,10 @@ private fun HandwritingInputPanel(
                 .fillMaxSize()
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             strokes = strokes,
-            inkColor = inkColor
+            inkColor = inkColor,
+            onStrokeFinished = { recognizeTick++ }
         )
 
-        // Top-right: subtle "Detected text" + compact value (minimal vertical space)
         Column(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -686,7 +700,7 @@ private fun HandwritingInputPanel(
             horizontalAlignment = Alignment.End
         ) {
             Text(
-                text = "Detected text",
+                text = "Detected text:",
                 color = subtleText,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -713,78 +727,78 @@ private fun HandwritingInputPanel(
         ) {
             MinimalCircleOutlineIconButton(
                 enabled = strokes.isNotEmpty() && !isRecognizing,
-                onClick = { strokes.clear() },
+                onClick = {
+                    strokes.clear()
+                    recognizeTick++
+                },
                 imageVector = Icons.Filled.DeleteOutline,
                 contentDescription = "Clear handwriting"
             )
             MinimalCircleOutlineIconButton(
                 enabled = strokes.isNotEmpty() && !isRecognizing,
-                onClick = { if (strokes.isNotEmpty()) strokes.removeAt(strokes.lastIndex) },
+                onClick = {
+                    if (strokes.isNotEmpty()) strokes.removeAt(strokes.lastIndex)
+                    recognizeTick++
+                },
                 imageVector = Icons.AutoMirrored.Filled.Undo,
                 contentDescription = "Undo"
             )
         }
 
-        // Bottom-right: large rounded gradient submit pill with soft glow + glass
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 14.dp, bottom = 14.dp)
         ) {
             val pillShape = RoundedCornerShape(999.dp)
-
-            // Soft glow underlay
-            Box(
-                modifier = Modifier
-                    .height(56.dp)
-                    .width(168.dp)
-                    .clip(pillShape)
-                    .background(Color(0xFF2F80FF).copy(alpha = 0.22f))
-                    .shadow(elevation = 22.dp, shape = pillShape, clip = false)
-            )
+            val submitColor = Color(0xFF0B6B8C)
 
             Button(
                 onClick = {
                     if (strokes.isEmpty()) return@Button
-                    isRecognizing = true
                     scope.launch {
+                        val already = detectedText.trim()
+                        if (already.isNotBlank()) {
+                            onRecognized(already)
+                            return@launch
+                        }
+                        isRecognizing = true
                         val recognized = runCatching {
                             recognizeInkWord(recognizer = recognizer, strokes = strokes.toList())
                         }.getOrNull().orEmpty()
-
                         detectedText = recognized
                         isRecognizing = false
-                        if (recognized.isNotBlank()) onRecognized(recognized)
+                        val toSubmit = recognized.trim()
+                        if (toSubmit.isNotBlank()) onRecognized(toSubmit)
                     }
                 },
                 enabled = strokes.isNotEmpty() && !isRecognizing,
                 shape = pillShape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
+                    containerColor = submitColor,
                     contentColor = Color.White,
-                    disabledContainerColor = Color.Transparent,
-                    disabledContentColor = Color.White.copy(alpha = 0.65f)
+                    disabledContainerColor = submitColor.copy(alpha = 0.45f),
+                    disabledContentColor = Color.White
                 ),
                 contentPadding = ButtonDefaults.ContentPadding,
                 modifier = Modifier
-                    .height(56.dp)
-                    .width(168.dp)
+                    .height(44.dp)
+                    .width(120.dp)
                     .clip(pillShape)
-                    .background(submitGradient, pillShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.28f), pillShape)
             ) {
                 Text(
                     text = if (isRecognizing) "Reading…" else "Submit",
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontSize = 15.sp,
                     letterSpacing = 0.1.sp
                 )
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(8.dp))
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Submit",
                     tint = Color.White,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
@@ -822,7 +836,8 @@ private fun HandwritingCanvas(
     modifier: Modifier = Modifier,
     strokes: MutableList<HandwritingStroke>,
     inkColor: Color,
-    strokeWidth: Float = 14f
+    strokeWidth: Float = 14f,
+    onStrokeFinished: () -> Unit
 ) {
     var currentStroke by remember { mutableStateOf<HandwritingStroke?>(null) }
     var redrawTick by remember { mutableStateOf(0) }
@@ -855,6 +870,7 @@ private fun HandwritingCanvas(
                         currentStroke?.let { finished ->
                             if (finished.points.size >= 2) {
                                 strokes.add(finished)
+                                onStrokeFinished()
                             }
                         }
                         currentStroke = null
