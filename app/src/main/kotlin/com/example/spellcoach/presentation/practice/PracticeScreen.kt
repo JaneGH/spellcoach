@@ -40,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -135,6 +136,48 @@ fun PracticeScreen(
             subtitleBelowBrand = null
         )
 
+        if (!state.loading && state.words.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "All words mastered!",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 28.sp,
+                        color = Color(0xFF0F172A),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "Great job. You can reset progress or add more words.",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        color = Color(0xFF64748B),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(22.dp))
+                    PrimaryButton(
+                        text = "Reset Progress",
+                        onClick = viewModel::resetListProgress,
+                        containerColor = Color(0xFF0B6B8C)
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedButton(
+                        onClick = onBack,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(text = "Back to Lists", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            return@Column
+        }
+
         AnimatedVisibility(
             visible = showCorrectAnswerCard,
             enter = fadeIn() + slideInVertically(initialOffsetY = { it / 6 }),
@@ -151,6 +194,15 @@ fun PracticeScreen(
                 CorrectAnswerSuccessCard(
                     completed = completed,
                     total = total,
+                    showWordMastered = state.wordJustMastered,
+                    wordProgressText = run {
+                        val prevWord = state.words.getOrNull((state.currentIndex - 1).coerceAtLeast(0))
+                        if (prevWord == null) "" else {
+                            val required = state.requiredCorrectAnswers.coerceAtLeast(1)
+                            val cur = prevWord.correctCount.coerceIn(0, required)
+                            "Progress: $cur / $required"
+                        }
+                    },
                     onNextWord = {
                         showCorrectAnswerCard = false
                         viewModel.onInputChange("")
@@ -218,6 +270,21 @@ fun PracticeScreen(
                         )
 
                         Spacer(Modifier.height(18.dp))
+
+                        val current = state.words.getOrNull(state.currentIndex)
+                        val required = state.requiredCorrectAnswers.coerceAtLeast(1)
+                        if (current != null) {
+                            val cur = current.correctCount.coerceIn(0, required)
+                            Text(
+                                text = "Progress: $cur / $required",
+                                color = Color(0xFF475569),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            HorizontalDivider(color = Color(0xFFE2E8F0))
+                            Spacer(Modifier.height(10.dp))
+                        }
 
                         AnimatedVisibility(
                             visible = showWrongAnswerCard,
@@ -429,6 +496,8 @@ fun PracticeScreen(
 private fun CorrectAnswerSuccessCard(
     completed: Int,
     total: Int,
+    showWordMastered: Boolean,
+    wordProgressText: String,
     onNextWord: () -> Unit
 ) {
     val progress = if (total <= 0) 0f else (completed.toFloat() / total.toFloat()).coerceIn(0f, 1f)
@@ -493,6 +562,28 @@ private fun CorrectAnswerSuccessCard(
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
             )
+
+            if (showWordMastered) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Word mastered!",
+                    color = titleGreen,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            if (wordProgressText.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = wordProgressText,
+                    color = Color(0xFF374151),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
 
             Spacer(Modifier.height(24.dp))
 

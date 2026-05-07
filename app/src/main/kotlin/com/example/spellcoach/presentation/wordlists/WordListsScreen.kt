@@ -21,13 +21,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +66,7 @@ import com.example.spellcoach.presentation.theme.ScreenBackgroundCool
 fun WordListsScreen(
     onCreateNewList: () -> Unit,
     onPracticeList: (Long) -> Unit,
+    onEditList: (Long) -> Unit,
     viewModel: WordListsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -85,7 +99,10 @@ fun WordListsScreen(
                         onClick = {
                             viewModel.rememberPracticeList(list.id)
                             onPracticeList(list.id)
-                        }
+                        },
+                        onEdit = { onEditList(list.id) },
+                        onResetProgress = { viewModel.resetListProgress(list.id) },
+                        onDelete = { viewModel.deleteList(list.id) }
                     )
                 }
                 item {
@@ -110,8 +127,15 @@ fun WordListsScreen(
 @Composable
 private fun WordListCard(
     list: WordList,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onResetProgress: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+    var showResetConfirm by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     LearningCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -131,34 +155,66 @@ private fun WordListCard(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "${list.learnedWords}/${list.totalWords} words learned",
+                    text = "${list.learnedWords} / ${list.totalWords} mastered",
                     fontSize = 14.sp,
                     color = Color(0xFF64748B),
                     fontWeight = FontWeight.Medium
                 )
             }
-            if (list.isMastered) {
-                Box(
-                    modifier = Modifier
-                        .size(26.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFE7F6EC)),
-                    contentAlignment = Alignment.Center
-                ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (list.isMastered) {
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE7F6EC)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Mastered",
+                            tint = ProgressFillStrong,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else {
                     Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Mastered",
-                        tint = ProgressFillStrong,
-                        modifier = Modifier.size(16.dp)
+                        imageVector = Icons.Filled.ChevronRight,
+                        contentDescription = "Open",
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
-            } else {
-                Icon(
-                    imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = "Open",
-                    tint = PrimaryBlue,
-                    modifier = Modifier.size(22.dp)
-                )
+                Spacer(Modifier.width(6.dp))
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "List actions", tint = Color(0xFF64748B))
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
+                        onClick = {
+                            menuOpen = false
+                            onEdit()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Reset Progress") },
+                        leadingIcon = { Icon(Icons.Filled.RestartAlt, contentDescription = null) },
+                        onClick = {
+                            menuOpen = false
+                            showResetConfirm = true
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+                        onClick = {
+                            menuOpen = false
+                            showDeleteConfirm = true
+                        }
+                    )
+                }
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -207,6 +263,44 @@ private fun WordListCard(
                 }
             }
         }
+    }
+
+    if (showResetConfirm) {
+        AlertDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = { Text(text = "Reset progress?") },
+            text = { Text(text = "This will reset mastery progress for all words in this list.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showResetConfirm = false
+                        onResetProgress()
+                    }
+                ) { Text("Reset") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showResetConfirm = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(text = "Delete list?") },
+            text = { Text(text = "This will delete the list and all its words.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirm = false
+                        onDelete()
+                    }
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+            }
+        )
     }
 }
 

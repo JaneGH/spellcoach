@@ -18,7 +18,10 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -36,7 +39,9 @@ data class PracticeUiState(
     val loading: Boolean = true,
     val feedbackCorrect: Boolean? = null,
     val animationHint: PracticeAnimHint = PracticeAnimHint.None,
-    val audioEnabled: Boolean = true
+    val audioEnabled: Boolean = true,
+    val requiredCorrectAnswers: Int = 3,
+    val wordJustMastered: Boolean = false
 )
 
 enum class PracticeAnimHint { None, BounceOk, ShakeWrong }
@@ -62,34 +67,63 @@ class PracticeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val settings = observeSettingsUseCase().first()
-            tts.setSpeechRate(settings.speechRate)
             val name = wordRepository.getWordListName(listId).orEmpty()
-            val list = wordRepository.observeWordsForList(listId).first()
-            val practiceWords = list.filter { !it.isMastered }.ifEmpty { list }
-            val letters = practiceWords.firstOrNull()?.let { shuffleLetters(it.text) }.orEmpty()
             _state.update {
                 it.copy(
                     listName = name,
-                    words = practiceWords,
-                    letters = letters,
                     loading = false,
-                    audioEnabled = settings.audioEnabled,
-                    hintsEnabled = settings.letterHintsEnabled,
                     showHints = false
                 )
             }
         }
         viewModelScope.launch {
-            observeSettingsUseCase().collect { s ->
+            val settingsFlow = observeSettingsUseCase()
+            settingsFlow.collect { s ->
                 _state.update { cur ->
                     cur.copy(
                         audioEnabled = s.audioEnabled,
                         hintsEnabled = s.letterHintsEnabled,
-                        showHints = if (s.letterHintsEnabled) cur.showHints else false
+                        showHints = if (s.letterHintsEnabled) cur.showHints else false,
+                        requiredCorrectAnswers = s.requiredCorrectAnswers
                     )
                 }
                 tts.setSpeechRate(s.speechRate)
+            }
+        }
+
+        viewModelScope.launch {
+            observeSettingsUseCase()
+                .map { it.requiredCorrectAnswers }
+                .distinctUntilChanged()
+                .collect { required ->
+                    wordRepository.reconcileMastery(required)
+                }
+        }
+
+        viewModelScope.launch {
+            val settingsFlow = observeSettingsUseCase()
+            val wordsFlow = wordRepository.observeWordsForList(listId)
+
+            combine(
+                wordsFlow,
+                settingsFlow.map { it.requiredCorrectAnswers }.distinctUntilChanged()
+            ) { words, required ->
+                required to words
+            }.collect { (required, words) ->
+                val unmastered = words.filter { it.correctCount < required || !it.isMastered }
+                val currentWordId = _state.value.words.getOrNull(_state.value.currentIndex)?.id
+                val nextIndex = currentWordId?.let { id ->
+                    unmastered.indexOfFirst { it.id == id }.takeIf { it >= 0 } ?: 0
+                } ?: 0
+                val nextWord = unmastered.getOrNull(nextIndex)
+                _state.update { cur ->
+                    cur.copy(
+                        words = unmastered,
+                        currentIndex = nextIndex.coerceIn(0, (unmastered.size - 1).coerceAtLeast(0)),
+                        letters = nextWord?.let { shuffleLetters(it.text) }.orEmpty(),
+                        requiredCorrectAnswers = required
+                    )
+                }
             }
         }
     }
@@ -116,7 +150,7 @@ class PracticeViewModel @Inject constructor(
     }
 
     fun clearAnimationHint() {
-        _state.update { it.copy(animationHint = PracticeAnimHint.None) }
+        _state.update { it.copy(animationHint = PracticeAnimHint.None, wordJustMastered = false) }
     }
 
     fun checkWord(onFinishedNavigate: () -> Unit) {
@@ -132,26 +166,37 @@ class PracticeViewModel @Inject constructor(
                 settings.requiredCorrectAnswers,
                 settings.mistakeBehavior
             )
+            val justMastered = !w.isMastered && result.updatedWord.isMastered
             if (result.isSpellingCorrect) {
                 val before = rewardRepository.rewardState.first()
                 val isFirstEver = before.totalCorrectLifetime == 0
                 sessionBadges += rewardRepository.onCorrectAnswer(isFirstEver)
                 sound.playSuccess()
                 val newSessionCorrect = _state.value.sessionCorrect + 1
-                val nextIndex = _state.value.currentIndex + 1
                 val total = _state.value.words.size
+
+                // Update local snapshot so UI can show per-word progress immediately.
+                val updatedWords = _state.value.words.toMutableList().also { list ->
+                    val idx = list.indexOfFirst { it.id == result.updatedWord.id }
+                    if (idx >= 0) list[idx] = result.updatedWord
+                }
+
+                // Move forward; if the word is mastered it will be filtered out by flow, but we still advance in this snapshot.
+                val nextIndex = (_state.value.currentIndex + 1).coerceAtMost(updatedWords.size)
                 if (nextIndex >= total) {
                     _state.update {
                         it.copy(
                             sessionCorrect = newSessionCorrect,
                             animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
                             feedbackCorrect = true,
-                            input = ""
+                            input = "",
+                            words = updatedWords,
+                            wordJustMastered = justMastered
                         )
                     }
                     finishSession(newSessionCorrect, onFinishedNavigate)
                 } else {
-                    val nextWord = _state.value.words[nextIndex]
+                    val nextWord = updatedWords[nextIndex]
                     _state.update {
                         it.copy(
                             sessionCorrect = newSessionCorrect,
@@ -160,7 +205,9 @@ class PracticeViewModel @Inject constructor(
                             feedbackCorrect = true,
                             animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
                             input = "",
-                            showHints = false
+                            showHints = false,
+                            words = updatedWords,
+                            wordJustMastered = justMastered
                         )
                     }
                 }
@@ -171,10 +218,17 @@ class PracticeViewModel @Inject constructor(
                         incorrectSubmissions = it.incorrectSubmissions + 1,
                         feedbackCorrect = false,
                         animationHint = if (settings.animationsEnabled) PracticeAnimHint.ShakeWrong else PracticeAnimHint.None,
-                        input = ""
+                        input = "",
+                        wordJustMastered = false
                     )
                 }
             }
+        }
+    }
+
+    fun resetListProgress() {
+        viewModelScope.launch {
+            wordRepository.resetProgress(listId)
         }
     }
 

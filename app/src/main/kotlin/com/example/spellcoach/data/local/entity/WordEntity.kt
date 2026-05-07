@@ -21,7 +21,8 @@ data class WordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val listId: Long,
     val text: String,
-    val correctCount: Int,
-    val incorrectCount: Int,
-    val isMastered: Boolean
+    val correctCount: Int = 0,
+    val incorrectCount: Int = 0,
+    val isMastered: Boolean = false,
+    val masteredAt: Long? = null
 )

@@ -22,21 +22,20 @@ class ProcessSpellingResultUseCase @Inject constructor(
         val guess = attempt.trim()
         val target = word.text.trim()
         val isCorrect = guess.equals(target, ignoreCase = true)
+        val now = System.currentTimeMillis()
         val updated = if (isCorrect) {
             val nextCorrect = word.correctCount + 1
             val mastered = nextCorrect >= requiredCorrectStreak
-            word.copy(
-                correctCount = nextCorrect,
-                isMastered = mastered
-            )
+            val nextMasteredAt = if (mastered) (word.masteredAt ?: now) else null
+            word.copy(correctCount = nextCorrect, isMastered = mastered, masteredAt = nextMasteredAt)
         } else {
             when (mistakeBehavior) {
                 MistakeBehavior.DECREASE_PROGRESS -> {
                     val next = (word.correctCount - 1).coerceAtLeast(0)
-                    word.copy(correctCount = next, isMastered = false)
+                    word.copy(correctCount = next, isMastered = false, masteredAt = null)
                 }
                 MistakeBehavior.RESET_PROGRESS -> {
-                    word.copy(correctCount = 0, isMastered = false)
+                    word.copy(correctCount = 0, isMastered = false, masteredAt = null)
                 }
             }
         }

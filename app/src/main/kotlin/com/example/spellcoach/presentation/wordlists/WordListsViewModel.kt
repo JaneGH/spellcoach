@@ -37,4 +37,12 @@ class WordListsViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = WordListsUiState(loading = true)
         )
+
+    fun resetListProgress(listId: Long) {
+        viewModelScope.launch { wordRepository.resetProgress(listId) }
+    }
+
+    fun deleteList(listId: Long) {
+        viewModelScope.launch { wordRepository.deleteWordList(listId) }
+    }
 }

@@ -31,12 +31,43 @@ class WordRepositoryImpl @Inject constructor(
                     text = w.trim(),
                     correctCount = 0,
                     incorrectCount = 0,
-                    isMastered = false
+                    isMastered = false,
+                    masteredAt = null
                 )
             }
             dao.insertWords(entities)
         }
         return listId
+    }
+
+    override suspend fun updateWordListWithWords(listId: Long, name: String, words: List<String>) {
+        val normalizedName = name.trim()
+        val normalizedWords = words.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+
+        val existing = dao.getWordsForList(listId)
+        val existingByText = existing.associateBy { it.text.trim() }
+        val keepTexts = normalizedWords.toSet()
+
+        val toDeleteIds = existing.filter { it.text.trim() !in keepTexts }.map { it.id }
+        if (toDeleteIds.isNotEmpty()) dao.deleteWordsById(toDeleteIds)
+
+        val toInsert = normalizedWords
+            .filter { it !in existingByText.keys }
+            .map { text ->
+                WordEntity(
+                    listId = listId,
+                    text = text,
+                    correctCount = 0,
+                    incorrectCount = 0,
+                    isMastered = false,
+                    masteredAt = null
+                )
+            }
+        if (toInsert.isNotEmpty()) dao.insertWords(toInsert)
+
+        if (normalizedName.isNotEmpty()) {
+            dao.renameWordList(listId, normalizedName)
+        }
     }
 
     override suspend fun updateWord(word: Word) {
@@ -47,17 +78,29 @@ class WordRepositoryImpl @Inject constructor(
                 text = word.text,
                 correctCount = word.correctCount,
                 incorrectCount = word.incorrectCount,
-                isMastered = word.isMastered
+                isMastered = word.isMastered,
+                masteredAt = word.masteredAt
             )
         )
     }
 
     override suspend fun resetProgress(listId: Long) = dao.resetProgress(listId)
 
+    override suspend fun resetWordProgress(wordId: Long) = dao.resetWordProgress(wordId)
+
+    override suspend fun resetAllProgress() = dao.resetAllProgress()
+
+    override suspend fun reconcileMastery(requiredCorrectAnswers: Int) {
+        dao.reconcileMastery(requiredCorrectAnswers = requiredCorrectAnswers.coerceAtLeast(1), now = System.currentTimeMillis())
+    }
+
     override suspend fun deleteWordList(listId: Long) = dao.deleteWordList(listId)
 
     override suspend fun getWordListName(listId: Long): String? =
         dao.getWordList(listId)?.name
+
+    override suspend fun getWordsForList(listId: Long): List<Word> =
+        dao.getWordsForList(listId).map { it.toDomain() }
 
     override suspend fun getWordById(wordId: Long): Word? =
         dao.getWord(wordId)?.toDomain()

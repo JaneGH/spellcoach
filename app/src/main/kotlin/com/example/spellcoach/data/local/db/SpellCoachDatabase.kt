@@ -8,7 +8,7 @@ import com.example.spellcoach.data.local.entity.WordListEntity
 
 @Database(
     entities = [WordListEntity::class, WordEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class SpellCoachDatabase : RoomDatabase() {

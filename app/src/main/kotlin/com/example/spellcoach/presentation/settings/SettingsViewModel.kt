@@ -8,10 +8,13 @@ import com.example.spellcoach.domain.model.AppSettings
 import com.example.spellcoach.domain.model.MistakeBehavior
 import com.example.spellcoach.domain.usecase.ObserveSettingsUseCase
 import com.example.spellcoach.domain.usecase.UpdateSettingsUseCase
+import com.example.spellcoach.domain.repository.WordRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -19,6 +22,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel @Inject constructor(
     observeSettingsUseCase: ObserveSettingsUseCase,
     private val updateSettings: UpdateSettingsUseCase,
+    private val wordRepository: WordRepository,
     private val ttsManager: TtsManager
 ) : ViewModel() {
 
@@ -30,6 +34,17 @@ class SettingsViewModel @Inject constructor(
         )
 
     val ttsAvailability: StateFlow<TtsAvailability> = ttsManager.availability
+
+    init {
+        viewModelScope.launch {
+            settings
+                .map { it.requiredCorrectAnswers }
+                .distinctUntilChanged()
+                .collect { required ->
+                    wordRepository.reconcileMastery(required)
+                }
+        }
+    }
 
     fun setRequiredCorrect(n: Int) {
         viewModelScope.launch {
@@ -76,5 +91,11 @@ class SettingsViewModel @Inject constructor(
 
     fun openTtsSettings() {
         ttsManager.openSystemTtsSettings()
+    }
+
+    fun resetAllProgress() {
+        viewModelScope.launch {
+            wordRepository.resetAllProgress()
+        }
     }
 }

@@ -6,5 +6,6 @@ data class Word(
     val text: String,
     val correctCount: Int,
     val incorrectCount: Int,
-    val isMastered: Boolean
+    val isMastered: Boolean,
+    val masteredAt: Long? = null
 )

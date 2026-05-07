@@ -5,20 +5,18 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
-import android.os.ParcelFileDescriptor
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.spellcoach.domain.repository.WordRepository
 import com.example.spellcoach.domain.usecase.CreateWordListUseCase
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import kotlin.math.min
-import java.util.Locale
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,10 +24,15 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.Locale
+import javax.inject.Inject
+import kotlin.math.min
 
 @HiltViewModel
 class AddWordsViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
+    savedStateHandle: SavedStateHandle,
+    private val wordRepository: WordRepository,
     private val createWordList: CreateWordListUseCase
 ) : ViewModel() {
 
@@ -40,6 +43,23 @@ class AddWordsViewModel @Inject constructor(
     val events = _events.receiveAsFlow()
 
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+
+    private val listIdArg: Long? = savedStateHandle.get<Long>("listId")?.takeIf { it > 0 }
+
+    init {
+        if (listIdArg != null) {
+            viewModelScope.launch {
+                val name = wordRepository.getWordListName(listIdArg).orEmpty()
+                val words = wordRepository.getWordsForList(listIdArg).map { it.text }
+                _state.value = _state.value.copy(
+                    listId = listIdArg,
+                    isEditMode = true,
+                    listName = name,
+                    previewWords = words
+                )
+            }
+        }
+    }
 
     fun setListName(value: String) {
         _state.value = _state.value.copy(listName = value, errorMessage = null)
@@ -119,23 +139,48 @@ class AddWordsViewModel @Inject constructor(
                 return@launch
             }
             _state.value = _state.value.copy(saving = true, errorMessage = null)
-            val result = createWordList(_state.value.listName, _state.value.previewWords)
-            result.fold(
-                onSuccess = {
-                    _state.value = _state.value.copy(saving = false)
-                    _events.send(AddWordsEvent.Saved)
-                },
-                onFailure = { e ->
-                    _state.value = _state.value.copy(
-                        saving = false,
-                        errorMessage = when (e.message) {
-                            "empty_name" -> "Please enter a list name."
-                            "no_words" -> "Add at least one word."
-                            else -> e.message ?: "Could not save."
-                        }
-                    )
+            val editId = _state.value.listId
+            if (editId != null) {
+                val n = _state.value.listName.trim()
+                if (n.isEmpty()) {
+                    _state.value = _state.value.copy(saving = false, errorMessage = "Please enter a list name.")
+                    return@launch
                 }
-            )
+                val parsed = _state.value.previewWords.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                if (parsed.isEmpty()) {
+                    _state.value = _state.value.copy(saving = false, errorMessage = "Add at least one word.")
+                    return@launch
+                }
+                runCatching {
+                    wordRepository.updateWordListWithWords(editId, n, parsed)
+                }.fold(
+                    onSuccess = {
+                        _state.value = _state.value.copy(saving = false)
+                        _events.send(AddWordsEvent.Saved)
+                    },
+                    onFailure = { e ->
+                        _state.value = _state.value.copy(saving = false, errorMessage = e.message ?: "Could not save.")
+                    }
+                )
+            } else {
+                val result = createWordList(_state.value.listName, _state.value.previewWords)
+                result.fold(
+                    onSuccess = {
+                        _state.value = _state.value.copy(saving = false)
+                        _events.send(AddWordsEvent.Saved)
+                    },
+                    onFailure = { e ->
+                        _state.value = _state.value.copy(
+                            saving = false,
+                            errorMessage = when (e.message) {
+                                "empty_name" -> "Please enter a list name."
+                                "no_words" -> "Add at least one word."
+                                else -> e.message ?: "Could not save."
+                            }
+                        )
+                    }
+                )
+            }
         }
     }
 

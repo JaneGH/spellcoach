@@ -16,7 +16,8 @@ fun WordEntity.toDomain(): Word = Word(
     text = text,
     correctCount = correctCount,
     incorrectCount = incorrectCount,
-    isMastered = isMastered
+    isMastered = isMastered,
+    masteredAt = masteredAt
 )
 
 fun WordListWithProgress.toDomain(): WordList {

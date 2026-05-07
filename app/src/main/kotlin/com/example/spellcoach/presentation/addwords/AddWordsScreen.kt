@@ -15,17 +15,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -38,22 +34,24 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.spellcoach.presentation.theme.DashedBorder
 import com.example.spellcoach.presentation.components.LearningCard
 import com.example.spellcoach.presentation.components.PrimaryButton
 import com.example.spellcoach.presentation.components.SaveGreenButton
 import com.example.spellcoach.presentation.components.SpellCoachTopBar
 import com.example.spellcoach.presentation.components.WordChip
-import androidx.compose.ui.platform.LocalContext
+import com.example.spellcoach.presentation.theme.DashedBorder
 import kotlinx.coroutines.flow.collectLatest
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.imePadding
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -103,7 +101,7 @@ fun AddWordsScreen(
         SpellCoachTopBar(
             showBack = true,
             onBack = onBack,
-            brandTitle = "Add Words",
+            brandTitle = if (state.isEditMode) "Edit List" else "Add Words",
             brandAccent = null,
             screenTitle = null,
             subtitleBelowBrand = null
@@ -268,7 +266,7 @@ fun AddWordsScreen(
 
             Spacer(Modifier.weight(1f))
             SaveGreenButton(
-                text = "Save to My Lists",
+                text = if (state.isEditMode) "Save Changes" else "Save to My Lists",
                 onClick = viewModel::save,
                 modifier = Modifier
                     .fillMaxWidth()

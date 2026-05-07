@@ -23,6 +23,9 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
@@ -31,6 +34,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +58,7 @@ fun SettingsScreen(
 ) {
     val settings by viewModel.settings.collectAsState()
     val ttsAvailability by viewModel.ttsAvailability.collectAsState()
+    var showResetAllConfirm by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -190,6 +197,42 @@ fun SettingsScreen(
                     selected = settings.mistakeBehavior == MistakeBehavior.RESET_PROGRESS,
                     onClick = { viewModel.setMistakeBehavior(MistakeBehavior.RESET_PROGRESS) }
                 )
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            LearningCard(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Progress",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1C1E)
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Reset your mastery progress for all lists.",
+                    color = Color(0xFF44474E),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFFFFF1F2))
+                        .border(1.dp, Color(0xFFFCA5A5), RoundedCornerShape(14.dp))
+                        .clickable { showResetAllConfirm = true }
+                        .padding(vertical = 14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Reset all progress",
+                        color = Color(0xFFB91C1C),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                }
             }
 
             Spacer(Modifier.height(14.dp))
@@ -403,6 +446,25 @@ fun SettingsScreen(
                 )
             }
         }
+    }
+
+    if (showResetAllConfirm) {
+        AlertDialog(
+            onDismissRequest = { showResetAllConfirm = false },
+            title = { Text(text = "Reset all progress?") },
+            text = { Text(text = "This will reset progress for every word in every list.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showResetAllConfirm = false
+                        viewModel.resetAllProgress()
+                    }
+                ) { Text("Reset") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showResetAllConfirm = false }) { Text("Cancel") }
+            }
+        )
     }
 }
 

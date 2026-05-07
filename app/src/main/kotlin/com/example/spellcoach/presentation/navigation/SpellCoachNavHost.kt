@@ -96,13 +96,24 @@ private fun SpellCoachNavGraph(
     ) {
         composable(Route.WordLists.path) {
             WordListsScreen(
-                onCreateNewList = { navController.navigate(Route.AddWords.path) },
+                onCreateNewList = { navController.navigate(Route.AddWords.createNew()) },
                 onPracticeList = { listId ->
                     navController.navigate(Route.Practice.create(listId))
+                },
+                onEditList = { listId ->
+                    navController.navigate(Route.AddWords.edit(listId))
                 }
             )
         }
-        composable(Route.AddWords.path) {
+        composable(
+            route = Route.AddWords.path,
+            arguments = listOf(
+                navArgument("listId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) {
             AddWordsScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() }

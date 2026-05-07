@@ -31,11 +31,26 @@ interface SpellCoachDao {
 
     @Query(
         """
-        UPDATE words SET correctCount = 0, incorrectCount = 0, isMastered = 0
+        UPDATE words SET correctCount = 0, incorrectCount = 0, isMastered = 0, masteredAt = NULL
         WHERE listId = :listId
         """
     )
     suspend fun resetProgress(listId: Long)
+
+    @Query(
+        """
+        UPDATE words SET correctCount = 0, incorrectCount = 0, isMastered = 0, masteredAt = NULL
+        WHERE id = :wordId
+        """
+    )
+    suspend fun resetWordProgress(wordId: Long)
+
+    @Query(
+        """
+        UPDATE words SET correctCount = 0, incorrectCount = 0, isMastered = 0, masteredAt = NULL
+        """
+    )
+    suspend fun resetAllProgress()
 
     @Query("DELETE FROM word_lists WHERE id = :listId")
     suspend fun deleteWordList(listId: Long)
@@ -45,6 +60,30 @@ interface SpellCoachDao {
 
     @Query("SELECT * FROM words WHERE id = :wordId LIMIT 1")
     suspend fun getWord(wordId: Long): WordEntity?
+
+    @Query("SELECT * FROM words WHERE listId = :listId ORDER BY id ASC")
+    suspend fun getWordsForList(listId: Long): List<WordEntity>
+
+    @Query("UPDATE word_lists SET name = :name WHERE id = :listId")
+    suspend fun renameWordList(listId: Long, name: String)
+
+    @Query("DELETE FROM words WHERE id IN (:wordIds)")
+    suspend fun deleteWordsById(wordIds: List<Long>)
+
+    @Query(
+        """
+        UPDATE words
+        SET isMastered =
+          CASE WHEN correctCount >= :requiredCorrectAnswers THEN 1 ELSE 0 END,
+            masteredAt =
+          CASE
+            WHEN correctCount >= :requiredCorrectAnswers AND masteredAt IS NULL THEN :now
+            WHEN correctCount < :requiredCorrectAnswers THEN NULL
+            ELSE masteredAt
+          END
+        """
+    )
+    suspend fun reconcileMastery(requiredCorrectAnswers: Int, now: Long)
 
     @Query("SELECT COUNT(*) FROM word_lists")
     suspend fun countWordLists(): Int

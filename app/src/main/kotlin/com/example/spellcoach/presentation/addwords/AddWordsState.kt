@@ -1,6 +1,8 @@
 package com.example.spellcoach.presentation.addwords
 
 data class AddWordsState(
+    val listId: Long? = null,
+    val isEditMode: Boolean = false,
     val listName: String = "",
     val rawInput: String = "",
     val previewWords: List<String> = emptyList(),
