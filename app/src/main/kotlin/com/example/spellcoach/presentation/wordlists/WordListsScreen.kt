@@ -105,16 +105,13 @@ fun WordListsScreen(
                         onDelete = { viewModel.deleteList(list.id) }
                     )
                 }
-                item {
-                    CreateNewListCard(onClick = onCreateNewList)
-                }
             }
         }
         FloatingActionButton(
             onClick = onCreateNewList,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 84.dp),
+                .padding(end = 20.dp, bottom = 30.dp),
             containerColor = PrimaryBlue,
             contentColor = Color.White,
             shape = CircleShape

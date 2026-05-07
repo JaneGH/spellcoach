@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +51,7 @@ import com.example.spellcoach.presentation.components.PrimaryButton
 import com.example.spellcoach.presentation.components.SaveGreenButton
 import com.example.spellcoach.presentation.components.SpellCoachTopBar
 import com.example.spellcoach.presentation.components.WordChip
+import com.example.spellcoach.presentation.components.glass.GlassTextField
 import com.example.spellcoach.presentation.theme.DashedBorder
 import kotlinx.coroutines.flow.collectLatest
 
@@ -112,15 +114,25 @@ fun AddWordsScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            OutlinedTextField(
-                value = state.listName,
-                onValueChange = viewModel::setListName,
-                placeholder = {
-                    Text("Enter list name")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
-            )
+            Column {
+                Text(
+                    text = "List name",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color(0xFF64748B),
+                    modifier = Modifier.padding(start = 6.dp, bottom = 6.dp)
+                )
+
+                GlassTextField(
+                    value = state.listName,
+                    onValueChange = viewModel::setListName,
+                    placeholder = "Animals",
+                    modifier = Modifier.fillMaxWidth(),
+                    height = 56.dp,
+                    cornerRadius = 14.dp
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
 
@@ -264,7 +276,8 @@ fun AddWordsScreen(
                 )
             }
 
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(10.dp))
+
             SaveGreenButton(
                 text = if (state.isEditMode) "Save Changes" else "Save to My Lists",
                 onClick = viewModel::save,

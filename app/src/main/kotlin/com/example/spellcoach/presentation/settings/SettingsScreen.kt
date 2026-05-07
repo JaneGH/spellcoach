@@ -414,7 +414,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color(0xFF0B6B8C))
+                    .background(Color(0xFF0B6B8C).copy(alpha = 0.25f))
                     .clickable { viewModel.openTtsSettings() }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
