@@ -171,6 +171,7 @@ fun PracticeScreen(
         if (
             !state.loading &&
             state.words.isNotEmpty() &&
+            !state.sessionComplete &&
             inputMode == PracticeInputMode.Keyboard &&
             !showWrongAnswerCard &&
             !showCorrectAnswerCard
@@ -202,7 +203,11 @@ fun PracticeScreen(
                 subtitleBelowBrand = null
             )
 
-            if (!state.loading && state.words.isEmpty() && !showCorrectAnswerCard) {
+            if (!state.loading && state.sessionComplete && !showCorrectAnswerCard) {
+                val totalWords = state.allWords.size
+                val masteredWords = state.masteredWordsCount.coerceIn(0, totalWords)
+                val wordsNeedingReview = state.wordsNeedingReviewCount.coerceAtLeast(0)
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -219,7 +224,7 @@ fun PracticeScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "All words mastered!",
+                                text = if (totalWords <= 0) "No words to practice yet" else "Practice completed!",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 28.sp,
                                 color = Color(0xFF0F172A),
@@ -229,18 +234,40 @@ fun PracticeScreen(
                             Spacer(Modifier.height(10.dp))
 
                             Text(
-                                text = "Great job. You can reset progress or add more words.",
+                                text = if (totalWords <= 0) {
+                                    "Add some words to start your spelling practice."
+                                } else if (wordsNeedingReview <= 0) {
+                                    "Great job. All words are ready for review!"
+                                } else {
+                                    "Great progress today. $masteredWords / $totalWords words mastered."
+                                },
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 16.sp,
                                 color = Color(0xFF475569),
                                 textAlign = TextAlign.Center
                             )
 
+                            if (totalWords > 0) {
+                                Spacer(Modifier.height(8.dp))
+
+                                Text(
+                                    text = if (wordsNeedingReview <= 0) {
+                                        "No review needed today."
+                                    } else {
+                                        "$wordsNeedingReview words still need practice"
+                                    },
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF475569),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
                             Spacer(Modifier.height(22.dp))
 
                             GlassButton(
-                                text = "Reset progress",
-                                onClick = viewModel::resetListProgress,
+                                text = "Practice again",
+                                onClick = viewModel::practiceAgain,
                                 gradient = Brush.linearGradient(
                                     colors = listOf(
                                         Color(0xFF0B6B8C),
@@ -257,6 +284,19 @@ fun PracticeScreen(
                                 shape = RoundedCornerShape(16.dp)
                             ) {
                                 Text(text = "Back to Lists", fontWeight = FontWeight.SemiBold)
+                            }
+
+                            Spacer(Modifier.height(6.dp))
+
+                            TextButton(
+                                onClick = viewModel::resetListProgress,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Reset progress",
+                                    color = Color(0xFFE11D48),
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
                         }
                     }

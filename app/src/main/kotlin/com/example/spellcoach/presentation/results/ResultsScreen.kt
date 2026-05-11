@@ -197,7 +197,7 @@ fun ResultsScreen(
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = "Daily Goal", fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                    Text(text = "Goal", fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
                     Text(text = "80%", fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
                 }
                 Spacer(Modifier.height(10.dp))
