@@ -13,6 +13,7 @@ import com.example.spellcoach.domain.repository.RewardRepository
 import com.example.spellcoach.domain.repository.WordRepository
 import com.example.spellcoach.domain.usecase.ObserveSettingsUseCase
 import com.example.spellcoach.domain.usecase.ProcessSpellingResultUseCase
+import com.example.spellcoach.presentation.navigation.PracticeListHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +86,7 @@ sealed interface PracticeEvent {
 @HiltViewModel
 class PracticeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    practiceListHolder: PracticeListHolder,
     private val wordRepository: WordRepository,
     private val processSpelling: ProcessSpellingResultUseCase,
     private val observeSettingsUseCase: ObserveSettingsUseCase,
@@ -106,6 +108,9 @@ class PracticeViewModel @Inject constructor(
     val events: SharedFlow<PracticeEvent> = _events.asSharedFlow()
 
     init {
+        if (listId > 0L) {
+            practiceListHolder.lastListId = listId
+        }
         viewModelScope.launch {
             val name = wordRepository.getWordListName(listId).orEmpty()
             _state.update {

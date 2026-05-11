@@ -539,7 +539,7 @@ private fun WrongAnswerCard(
         Image(
             painter = painterResource(R.drawable.fox_supportive),
             contentDescription = null,
-            modifier = Modifier.size(60.dp)
+            modifier = Modifier.size(80.dp)
         )
 
         Spacer(Modifier.height(8.dp))
@@ -1056,7 +1056,7 @@ private fun CorrectAnswerSuccessCard(
                 Image(
                     painter = painterResource(R.drawable.fox_happy),
                     contentDescription = null,
-                    modifier = Modifier.size(85.dp)
+                    modifier = Modifier.size(95.dp)
                 )
 //            }
 
