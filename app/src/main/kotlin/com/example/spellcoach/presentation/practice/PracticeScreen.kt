@@ -346,7 +346,7 @@ fun PracticeScreen(
             ) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     GlassCard(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth() .weight(1f),
                         cornerRadius = 28.dp,
                         contentPadding = PaddingValues(
                             horizontal = 16.dp,
@@ -497,7 +497,7 @@ fun PracticeScreen(
 
                                         PracticeInputMode.Handwriting -> {
                                             HandwritingInputPanel(
-                                                modifier = Modifier.fillMaxWidth(),
+                                                modifier = Modifier.fillMaxSize(),
                                                 recognizer = recognizer,
                                                 onRecognized = { recognized ->
                                                     viewModel.onInputChange(recognized)
@@ -513,7 +513,11 @@ fun PracticeScreen(
 
                     Spacer(Modifier.height(12.dp))
 
-                    if (state.hintsEnabled && state.input.isNotBlank()) {
+                    if (
+                        inputMode == PracticeInputMode.Keyboard &&
+                        state.hintsEnabled &&
+                        state.input.isNotBlank()
+                    ) {
                         HintsSection(
                             showHints = state.showHints,
                             nudgeHints = state.feedbackCorrect == false && !state.showHints,
