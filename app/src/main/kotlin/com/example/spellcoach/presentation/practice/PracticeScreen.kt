@@ -81,6 +81,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -443,11 +446,18 @@ fun PracticeScreen(
                                                         modifier = Modifier
                                                             .fillMaxWidth()
                                                             .focusRequester(focusRequester),
+
                                                         keyboardOptions = KeyboardOptions(
-                                                            imeAction = ImeAction.Next
+                                                            imeAction = ImeAction.Done,
+                                                            autoCorrectEnabled = false,
+                                                            capitalization = KeyboardCapitalization.None,
+                                                            keyboardType = KeyboardType.Password
                                                         ),
+
+                                                        visualTransformation = VisualTransformation.None,
+
                                                         keyboardActions = KeyboardActions(
-                                                            onNext = {
+                                                            onDone = {
                                                                 showWrongAnswerCard = false
                                                                 viewModel.checkWord()
                                                             }
