@@ -1,4 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SpellCoach</string>
+
+    <!-- Navigation -->
+    <string name="nav_lists">Lists</string>
+    <string name="nav_practice">Practice</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Top bar & profile -->
+    <string name="content_desc_back">Back</string>
+    <string name="profile_initials_default">SP</string>
+
+    <!-- Word lists -->
+    <string name="lists_subtitle">Keep track of your spelling progress across different groups.</string>
+    <string name="content_desc_add_word_list">Create new word list</string>
+    <string name="content_desc_list_mastered">List mastered</string>
+    <string name="content_desc_open_list">Open list</string>
+    <string name="content_desc_list_menu">List actions</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_reset_progress">Reset Progress</string>
+    <string name="menu_delete">Delete</string>
+    <string name="lists_mastered_badge">Mastered!</string>
+    <string name="lists_progress_format">%1$d / %2$d mastered</string>
+    <string name="lists_empty_title">No lists yet</string>
+    <string name="lists_empty_message">Create your first list and start building spelling confidence one word at a time.</string>
+    <string name="lists_empty_cta">Create a list</string>
+    <string name="content_desc_empty_mascot">Friendly fox encouraging you to add a list</string>
+
+    <!-- Dialogs lists -->
+    <string name="dialog_reset_list_title">Reset progress?</string>
+    <string name="dialog_reset_list_message">This will reset mastery progress for all words in this list.</string>
+    <string name="dialog_delete_list_title">Delete list?</string>
+    <string name="dialog_delete_list_message">This will delete the list and all its words.</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Practice tab empty -->
+    <string name="practice_pick_list_message">Pick a word list, then tap Practice on that list to start.</string>
+    <string name="practice_go_to_lists">Go to Lists</string>
+
+    <!-- Practice screen -->
+    <string name="practice_title">Practice</string>
+    <string name="practice_progress_format">%1$d / %2$d mastered</string>
+    <string name="content_desc_listen">Listen to word</string>
+    <string name="input_mode_keyboard">Keyboard</string>
+    <string name="input_mode_handwriting">Handwriting</string>
+    <string name="practice_word_progress_format">%1$d of %2$d correct</string>
+    <string name="practice_placeholder_type">Type here</string>
+    <string name="practice_check_word">Check word</string>
+    <string name="practice_completed_title_empty">No words to practice yet</string>
+    <string name="practice_completed_title">Practice completed!</string>
+    <string name="practice_completed_body_empty">Add some words to start your spelling practice.</string>
+    <string name="practice_completed_body_all_reviewed">Great job. All words are ready for review!</string>
+    <string name="practice_completed_body_progress">Great progress today. %1$d / %2$d words mastered.</string>
+    <string name="practice_completed_review_none">No review needed today.</string>
+    <string name="practice_completed_review_format">%1$d words still need practice</string>
+    <string name="practice_again">Practice again</string>
+    <string name="practice_back_to_lists">Back to Lists</string>
+    <string name="practice_reset_progress">Reset progress</string>
+    <string name="practice_word_progress_label_format">Word progress: %1$d of %2$d correct</string>
+
+    <string name="practice_wrong_title">Keep trying!</string>
+    <string name="practice_wrong_subtitle">The correct spelling is:</string>
+    <string name="practice_wrong_encouragement">You’re doing great. Try it once more.</string>
+    <string name="practice_try_again">Try again</string>
+
+    <string name="practice_hints_shown">Letter hints shown</string>
+    <string name="practice_hints_nudge">Tip: try a hint to get unstuck</string>
+    <string name="practice_hints_tip_label">Tip:</string>
+    <string name="practice_hints_tip_body">Tap letters to help spell the word</string>
+
+    <string name="practice_handwriting_detected_format">Detected: %1$s</string>
+    <string name="content_desc_clear_handwriting">Clear handwriting</string>
+    <string name="content_desc_undo_stroke">Undo stroke</string>
+    <string name="practice_handwriting_submit">Submit</string>
+    <string name="practice_handwriting_reading">Reading…</string>
+    <string name="content_desc_submit_handwriting">Submit handwriting</string>
+
+    <string name="practice_correct_title">Correct!</string>
+    <string name="practice_correct_subtitle">Great job, you\'re a spelling star!</string>
+    <string name="practice_word_mastered">Word mastered!</string>
+    <string name="practice_progress_label">Progress</string>
+    <string name="practice_progress_words_format">%1$d / %2$d words</string>
+    <string name="practice_next_word">Next word</string>
+    <string name="content_desc_next_word">Next word</string>
+
+    <!-- Add words -->
+    <string name="add_words_title_new">Add Words</string>
+    <string name="add_words_title_edit">Edit List</string>
+    <string name="add_words_list_name_label">List name</string>
+    <string name="add_words_list_name_placeholder">Animals</string>
+    <string name="add_words_type_paste_heading">TYPE OR PASTE WORDS</string>
+    <string name="add_words_bulk_placeholder">Type words here,\nseparated by spaces or\ncommas…</string>
+    <string name="add_words_add_button">Add</string>
+    <string name="add_words_import_pdf_title">Import from PDF</string>
+    <string name="add_words_import_pdf_subtitle">Upload worksheets</string>
+    <string name="add_words_import_photo_title">Scan from Photo</string>
+    <string name="add_words_import_photo_subtitle">Snap a picture</string>
+    <string name="add_words_preview_title">Word Preview</string>
+    <string name="add_words_preview_count_format">%1$d Words</string>
+    <string name="add_words_importing">Importing…</string>
+    <string name="add_words_save_new">Save to My Lists</string>
+    <string name="add_words_save_edit">Save Changes</string>
+    <string name="content_desc_remove_word">Remove %1$s</string>
+
+    <!-- Add words errors -->
+    <string name="error_no_words_pdf">No words found in PDF.</string>
+    <string name="error_no_words_image">No words found in image.</string>
+    <string name="error_import_pdf_generic">Could not import from PDF.</string>
+    <string name="error_scan_photo_generic">Could not scan photo.</string>
+    <string name="error_add_at_least_one_word">Add at least one word.</string>
+    <string name="error_list_name_required">Please enter a list name.</string>
+    <string name="error_save_generic">Could not save.</string>
+
+    <!-- Results -->
+    <string name="results_title_brand">SpellCoach</string>
+    <string name="results_headline">Good job!</string>
+    <string name="results_subtitle">You worked hard and learned\nsome tricky words today.</string>
+    <string name="results_score_format">%1$d</string>
+    <string name="results_score_total_format"> / %1$d</string>
+    <string name="results_words_correct">Words Correct</string>
+    <string name="results_to_practice">To Practice</string>
+    <string name="results_goal_label">Goal</string>
+    <string name="results_goal_value">80%</string>
+    <string name="results_goal_hint">Just 2 more sessions to reach your\ndiamond badge!</string>
+    <string name="results_practice_again">Practice Again</string>
+    <string name="results_go_to_lists">Go to Lists</string>
+    <string name="content_desc_results_illustration">Celebration illustration</string>
+    <string name="content_desc_practice_again">Practice again</string>
+    <string name="content_desc_go_to_lists">Go to word lists</string>
+
+    <!-- Settings -->
+    <string name="settings_hero_title">Settings</string>
+    <string name="settings_subtitle">Customize your learning experience to match your pace.</string>
+    <string name="settings_tts_unavailable">Speech isn’t available on this device yet. You can open system settings to install or enable text‑to‑speech.</string>
+
+    <string name="settings_required_correct_title">Required correct answers</string>
+    <string name="settings_required_correct_body">How many times should you spell a word correctly to master it?</string>
+    <string name="content_desc_required_correct_icon">Required correct answers</string>
+
+    <string name="settings_mistake_behavior_title">Mistake behavior</string>
+    <string name="settings_mistake_behavior_body">What happens when you misspell a word?</string>
+    <string name="settings_mistake_decrease">Decrease progress</string>
+    <string name="settings_mistake_reset">Reset progress</string>
+    <string name="content_desc_mistake_behavior_icon">Mistake behavior</string>
+
+    <string name="settings_progress_title">Progress</string>
+    <string name="settings_progress_body">Reset your mastery progress for all lists.</string>
+    <string name="settings_reset_all_progress">Reset all progress</string>
+
+    <string name="settings_audio_title">Audio Pronunciation</string>
+    <string name="settings_audio_body">Read words aloud automatically.</string>
+    <string name="content_desc_audio_icon">Audio pronunciation</string>
+
+    <string name="settings_letter_hints_title">Enable Letter Hints</string>
+    <string name="settings_letter_hints_body">Show optional letter chips during practice.</string>
+
+    <string name="settings_speech_rate_title">Speech rate</string>
+    <string name="settings_speech_rate_body">Adjust how fast words are spoken.</string>
+    <string name="speech_rate_format">%1$.1f×</string>
+
+    <string name="settings_reward_sounds_title">Reward sounds</string>
+    <string name="settings_reward_sounds_body">Play sounds for success and completion.</string>
+
+    <string name="settings_animations_title">Animations</string>
+    <string name="settings_animations_body">Celebrate answers with gentle motion.</string>
+
+    <string name="settings_open_tts">Open text‑to‑speech settings</string>
+    <string name="settings_mascot_quote">Every mistake is a new chance\nto learn better!</string>
+    <string name="content_desc_settings_mascot">Happy fox mascot</string>
+
+    <string name="settings_theme_title">Appearance</string>
+    <string name="settings_theme_body">Choose light, dark, or match your device.</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+
+    <string name="dialog_reset_all_title">Reset all progress?</string>
+    <string name="dialog_reset_all_message">This will reset progress for every word in every list.</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_fox_supportive">Supportive fox</string>
+    <string name="content_desc_fox_neutral">Neutral fox</string>
+    <string name="content_desc_fox_happy">Happy fox</string>
 </resources>

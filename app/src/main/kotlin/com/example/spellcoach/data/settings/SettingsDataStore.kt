@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.spellcoach.domain.model.AppSettings
 import com.example.spellcoach.domain.model.MistakeBehavior
+import com.example.spellcoach.domain.model.ThemePreference
 import com.example.spellcoach.domain.model.RewardState
 import com.example.spellcoach.domain.model.Badge
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,6 +35,7 @@ class SettingsDataStore @Inject constructor(
         val speechRate = floatPreferencesKey("speech_rate")
         val rewardSounds = booleanPreferencesKey("reward_sounds")
         val animations = booleanPreferencesKey("animations")
+        val themePreference = stringPreferencesKey("theme_preference")
         val totalCorrectLifetime = intPreferencesKey("total_correct_lifetime")
         val currentStreak = intPreferencesKey("current_streak")
         val longestStreak = intPreferencesKey("longest_streak")
@@ -51,7 +53,10 @@ class SettingsDataStore @Inject constructor(
             letterHintsEnabled = prefs[Keys.letterHintsEnabled] ?: true,
             speechRate = prefs[Keys.speechRate] ?: 1f,
             rewardSoundsEnabled = prefs[Keys.rewardSounds] ?: true,
-            animationsEnabled = prefs[Keys.animations] ?: true
+            animationsEnabled = prefs[Keys.animations] ?: true,
+            themePreference = prefs[Keys.themePreference]?.let {
+                runCatching { ThemePreference.valueOf(it) }.getOrDefault(ThemePreference.SYSTEM)
+            } ?: ThemePreference.SYSTEM
         )
     }
 
@@ -78,7 +83,10 @@ class SettingsDataStore @Inject constructor(
                 letterHintsEnabled = prefs[Keys.letterHintsEnabled] ?: true,
                 speechRate = prefs[Keys.speechRate] ?: 1f,
                 rewardSoundsEnabled = prefs[Keys.rewardSounds] ?: true,
-                animationsEnabled = prefs[Keys.animations] ?: true
+                animationsEnabled = prefs[Keys.animations] ?: true,
+                themePreference = prefs[Keys.themePreference]?.let {
+                    runCatching { ThemePreference.valueOf(it) }.getOrDefault(ThemePreference.SYSTEM)
+                } ?: ThemePreference.SYSTEM
             )
             val next = transform(cur)
             prefs[Keys.requiredCorrect] = next.requiredCorrectAnswers
@@ -88,6 +96,7 @@ class SettingsDataStore @Inject constructor(
             prefs[Keys.speechRate] = next.speechRate
             prefs[Keys.rewardSounds] = next.rewardSoundsEnabled
             prefs[Keys.animations] = next.animationsEnabled
+            prefs[Keys.themePreference] = next.themePreference.name
         }
     }
 

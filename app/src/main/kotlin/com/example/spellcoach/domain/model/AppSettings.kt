@@ -7,5 +7,6 @@ data class AppSettings(
     val letterHintsEnabled: Boolean = true,
     val speechRate: Float = 1f,
     val rewardSoundsEnabled: Boolean = true,
-    val animationsEnabled: Boolean = true
+    val animationsEnabled: Boolean = true,
+    val themePreference: ThemePreference = ThemePreference.SYSTEM
 )
