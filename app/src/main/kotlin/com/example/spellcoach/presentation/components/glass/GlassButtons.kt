@@ -61,17 +61,26 @@ fun GlassButton(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .shadow(elevation = 14.dp, shape = shape, clip = false)
             .clip(shape)
             .background(
-                brush = if (enabled) gradient else Brush.linearGradient(
+                Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF94A3B8).copy(alpha = 0.55f),
-                        Color(0xFFCBD5E1).copy(alpha = 0.55f)
+                        Color(0xFF0A7DFF).copy(alpha = 0.86f),
+                        Color(0xFF43D9FF).copy(alpha = 0.78f)
                     )
                 )
             )
-            .border(1.dp, borderColor, shape)
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.42f),
+                shape = shape
+            )
+            .shadow(
+                elevation = 14.dp,
+                shape = shape,
+                ambientColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
+                spotColor = Color(0xFF2563EB).copy(alpha = 0.22f)
+            )
             .clickable(
                 enabled = enabled,
                 interactionSource = interaction,
