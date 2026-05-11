@@ -1,17 +1,22 @@
 package com.example.spellcoach.presentation.components.glass
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,21 +27,32 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+data class SegmentedOption(
+    val title: String,
+    val icon: ImageVector
+)
+
+private val SegmentedAnimationSpecFloat = tween<Float>(durationMillis = 220, easing = FastOutSlowInEasing)
+private val SegmentedAnimationSpecColor = tween<Color>(durationMillis = 220, easing = FastOutSlowInEasing)
+
 @Composable
 fun GlassSegmentedControl(
-    options: List<String>,
+    options: List<SegmentedOption>,
     selectedIndex: Int,
     onSelectIndex: (Int) -> Unit,
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 999.dp
 ) {
     val shape = RoundedCornerShape(cornerRadius)
+    val accent = Color(0xFF0B6B8C)
+    val glowCyan = Color(0xFF38BDF8)
 
     Row(
         modifier = modifier
@@ -58,17 +74,37 @@ fun GlassSegmentedControl(
             )
             .padding(5.dp)
     ) {
-        options.forEachIndexed { idx, label ->
+        options.forEachIndexed { idx, option ->
             val selected = idx == selectedIndex
 
             val scale by animateFloatAsState(
                 targetValue = if (selected) 1f else 0.97f,
+                animationSpec = SegmentedAnimationSpecFloat,
                 label = "seg_scale"
             )
 
-            val textAlpha by animateFloatAsState(
-                targetValue = if (selected) 1f else 0.62f,
-                label = "seg_text_alpha"
+            val contentColor by animateColorAsState(
+                targetValue = if (selected) accent else accent.copy(alpha = 0.55f),
+                animationSpec = SegmentedAnimationSpecColor,
+                label = "seg_content"
+            )
+
+            val pillBgStart by animateColorAsState(
+                targetValue = if (selected) Color.White.copy(alpha = 0.94f) else Color.White.copy(alpha = 0f),
+                animationSpec = SegmentedAnimationSpecColor,
+                label = "seg_pill_bg_start"
+            )
+
+            val pillBgEnd by animateColorAsState(
+                targetValue = if (selected) Color(0xFFDFF3FF).copy(alpha = 0.92f) else Color.White.copy(alpha = 0f),
+                animationSpec = SegmentedAnimationSpecColor,
+                label = "seg_pill_bg_end"
+            )
+
+            val pillBorder by animateColorAsState(
+                targetValue = if (selected) glowCyan.copy(alpha = 0.42f) else Color.Transparent,
+                animationSpec = SegmentedAnimationSpecColor,
+                label = "seg_pill_border"
             )
 
             val pillShape = RoundedCornerShape(999.dp)
@@ -84,52 +120,40 @@ fun GlassSegmentedControl(
                     .then(
                         if (selected) {
                             Modifier.shadow(
-                                elevation = 10.dp,
+                                elevation = 12.dp,
                                 shape = pillShape,
                                 clip = false,
-                                ambientColor = Color(0xFF38BDF8).copy(alpha = 0.22f),
-                                spotColor = Color(0xFF38BDF8).copy(alpha = 0.22f)
+                                ambientColor = glowCyan.copy(alpha = 0.28f),
+                                spotColor = glowCyan.copy(alpha = 0.32f)
                             )
                         } else {
                             Modifier
                         }
                     )
                     .clip(pillShape)
-                    .background(
-                        if (selected) {
-                            Brush.horizontalGradient(
-                                listOf(
-                                    Color.White.copy(alpha = 0.92f),
-                                    Color(0xFFDFF3FF).copy(alpha = 0.88f)
-                                )
-                            )
-                        } else {
-                            Brush.horizontalGradient(
-                                listOf(Color.Transparent, Color.Transparent)
-                            )
-                        }
-                    )
+                    .background(Brush.horizontalGradient(listOf(pillBgStart, pillBgEnd)))
                     .border(
-                        width = if (selected) 1.dp else 0.dp,
-                        color = if (selected) Color(0xFF38BDF8).copy(alpha = 0.30f) else Color.Transparent,
+                        width = 1.dp,
+                        color = pillBorder,
                         shape = pillShape
                     )
                     .clickable { onSelectIndex(idx) },
                 contentAlignment = Alignment.Center
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (selected) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = Color(0xFF0B6B8C),
-                            modifier = Modifier.padding(end = 7.dp)
-                        )
-                    }
-
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = option.icon,
+                        contentDescription = null,
+                        tint = contentColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        text = label,
-                        color = Color(0xFF0B6B8C).copy(alpha = textAlpha),
+                        text = option.title,
+                        color = contentColor,
                         fontSize = 14.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                     )

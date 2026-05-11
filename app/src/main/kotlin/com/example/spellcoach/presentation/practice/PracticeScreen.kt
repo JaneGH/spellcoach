@@ -42,6 +42,8 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Draw
+import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -90,6 +92,7 @@ import com.example.spellcoach.presentation.components.glass.GlassButton
 import com.example.spellcoach.presentation.components.glass.GlassCard
 import com.example.spellcoach.presentation.components.glass.GlassOrbIconButton
 import com.example.spellcoach.presentation.components.glass.GlassSegmentedControl
+import com.example.spellcoach.presentation.components.glass.SegmentedOption
 import com.example.spellcoach.presentation.components.glass.GlassTextField
 import com.example.spellcoach.presentation.theme.PrimaryBlueStrong
 import com.google.mlkit.common.model.DownloadConditions
@@ -326,7 +329,10 @@ fun PracticeScreen(
                             Spacer(Modifier.height(10.dp))
 
                             GlassSegmentedControl(
-                                options = listOf("Keyboard", "Handwriting"),
+                                options = listOf(
+                                    SegmentedOption("Keyboard", Icons.Rounded.Keyboard),
+                                    SegmentedOption("Handwriting", Icons.Rounded.Draw)
+                                ),
                                 selectedIndex = if (inputMode == PracticeInputMode.Keyboard) 0 else 1,
                                 onSelectIndex = { idx ->
                                     inputMode = if (idx == 0) {
