@@ -62,7 +62,7 @@ import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
-import com.itclimb.spellcoach.data.tts.TtsAvailability
+import com.itclimb.spellcoach.domain.speech.TtsAvailability
 import com.itclimb.spellcoach.domain.model.MistakeBehavior
 import com.itclimb.spellcoach.domain.model.ThemePreference
 

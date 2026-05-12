@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.SoundPool
 import com.itclimb.spellcoach.R
 import com.itclimb.spellcoach.data.settings.SettingsDataStore
+import com.itclimb.spellcoach.domain.speech.RewardSoundPlayer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.first
 class SoundEffectPlayer @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsDataStore: SettingsDataStore
-) {
+) : RewardSoundPlayer {
     private val pool: SoundPool = SoundPool.Builder()
         .setMaxStreams(3)
         .setAudioAttributes(
@@ -35,11 +36,11 @@ class SoundEffectPlayer @Inject constructor(
         completionId = pool.load(context, R.raw.completion, 1)
     }
 
-    suspend fun playSuccess() = playIfEnabled(successId)
+    override suspend fun playSuccess() = playIfEnabled(successId)
 
-    suspend fun playRetry() = playIfEnabled(retryId)
+    override suspend fun playRetry() = playIfEnabled(retryId)
 
-    suspend fun playCompletion() = playIfEnabled(completionId)
+    override suspend fun playCompletion() = playIfEnabled(completionId)
 
     private suspend fun playIfEnabled(soundId: Int) {
         if (soundId == 0) return

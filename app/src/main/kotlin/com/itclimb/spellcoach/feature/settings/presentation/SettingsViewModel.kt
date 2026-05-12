@@ -2,8 +2,8 @@ package com.itclimb.spellcoach.feature.settings.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.itclimb.spellcoach.data.tts.TtsAvailability
-import com.itclimb.spellcoach.data.tts.TtsManager
+import com.itclimb.spellcoach.domain.speech.SpellCoachTextToSpeech
+import com.itclimb.spellcoach.domain.speech.TtsAvailability
 import com.itclimb.spellcoach.domain.model.AppSettings
 import com.itclimb.spellcoach.domain.model.MistakeBehavior
 import com.itclimb.spellcoach.domain.model.ThemePreference
@@ -24,7 +24,7 @@ class SettingsViewModel @Inject constructor(
     observeSettingsUseCase: ObserveSettingsUseCase,
     private val updateSettings: UpdateSettingsUseCase,
     private val wordRepository: WordRepository,
-    private val ttsManager: TtsManager
+    private val textToSpeech: SpellCoachTextToSpeech
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = observeSettingsUseCase()
@@ -34,7 +34,7 @@ class SettingsViewModel @Inject constructor(
             initialValue = AppSettings()
         )
 
-    val ttsAvailability: StateFlow<TtsAvailability> = ttsManager.availability
+    val ttsAvailability: StateFlow<TtsAvailability> = textToSpeech.availability
 
     init {
         viewModelScope.launch {
@@ -74,7 +74,7 @@ class SettingsViewModel @Inject constructor(
     fun setSpeechRate(rate: Float) {
         viewModelScope.launch {
             updateSettings { it.copy(speechRate = rate) }
-            ttsManager.setSpeechRate(rate)
+            textToSpeech.setSpeechRate(rate)
         }
     }
 
@@ -97,7 +97,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun openTtsSettings() {
-        ttsManager.openSystemTtsSettings()
+        textToSpeech.openSystemTtsSettings()
     }
 
     fun resetAllProgress() {

@@ -1,23 +1,24 @@
 package com.itclimb.spellcoach.data.practice
 
 import com.itclimb.spellcoach.domain.model.PracticeResult
+import com.itclimb.spellcoach.domain.practice.PracticeResultBuffer
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PracticeResultCache @Inject constructor() {
+class PracticeResultCache @Inject constructor() : PracticeResultBuffer {
     @Volatile
     private var last: PracticeResult? = null
 
-    fun set(result: PracticeResult) {
+    override fun set(result: PracticeResult) {
         last = result
     }
 
-    fun consume(): PracticeResult? {
+    override fun consume(): PracticeResult? {
         val r = last
         last = null
         return r
     }
 
-    fun peek(): PracticeResult? = last
+    override fun peek(): PracticeResult? = last
 }

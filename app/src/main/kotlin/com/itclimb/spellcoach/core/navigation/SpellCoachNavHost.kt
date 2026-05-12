@@ -40,6 +40,7 @@ import com.itclimb.spellcoach.feature.results.presentation.ResultsScreen
 import com.itclimb.spellcoach.feature.settings.presentation.SettingsScreen
 import com.itclimb.spellcoach.feature.wordlists.presentation.WordListsScreen
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
+import com.itclimb.spellcoach.feature.practice.PracticeListHolder
 
 @Composable
 fun SpellCoachNavHost(

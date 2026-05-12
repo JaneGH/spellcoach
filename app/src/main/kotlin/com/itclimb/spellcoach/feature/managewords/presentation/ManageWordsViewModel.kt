@@ -3,7 +3,7 @@ package com.itclimb.spellcoach.feature.managewords.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.itclimb.spellcoach.data.tts.TtsManager
+import com.itclimb.spellcoach.domain.speech.SpellCoachTextToSpeech
 import com.itclimb.spellcoach.domain.model.Word
 import com.itclimb.spellcoach.domain.model.isLearnedAtThreshold
 import com.itclimb.spellcoach.domain.repository.WordRepository
@@ -38,7 +38,7 @@ class ManageWordsViewModel @Inject constructor(
     observeWordsForList: ObserveWordsForListUseCase,
     observeSettings: ObserveSettingsUseCase,
     private val wordRepository: WordRepository,
-    private val ttsManager: TtsManager,
+    private val textToSpeech: SpellCoachTextToSpeech,
 ) : ViewModel() {
 
     private val listId: Long = savedStateHandle.get<Long>("listId") ?: -1L
@@ -74,7 +74,7 @@ class ManageWordsViewModel @Inject constructor(
     }
 
     fun speakWord(text: String) {
-        ttsManager.speak(text)
+        textToSpeech.speak(text)
     }
 
     fun toggleMastered(word: Word) {

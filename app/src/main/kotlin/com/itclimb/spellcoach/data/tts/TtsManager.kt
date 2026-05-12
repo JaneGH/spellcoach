@@ -5,6 +5,9 @@ import android.content.Intent
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import com.itclimb.spellcoach.di.ApplicationScope
+import com.itclimb.spellcoach.domain.speech.SpellCoachTextToSpeech
+import com.itclimb.spellcoach.domain.speech.TtsAvailability
+import com.itclimb.spellcoach.domain.speech.TtsEvent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
 import javax.inject.Inject
@@ -23,11 +26,11 @@ import kotlinx.coroutines.launch
 class TtsManager @Inject constructor(
     @ApplicationContext private val context: Context,
     @ApplicationScope private val applicationScope: CoroutineScope
-) : TextToSpeech.OnInitListener {
+) : TextToSpeech.OnInitListener, SpellCoachTextToSpeech {
     private var tts: TextToSpeech? = null
     private val _availability =
         MutableStateFlow<TtsAvailability>(TtsAvailability.Checking)
-    val availability: StateFlow<TtsAvailability> = _availability.asStateFlow()
+    override val availability: StateFlow<TtsAvailability> = _availability.asStateFlow()
 
     private val _speechRate = MutableStateFlow(1f)
 
@@ -35,7 +38,7 @@ class TtsManager @Inject constructor(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-    val events: Flow<TtsEvent> = _events.asSharedFlow()
+    override val events: Flow<TtsEvent> = _events.asSharedFlow()
 
     init {
         applicationScope.launch {
@@ -59,7 +62,7 @@ class TtsManager @Inject constructor(
         }
     }
 
-    fun speak(text: String) {
+    override fun speak(text: String) {
         val engine = tts ?: return
         if (_availability.value != TtsAvailability.Ready) {
             applicationScope.launch { _events.emit(TtsEvent.EngineNotReady) }
@@ -69,17 +72,17 @@ class TtsManager @Inject constructor(
         engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "spellcoach-${System.currentTimeMillis()}")
     }
 
-    fun stop() {
+    override fun stop() {
         tts?.stop()
     }
 
-    fun setSpeechRate(rate: Float) {
+    override fun setSpeechRate(rate: Float) {
         val r = rate.coerceIn(0.5f, 2f)
         _speechRate.value = r
         tts?.setSpeechRate(r)
     }
 
-    fun openSystemTtsSettings() {
+    override fun openSystemTtsSettings() {
         val ttsIntent = Intent("com.android.settings.TTS_SETTINGS").apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
@@ -99,16 +102,4 @@ class TtsManager @Inject constructor(
         tts?.shutdown()
         tts = null
     }
-
-}
-
-sealed interface TtsAvailability {
-    data object Checking : TtsAvailability
-    data object Ready : TtsAvailability
-    data object MissingData : TtsAvailability
-    data object Unavailable : TtsAvailability
-}
-
-sealed interface TtsEvent {
-    data object EngineNotReady : TtsEvent
 }

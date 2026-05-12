@@ -3,9 +3,9 @@ package com.itclimb.spellcoach.feature.practice.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.itclimb.spellcoach.data.practice.PracticeResultCache
-import com.itclimb.spellcoach.data.sound.SoundEffectPlayer
-import com.itclimb.spellcoach.data.tts.TtsManager
+import com.itclimb.spellcoach.domain.practice.PracticeResultBuffer
+import com.itclimb.spellcoach.domain.speech.RewardSoundPlayer
+import com.itclimb.spellcoach.domain.speech.SpellCoachTextToSpeech
 import com.itclimb.spellcoach.domain.model.Badge
 import com.itclimb.spellcoach.domain.model.PracticeResult
 import com.itclimb.spellcoach.domain.model.Word
@@ -14,7 +14,7 @@ import com.itclimb.spellcoach.domain.repository.RewardRepository
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import com.itclimb.spellcoach.domain.usecase.ObserveSettingsUseCase
 import com.itclimb.spellcoach.domain.usecase.ProcessSpellingResultUseCase
-import com.itclimb.spellcoach.core.navigation.PracticeListHolder
+import com.itclimb.spellcoach.feature.practice.PracticeListHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,9 +92,9 @@ class PracticeViewModel @Inject constructor(
     private val processSpelling: ProcessSpellingResultUseCase,
     private val observeSettingsUseCase: ObserveSettingsUseCase,
     private val rewardRepository: RewardRepository,
-    private val practiceResultCache: PracticeResultCache,
-    private val sound: SoundEffectPlayer,
-    private val tts: TtsManager
+    private val practiceResultBuffer: PracticeResultBuffer,
+    private val sound: RewardSoundPlayer,
+    private val tts: SpellCoachTextToSpeech
 ) : ViewModel() {
 
     private val listId: Long = savedStateHandle.get<Long>("listId") ?: 0L
@@ -491,7 +491,7 @@ class PracticeViewModel @Inject constructor(
         val perfect = s.incorrectSubmissions == 0
         sessionBadges += rewardRepository.onSessionCompleted(perfect, total)
         val listName = wordRepository.getWordListName(listId).orEmpty()
-        practiceResultCache.set(
+        practiceResultBuffer.set(
             PracticeResult(
                 listId = listId,
                 listName = listName,

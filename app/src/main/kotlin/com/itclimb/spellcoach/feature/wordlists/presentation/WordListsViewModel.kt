@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.itclimb.spellcoach.domain.model.WordList
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import com.itclimb.spellcoach.domain.usecase.ObserveWordListsUseCase
-import com.itclimb.spellcoach.core.navigation.PracticeListHolder
+import com.itclimb.spellcoach.feature.practice.PracticeListHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
