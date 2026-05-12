@@ -1,17 +1,12 @@
 package com.itclimb.spellcoach.core.designsystem.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,16 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.itclimb.spellcoach.R
-import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 
 @Composable
 fun SpellCoachTopBar(
+    modifier: Modifier = Modifier,
     showBack: Boolean,
     onBack: () -> Unit,
     brandTitle: String,
@@ -36,10 +29,8 @@ fun SpellCoachTopBar(
     screenTitle: String? = null,
     heroTitle: String? = null,
     subtitleBelowBrand: String? = null,
-    profileInitials: String = "",
-    modifier: Modifier = Modifier
+    profileInitials: String = ""
 ) {
-    val initials = profileInitials.ifBlank { stringResource(R.string.profile_initials_default) }
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -95,26 +86,8 @@ fun SpellCoachTopBar(
                     }
                 }
             }
-            Box(
-                modifier = Modifier
-                    .size(AppDimensions.topBarAvatar)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.65f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = initials,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
         }
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = AppSpacing.lg),
-            thickness = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
-        )
+
         if (heroTitle != null) {
             Text(
                 text = heroTitle,

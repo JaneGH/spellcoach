@@ -113,11 +113,12 @@ fun AddWordsScreen(
                 .spellCoachScreenHorizontalPadding()
         ) {
             Column {
+
                 Text(
                     text = "List name",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Medium,
-                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.9f),
                     modifier = Modifier.padding(
                         start = AppSpacing.sm + AppSpacing.xs,
                         bottom = AppSpacing.sm
