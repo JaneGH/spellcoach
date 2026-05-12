@@ -582,42 +582,33 @@ fun PracticeScreen(
                                                         vertical = AppSpacing.md
                                                     )
                                             ) {
-                                                Box(modifier = Modifier.fillMaxWidth()) {
+                                                Box(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+
                                                     SpellCoachOutlinedTextField(
                                                         value = state.input,
                                                         onValueChange = viewModel::onInputChange,
                                                         placeholder = "Type here",
                                                         modifier = Modifier
                                                             .fillMaxWidth()
+                                                            .padding(end = 12.dp)
                                                             .focusRequester(focusRequester),
-                                                        height = 88.dp,
-                                                        keyboardOptions = KeyboardOptions(
-                                                            imeAction = ImeAction.Done,
-                                                            autoCorrectEnabled = false,
-                                                            capitalization = KeyboardCapitalization.None,
-                                                            keyboardType = KeyboardType.Password
-                                                        ),
-                                                        visualTransformation = VisualTransformation.None,
-                                                        keyboardActions = KeyboardActions(
-                                                            onDone = {
-                                                                showWrongAnswerCard = false
-                                                                viewModel.checkWord()
-                                                            }
-                                                        )
+                                                        height = 82.dp
                                                     )
 
                                                     Image(
                                                         painter = painterResource(id = R.drawable.fox_neutral),
                                                         contentDescription = null,
                                                         modifier = Modifier
-                                                            .align(Alignment.BottomEnd)
-                                                            .padding(end = 10.dp, bottom = 8.dp)
-                                                            .size(42.dp)
-                                                            .offset(y = 4.dp)
-                                                            .graphicsLayer { alpha = 0.7f }
+                                                            .align(Alignment.CenterEnd)
+                                                            .padding(end = 10.dp, bottom = 15.dp)
+                                                            .size(50.dp)
+                                                            .graphicsLayer {
+                                                                alpha = 0.92f
+                                                            }
                                                     )
                                                 }
-
                                                 Spacer(Modifier.height(AppSpacing.md))
 
                                                 SpellCoachPrimaryButton(
