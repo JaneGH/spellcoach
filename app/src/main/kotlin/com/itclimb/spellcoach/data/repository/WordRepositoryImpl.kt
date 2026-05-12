@@ -96,6 +96,10 @@ class WordRepositoryImpl @Inject constructor(
 
     override suspend fun deleteWordList(listId: Long) = dao.deleteWordList(listId)
 
+    override suspend fun deleteWord(wordId: Long) {
+        dao.deleteWordsById(listOf(wordId))
+    }
+
     override suspend fun getWordListName(listId: Long): String? =
         dao.getWordList(listId)?.name
 

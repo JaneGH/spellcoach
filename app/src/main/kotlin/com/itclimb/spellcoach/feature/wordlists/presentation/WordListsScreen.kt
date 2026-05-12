@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.AlertDialog
@@ -78,6 +79,7 @@ fun WordListsScreen(
     onCreateNewList: () -> Unit,
     onPracticeList: (Long) -> Unit,
     onEditList: (Long) -> Unit,
+    onManageWords: (Long) -> Unit,
     viewModel: WordListsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -118,6 +120,7 @@ fun WordListsScreen(
                                         onPracticeList(list.id)
                                     },
                                     onEdit = { onEditList(list.id) },
+                                    onManageWords = { onManageWords(list.id) },
                                     onResetProgress = { viewModel.resetListProgress(list.id) },
                                     onDelete = { viewModel.deleteList(list.id) }
                                 )
@@ -213,6 +216,7 @@ private fun WordListCard(
     list: WordList,
     onClick: () -> Unit,
     onEdit: () -> Unit,
+    onManageWords: () -> Unit,
     onResetProgress: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -295,6 +299,19 @@ private fun WordListCard(
                         onClick = {
                             menuOpen = false
                             onEdit()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.lists_menu_manage_words)) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = stringResource(R.string.lists_menu_manage_words)
+                            )
+                        },
+                        onClick = {
+                            menuOpen = false
+                            onManageWords()
                         }
                     )
                     DropdownMenuItem(

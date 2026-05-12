@@ -15,6 +15,7 @@ interface WordRepository {
     suspend fun resetAllProgress()
     suspend fun reconcileMastery(requiredCorrectAnswers: Int)
     suspend fun deleteWordList(listId: Long)
+    suspend fun deleteWord(wordId: Long)
     suspend fun getWordListName(listId: Long): String?
     suspend fun getWordsForList(listId: Long): List<Word>
     suspend fun getWordById(wordId: Long): Word?

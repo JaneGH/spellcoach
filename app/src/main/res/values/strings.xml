@@ -35,6 +35,43 @@
     <string name="action_reset">Reset</string>
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+
+    <!-- Manage words -->
+    <string name="manage_words_title">Manage Words</string>
+    <string name="manage_words_subtitle_format">%1$d words · %2$d mastered</string>
+    <string name="manage_words_search_placeholder">Search words</string>
+    <string name="manage_words_filter_all">All</string>
+    <string name="manage_words_filter_practicing">Practicing</string>
+    <string name="manage_words_filter_mastered">Mastered</string>
+    <string name="manage_words_status_new">New</string>
+    <string name="manage_words_status_practicing">Practicing</string>
+    <string name="manage_words_status_mastered">Mastered</string>
+    <string name="manage_words_empty_list">No words in this list yet. Add words to get started.</string>
+    <string name="manage_words_empty_filter">No words match your search or filter.</string>
+    <string name="manage_words_add_words">Add words</string>
+    <string name="manage_words_invalid_list">This list could not be opened.</string>
+    <string name="manage_words_selected_count">%1$d selected</string>
+    <string name="manage_words_exit_selection">Exit selection</string>
+    <string name="manage_words_action_mark_mastered">Mark selected as mastered</string>
+    <string name="manage_words_action_reset_selected">Reset progress for selected</string>
+    <string name="manage_words_action_delete_selected">Delete selected words</string>
+    <string name="manage_words_menu_edit">Edit word</string>
+    <string name="manage_words_menu_reset">Reset progress</string>
+    <string name="manage_words_menu_delete">Delete word</string>
+    <string name="manage_words_content_desc_toggle_mastered">Toggle mastered</string>
+    <string name="manage_words_content_desc_word_menu">Word actions</string>
+    <string name="content_desc_word_mastered">Word mastered</string>
+    <string name="manage_words_dialog_delete_title">Delete word?</string>
+    <string name="manage_words_dialog_delete_message">Remove “%1$s” from this list? This cannot be undone.</string>
+    <string name="manage_words_dialog_reset_title">Reset progress?</string>
+    <string name="manage_words_dialog_reset_message">Progress for “%1$s” will be cleared.</string>
+    <string name="manage_words_dialog_edit_title">Edit word</string>
+    <string name="manage_words_dialog_bulk_delete_title">Delete selected words?</string>
+    <string name="manage_words_dialog_bulk_delete_message">%1$d words will be removed from this list. This cannot be undone.</string>
+    <string name="manage_words_dialog_bulk_reset_title">Reset selected words?</string>
+    <string name="manage_words_dialog_bulk_reset_message">Progress will be cleared for %1$d words.</string>
+    <string name="lists_menu_manage_words">Manage words</string>
 
     <!-- Practice tab empty -->
     <string name="practice_pick_list_message">Pick a word list, then tap Practice on that list to start.</string>
@@ -166,15 +203,6 @@
 
     <string name="settings_letter_hints_title">Enable Letter Hints</string>
     <string name="settings_letter_hints_body">Show optional letter chips during practice.</string>
-
-    <string name="settings_speech_rate_body">Adjust how fast words are spoken.</string>
-    <string name="speech_rate_format">%1$.1f×</string>
-
-    <string name="settings_reward_sounds_title">Reward sounds</string>
-    <string name="settings_reward_sounds_body">Play sounds for achievements.</string>
-
-    <string name="settings_animations_title">Animations</string>
-    <string name="settings_animations_body">Celebrate correct answers.</string>
 
     <string name="settings_open_tts">Open text‑to‑speech settings</string>
     <string name="settings_mascot_quote">Every mistake is a new chance\nto learn better!</string>

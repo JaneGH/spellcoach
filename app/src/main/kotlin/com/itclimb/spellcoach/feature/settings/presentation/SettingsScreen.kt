@@ -1,5 +1,6 @@
 package com.itclimb.spellcoach.feature.settings.presentation
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,8 +31,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -45,8 +43,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -434,60 +432,12 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(AppSpacing.sectionGap))
 
-            LearningCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(R.string.settings_speech_rate_body),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.onSurfaceVariant
-                )
-                Slider(
-                    value = settings.speechRate,
-                    onValueChange = viewModel::setSpeechRate,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp),
-                    valueRange = 0.5f..2f,
-                    colors = SliderDefaults.colors(
-                        thumbColor = scheme.primary,
-                        activeTrackColor = scheme.primary,
-                        inactiveTrackColor = scheme.surfaceContainerHighest.copy(alpha = 0.88f),
-                        disabledActiveTrackColor = scheme.primary.copy(alpha = 0.35f),
-                        disabledInactiveTrackColor = scheme.surfaceVariant.copy(alpha = 0.35f),
-                        disabledThumbColor = scheme.primary.copy(alpha = 0.35f)
-                    )
-                )
-                Text(
-                    text = stringResource(R.string.speech_rate_format, settings.speechRate),
-                    fontWeight = FontWeight.SemiBold,
-                    color = scheme.primary,
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-
-            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = AppSpacing.sm)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_reward_sounds_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = scheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_reward_sounds_body),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = scheme.onSurfaceVariant
-                        )
-                    }
                     Box(
                         modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
                         contentAlignment = Alignment.TopCenter
@@ -507,23 +457,7 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = AppSpacing.sm)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_animations_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = scheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_animations_body),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = scheme.onSurfaceVariant
-                        )
-                    }
+
                     Box(
                         modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
                         contentAlignment = Alignment.TopCenter

@@ -34,6 +34,7 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachBottomBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.itclimb.spellcoach.feature.addwords.presentation.AddWordsScreen
+import com.itclimb.spellcoach.feature.managewords.presentation.ManageWordsScreen
 import com.itclimb.spellcoach.feature.practice.presentation.PracticeScreen
 import com.itclimb.spellcoach.feature.results.presentation.ResultsScreen
 import com.itclimb.spellcoach.feature.settings.presentation.SettingsScreen
@@ -123,6 +124,26 @@ private fun SpellCoachNavGraph(
                         }
                     },
                     onEditList = { listId ->
+                        navController.navigate(AppNav.listsAddWords(listId))
+                    },
+                    onManageWords = { listId ->
+                        navController.navigate(AppNav.listsManageWords(listId))
+                    }
+                )
+            }
+
+            composable(
+                route = AppNav.Lists.MANAGE_WORDS,
+                arguments = listOf(
+                    navArgument("listId") {
+                        type = NavType.LongType
+                    }
+                )
+            ) { entry ->
+                val listId = entry.arguments?.getLong("listId") ?: return@composable
+                ManageWordsScreen(
+                    onBack = { navController.popBackStack() },
+                    onAddWords = {
                         navController.navigate(AppNav.listsAddWords(listId))
                     }
                 )
