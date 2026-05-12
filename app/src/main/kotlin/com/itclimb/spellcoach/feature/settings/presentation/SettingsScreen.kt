@@ -432,50 +432,6 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(AppSpacing.sectionGap))
 
-
-            LearningCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Box(
-                        modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Switch(
-                            checked = settings.rewardSoundsEnabled,
-                            onCheckedChange = viewModel::setRewardSounds,
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = scheme.onPrimary,
-                                checkedTrackColor = scheme.primary
-                            )
-                        )
-                    }
-                }
-                Spacer(Modifier.height(AppSpacing.sectionGap))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
-                ) {
-
-                    Box(
-                        modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Switch(
-                            checked = settings.animationsEnabled,
-                            onCheckedChange = viewModel::setAnimations,
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = scheme.onPrimary,
-                                checkedTrackColor = scheme.primary
-                            )
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(AppSpacing.sectionGap))
-
             SpellCoachPrimaryButton(
                 text = stringResource(R.string.settings_open_tts),
                 onClick = viewModel::openTtsSettings
