@@ -2,6 +2,7 @@ package com.itclimb.spellcoach.domain.usecase
 
 import com.itclimb.spellcoach.domain.model.MistakeBehavior
 import com.itclimb.spellcoach.domain.model.Word
+import com.itclimb.spellcoach.domain.model.hasPersistedMastery
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import javax.inject.Inject
 
@@ -28,12 +29,21 @@ class ProcessSpellingResultUseCase @Inject constructor(
 
         val required = requiredCorrectStreak.coerceAtLeast(1)
         val now = System.currentTimeMillis()
+        val alreadyMastered = word.hasPersistedMastery()
 
         val updated = if (isCorrect) {
-            val nextCorrect = (word.correctCount + 1).coerceAtMost(required)
-            val mastered = nextCorrect >= required
-            val nextMasteredAt =
-                if (mastered) (word.masteredAt ?: now) else null
+            val nextCorrect =
+                if (alreadyMastered) {
+                    word.correctCount + 1
+                } else {
+                    (word.correctCount + 1).coerceAtMost(required)
+                }
+            val mastered = alreadyMastered || (nextCorrect >= required)
+            val nextMasteredAt = when {
+                alreadyMastered -> word.masteredAt
+                mastered -> word.masteredAt ?: now
+                else -> null
+            }
 
             word.copy(
                 correctCount = nextCorrect,
@@ -44,9 +54,12 @@ class ProcessSpellingResultUseCase @Inject constructor(
         } else {
             // Always decrement on wrong attempts; never reset to 0.
             val nextCorrect = (word.correctCount - 1).coerceAtLeast(0)
-            val mastered = nextCorrect >= required
-            val nextMasteredAt =
-                if (mastered) (word.masteredAt ?: now) else null
+            val mastered = alreadyMastered || (nextCorrect >= required)
+            val nextMasteredAt = when {
+                alreadyMastered -> word.masteredAt
+                mastered -> word.masteredAt ?: now
+                else -> null
+            }
 
             // mistakeBehavior is intentionally ignored to keep behavior consistent with the practice loop.
             word.copy(

@@ -119,6 +119,7 @@ import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppElevation
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
+import com.itclimb.spellcoach.domain.model.isLearnedAtThreshold
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.vision.digitalink.DigitalInkRecognition
@@ -240,7 +241,7 @@ fun PracticeScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             val totalWords = state.allWords.size
             val required = state.requiredCorrectAnswers.coerceAtLeast(1)
-            val masteredWords = state.allWords.count { it.correctCount >= required }
+            val masteredWords = state.allWords.count { it.isLearnedAtThreshold(required) }
 
             SpellCoachTopBar(
                 variant = SpellCoachTopBarVariant.Inner,
@@ -360,7 +361,12 @@ fun PracticeScreen(
                             if (curWord == null) {
                                 ""
                             } else {
-                                val cur = curWord.correctCount.coerceIn(0, required)
+                                val cur =
+                                    if (curWord.isLearnedAtThreshold(required)) {
+                                        required
+                                    } else {
+                                        curWord.correctCount.coerceIn(0, required)
+                                    }
                                 "Word progress: $cur of $required correct"
                             }
                         },
@@ -473,7 +479,12 @@ fun PracticeScreen(
 
                             val current = state.words.getOrNull(state.currentIndex)
                             if (current != null) {
-                                val cur = current.correctCount.coerceIn(0, required)
+                                val cur =
+                                    if (current.isLearnedAtThreshold(required)) {
+                                        required
+                                    } else {
+                                        current.correctCount.coerceIn(0, required)
+                                    }
                                 val progressLabel = buildAnnotatedString {
                                     withStyle(
                                         SpanStyle(

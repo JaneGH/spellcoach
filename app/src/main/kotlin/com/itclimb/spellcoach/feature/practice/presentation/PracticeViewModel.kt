@@ -9,6 +9,7 @@ import com.itclimb.spellcoach.data.tts.TtsManager
 import com.itclimb.spellcoach.domain.model.Badge
 import com.itclimb.spellcoach.domain.model.PracticeResult
 import com.itclimb.spellcoach.domain.model.Word
+import com.itclimb.spellcoach.domain.model.isLearnedAtThreshold
 import com.itclimb.spellcoach.domain.repository.RewardRepository
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import com.itclimb.spellcoach.domain.usecase.ObserveSettingsUseCase
@@ -172,7 +173,7 @@ class PracticeViewModel @Inject constructor(
                     else -> words.size.coerceAtMost(maxShortSessionWords).coerceAtLeast(1)
                 }
 
-                val masteredCount = words.count { it.correctCount >= requiredCoerced }
+                val masteredCount = words.count { it.isLearnedAtThreshold(requiredCoerced) }
                 val needsReviewCount = words.count { w ->
                     w.needsReview(
                         meta = nextReviewMeta[w.id],
@@ -266,8 +267,9 @@ class PracticeViewModel @Inject constructor(
                 settings.mistakeBehavior
             )
             val updatedWord = result.updatedWord
-            val justMastered = (w.correctCount < required) && (updatedWord.correctCount >= required)
-            val masteredNow = updatedWord.correctCount >= required
+            val justMastered =
+                result.isSpellingCorrect && w.masteredAt == null && updatedWord.masteredAt != null
+            val masteredNow = updatedWord.isLearnedAtThreshold(required)
             val now = System.currentTimeMillis()
 
             val updatedAllWords = _state.value.allWords.toMutableList().also { list ->
@@ -288,7 +290,7 @@ class PracticeViewModel @Inject constructor(
                 )
             }
 
-            val masteredCount = updatedAllWords.count { it.correctCount >= required }
+            val masteredCount = updatedAllWords.count { it.isLearnedAtThreshold(required) }
             val needsReviewCount = updatedAllWords.count { word0 ->
                 word0.needsReview(
                     meta = nextReviewMeta[word0.id],
@@ -427,7 +429,7 @@ class PracticeViewModel @Inject constructor(
                 wordId = w.id,
                 incorrectAttempts = w.incorrectCount,
                 lastSeenTimestamp = 0L,
-                needsReview = w.incorrectCount > 0 && !w.isMastered(required)
+                    needsReview = w.incorrectCount > 0 && !w.isLearnedAtThreshold(required)
             )
         }
 
@@ -461,7 +463,7 @@ class PracticeViewModel @Inject constructor(
                 currentIndex = firstIndex,
                 letters = shuffleLetters(firstWord.text),
                 reviewMetaByWordId = seededMeta,
-                masteredWordsCount = words.count { w -> w.correctCount >= required },
+                masteredWordsCount = words.count { w -> w.isLearnedAtThreshold(required) },
                 wordsNeedingReviewCount = words.count { w ->
                     w.needsReview(
                         meta = seededMeta[w.id],
@@ -579,7 +581,7 @@ class PracticeViewModel @Inject constructor(
     ): Float {
         val required = requiredCorrectAnswers.coerceAtLeast(1)
 
-        // Derived mastery level from correctCount (requiredCorrectAnswers is the source of truth).
+        // Persisted mastery overrides the live threshold; otherwise progress is derived from counts.
         val level = word.masteryLevel(required)
         val base = when (level) {
             WordMasteryLevel.NEW -> 22f
@@ -591,8 +593,10 @@ class PracticeViewModel @Inject constructor(
         val incorrectAttempts = meta?.incorrectAttempts ?: word.incorrectCount
         val incorrectBoost = 1f + incorrectAttempts.toFloat() * 0.25f
 
-        // Prioritize lower correctCount.
-        val remaining = (required - word.correctCount).coerceAtLeast(0)
+        // Prioritize lower correctCount until mastery (persisted or by threshold).
+        val remaining =
+            if (word.isLearnedAtThreshold(required)) 0
+            else (required - word.correctCount).coerceAtLeast(0)
         val urgency = (remaining.toFloat() / required.toFloat()).coerceIn(0f, 1f)
 
         val reviewBoost = if (meta?.needsReview == true) 2.4f else 1f
@@ -621,7 +625,7 @@ class PracticeViewModel @Inject constructor(
 
         return words.associate { w ->
             val existing = currentMeta[w.id]
-            val isMastered = w.isMastered(requiredCorrectAnswers)
+            val isMastered = w.isLearnedAtThreshold(requiredCorrectAnswers)
 
             w.id to (existing?.copy(
                 incorrectAttempts = w.incorrectCount,
@@ -640,18 +644,13 @@ class PracticeViewModel @Inject constructor(
         }
     }
 
-    private fun Word.isMastered(requiredCorrectAnswers: Int): Boolean {
-        val required = requiredCorrectAnswers.coerceAtLeast(1)
-        return correctCount >= required
-    }
-
     private fun Word.masteryLevel(requiredCorrectAnswers: Int): WordMasteryLevel {
         val required = requiredCorrectAnswers.coerceAtLeast(1)
+        if (isLearnedAtThreshold(required)) return WordMasteryLevel.MASTERED
         val correct = correctCount.coerceAtLeast(0)
 
         return when {
             correct == 0 -> WordMasteryLevel.NEW
-            correct >= required -> WordMasteryLevel.MASTERED
             correct.toFloat() / required.toFloat() < 0.5f -> WordMasteryLevel.LEARNING
             else -> WordMasteryLevel.FAMILIAR
         }
@@ -660,7 +659,7 @@ class PracticeViewModel @Inject constructor(
     private fun Word.needsReview(
         meta: PracticeWordReviewMeta?,
         requiredCorrectAnswers: Int
-    ): Boolean = meta?.needsReview == true && !isMastered(requiredCorrectAnswers)
+    ): Boolean = meta?.needsReview == true && !isLearnedAtThreshold(requiredCorrectAnswers)
 
     private fun shuffleLetters(text: String): List<String> {
         val lettersOnly = text.filter { it.isLetter() }.map { it.toString() }

@@ -8,7 +8,7 @@ import com.itclimb.spellcoach.data.local.entity.WordListEntity
 
 @Database(
     entities = [WordListEntity::class, WordEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class SpellCoachDatabase : RoomDatabase() {

@@ -14,5 +14,5 @@ data class WordListWithProgress(
     val words: List<WordEntity>
 ) {
     val totalWords: Int get() = words.size
-    val learnedWords: Int get() = words.count { it.isMastered }
+    val learnedWords: Int get() = words.count { it.isMastered || it.masteredAt != null }
 }

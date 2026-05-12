@@ -70,6 +70,10 @@ interface SpellCoachDao {
     @Query("DELETE FROM words WHERE id IN (:wordIds)")
     suspend fun deleteWordsById(wordIds: List<Long>)
 
+    /**
+     * Applies the new [requiredCorrectAnswers] only to words that are still learning.
+     * Rows with persisted mastery ([isMastered] or [masteredAt]) are left unchanged.
+     */
     @Query(
         """
         UPDATE words
@@ -77,10 +81,10 @@ interface SpellCoachDao {
           CASE WHEN correctCount >= :requiredCorrectAnswers THEN 1 ELSE 0 END,
             masteredAt =
           CASE
-            WHEN correctCount >= :requiredCorrectAnswers AND masteredAt IS NULL THEN :now
-            WHEN correctCount < :requiredCorrectAnswers THEN NULL
-            ELSE masteredAt
+            WHEN correctCount >= :requiredCorrectAnswers THEN :now
+            ELSE NULL
           END
+        WHERE isMastered = 0 AND masteredAt IS NULL
         """
     )
     suspend fun reconcileMastery(requiredCorrectAnswers: Int, now: Long)
