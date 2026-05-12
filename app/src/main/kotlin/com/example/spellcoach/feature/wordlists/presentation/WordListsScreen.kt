@@ -60,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.components.DesignProgressBar
 import com.example.spellcoach.core.designsystem.components.LearningCard
+import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.example.spellcoach.core.designsystem.tokens.AppIconSize
@@ -77,37 +78,34 @@ fun WordListsScreen(
     val state by viewModel.uiState.collectAsState()
     val scheme = MaterialTheme.colorScheme
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(scheme.background)
-    ) {
-        Column(Modifier.fillMaxSize()) {
-            SpellCoachTopBar(
-                showBack = false,
-                onBack = {},
-                brandTitle = stringResource(R.string.app_name),
-                screenTitle = null,
-                subtitleBelowBrand = stringResource(R.string.lists_subtitle)
-            )
-            when {
-                state.loading -> Unit
-                state.lists.isEmpty() -> {
-                    EmptyWordLists(
-                        onCreateNewList = onCreateNewList,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(AppSpacing.lg)
-                    )
-                }
-                else -> {
-                    LazyColumn(
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            start = AppSpacing.lg,
-                            end = AppSpacing.lg,
-                            top = AppSpacing.sm + AppSpacing.xs,
-                            bottom = AppSpacing.fabClearance
-                        ),
+    Box(modifier = Modifier.fillMaxSize()) {
+        SpellCoachScreenContainer {
+            Column(Modifier.fillMaxSize()) {
+                SpellCoachTopBar(
+                    showBack = false,
+                    onBack = {},
+                    brandTitle = stringResource(R.string.app_name),
+                    screenTitle = null,
+                    subtitleBelowBrand = stringResource(R.string.lists_subtitle)
+                )
+                when {
+                    state.loading -> Unit
+                    state.lists.isEmpty() -> {
+                        EmptyWordLists(
+                            onCreateNewList = onCreateNewList,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(AppSpacing.screenHorizontal)
+                        )
+                    }
+                    else -> {
+                        LazyColumn(
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                start = AppSpacing.screenHorizontal,
+                                end = AppSpacing.screenHorizontal,
+                                top = AppSpacing.sm + AppSpacing.xs,
+                                bottom = AppSpacing.fabClearance
+                            ),
                         verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
                     ) {
                         items(state.lists) { list ->
@@ -125,6 +123,7 @@ fun WordListsScreen(
                     }
                 }
             }
+        }
         }
         FloatingActionButton(
             onClick = onCreateNewList,

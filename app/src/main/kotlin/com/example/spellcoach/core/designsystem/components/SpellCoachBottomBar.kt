@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,15 +41,20 @@ fun SpellCoachBottomBar(
     onSelect: (MainTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .navigationBarsPadding()
-            .padding(vertical = AppSpacing.sm + AppSpacing.xs, horizontal = AppSpacing.md),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(vertical = AppSpacing.sm + AppSpacing.xs, horizontal = AppSpacing.md),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         SpellCoachNavItem(
             label = stringResource(R.string.nav_lists),
             selected = selected == MainTab.Lists,
@@ -67,6 +73,7 @@ fun SpellCoachBottomBar(
             onClick = { onSelect(MainTab.Settings) },
             icon = Icons.Filled.Settings
         )
+        }
     }
 }
 

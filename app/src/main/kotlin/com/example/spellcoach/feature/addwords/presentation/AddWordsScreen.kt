@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -47,11 +47,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.core.designsystem.components.LearningCard
-import com.example.spellcoach.core.designsystem.components.PrimaryButton
 import com.example.spellcoach.core.designsystem.components.SaveGreenButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachOutlinedTextField
+import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.example.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
+import com.example.spellcoach.core.designsystem.tokens.AppDimensions
+import com.example.spellcoach.core.designsystem.tokens.AppRadius
+import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 import com.example.spellcoach.core.designsystem.components.WordChip
-import com.example.spellcoach.core.designsystem.components.glass.GlassTextField
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -63,11 +68,11 @@ fun AddWordsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val scheme = MaterialTheme.colorScheme
 
     val pdfPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri ->
-            // persist read permission for future reads during process lifetime
             if (uri != null) {
                 runCatching {
                     context.contentResolver.takePersistableUriPermission(
@@ -91,13 +96,10 @@ fun AddWordsScreen(
         }
     }
 
-    Column(
+    SpellCoachScreenContainer(
         modifier = Modifier
-            .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .imePadding()
-            .padding(horizontal = 16.dp)
-            .background(Color(0xFFF8FAFF))
     ) {
         SpellCoachTopBar(
             showBack = true,
@@ -111,80 +113,85 @@ fun AddWordsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .spellCoachScreenHorizontalPadding()
         ) {
             Column {
                 Text(
                     text = "List name",
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFF64748B),
-                    modifier = Modifier.padding(start = 6.dp, bottom = 6.dp)
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = AppSpacing.sm + AppSpacing.xs, bottom = AppSpacing.sm + AppSpacing.xs)
                 )
 
-                GlassTextField(
+                SpellCoachOutlinedTextField(
                     value = state.listName,
                     onValueChange = viewModel::setListName,
                     placeholder = "Animals",
                     modifier = Modifier.fillMaxWidth(),
-                    height = 56.dp,
-                    cornerRadius = 14.dp
+                    height = 56.dp
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
-
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(AppSpacing.md))
 
                 Text(
                     text = "TYPE OR PASTE WORDS",
-                    color = Color(0xFF94A3B8),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = scheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(AppSpacing.md))
                 OutlinedTextField(
                     value = state.rawInput,
                     onValueChange = viewModel::setRawInput,
                     placeholder = {
                         Text(
                             text = "Type words here,\nseparated by spaces or\ncommas...",
-                            color = Color(0xFFCBD5E1),
+                            color = scheme.onSurfaceVariant.copy(alpha = 0.55f),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium
                         )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp),
-                    shape = RoundedCornerShape(14.dp)
+                        .height(AppDimensions.addWordsFieldHeight),
+                    shape = RoundedCornerShape(AppRadius.md),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = scheme.primary,
+                        unfocusedBorderColor = scheme.outlineVariant,
+                        focusedTextColor = scheme.onSurface,
+                        unfocusedTextColor = scheme.onSurface,
+                        focusedContainerColor = scheme.surface,
+                        unfocusedContainerColor = scheme.surface
+                    )
                 )
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    PrimaryButton(
+                    SpellCoachPrimaryButton(
                         text = "Add",
                         onClick = viewModel::addParsedWordsFromInput,
-                        modifier = Modifier.width(160.dp),
-                        containerColor = Color(0xFF0B6B8C)
+                        modifier = Modifier.width(160.dp)
                     )
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
 
             ImportCard(
-                iconBg = Color(0xFFCFFAE5),
+                iconBg = scheme.primaryContainer.copy(alpha = 0.65f),
                 icon = Icons.Filled.PictureAsPdf,
                 title = "Import from PDF",
                 subtitle = "Upload worksheets",
                 onClick = { pdfPicker.launch(arrayOf("application/pdf")) }
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(AppSpacing.md))
 
             ImportCard(
-                iconBg = Color(0xFFE9D5FF),
+                iconBg = scheme.tertiaryContainer.copy(alpha = 0.55f),
                 icon = Icons.Filled.CameraAlt,
                 title = "Scan from Photo",
                 subtitle = "Snap a picture",
@@ -197,7 +204,7 @@ fun AddWordsScreen(
                 }
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(AppSpacing.lg))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -206,43 +213,43 @@ fun AddWordsScreen(
             ) {
                 Text(
                     text = "Word Preview",
-                    fontSize = 22.sp,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
+                    color = scheme.onSurface
                 )
                 Box(
                     modifier = Modifier
-                        .background(Color(0xFFE2E8F0), RoundedCornerShape(50))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .background(scheme.surfaceVariant.copy(alpha = 0.55f), RoundedCornerShape(AppRadius.pill))
+                        .padding(horizontal = AppSpacing.sm + AppSpacing.xs, vertical = AppSpacing.xs)
                 ) {
                     Text(
                         text = "${state.previewWords.size} Words",
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A)
+                        color = scheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
             if (state.isImporting) {
                 Text(
                     text = "Importing...",
-                    color = Color(0xFF0B6B8C),
+                    color = scheme.primary,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
+                    style = MaterialTheme.typography.bodySmall
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             }
 
             val dash = PathEffect.dashPathEffect(floatArrayOf(12f, 10f), 0f)
-            val previewOutline = MaterialTheme.colorScheme.outline
+            val previewOutline = scheme.outline
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFEFF6FF))
+                    .clip(RoundedCornerShape(AppRadius.lg))
+                    .background(scheme.primaryContainer.copy(alpha = 0.25f))
                     .drawBehind {
                         val stroke = Stroke(width = 2.dp.toPx(), pathEffect = dash)
                         drawRoundRect(
@@ -251,11 +258,11 @@ fun AddWordsScreen(
                             cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx())
                         )
                     }
-                    .padding(14.dp)
+                    .padding(AppSpacing.sm + AppSpacing.md)
             ) {
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm + AppSpacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.sm + AppSpacing.xs)
                 ) {
                     state.previewWords.forEach { w ->
                         WordChip(
@@ -267,23 +274,23 @@ fun AddWordsScreen(
             }
 
             if (state.errorMessage != null) {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 Text(
                     text = state.errorMessage!!,
-                    color = Color(0xFFB3261E),
+                    color = scheme.error,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
             SaveGreenButton(
                 text = if (state.isEditMode) "Save Changes" else "Save to My Lists",
                 onClick = viewModel::save,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 14.dp)
+                    .padding(bottom = AppSpacing.sm + AppSpacing.md)
             )
         }
     }
@@ -291,12 +298,13 @@ fun AddWordsScreen(
 
 @Composable
 private fun ImportCard(
-    iconBg: Color,
+    iconBg: androidx.compose.ui.graphics.Color,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,
     onClick: () -> Unit
 ) {
+    val scheme = MaterialTheme.colorScheme
     LearningCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -306,17 +314,26 @@ private fun ImportCard(
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .background(iconBg, RoundedCornerShape(10.dp)),
+                    .background(iconBg, RoundedCornerShape(AppRadius.xs)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = Color(0xFF0F172A))
+                Icon(icon, contentDescription = null, tint = scheme.primary)
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(AppSpacing.sm + AppSpacing.md))
             Column {
-                Text(text = title, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
-                Text(text = subtitle, color = Color(0xFF64748B), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = subtitle,
+                    color = scheme.onSurfaceVariant,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
 }
-

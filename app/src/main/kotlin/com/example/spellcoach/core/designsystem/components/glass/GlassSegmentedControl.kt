@@ -33,11 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class SegmentedOption(
-    val title: String,
-    val icon: ImageVector
-)
+import com.example.spellcoach.core.designsystem.components.SegmentedOption
 
 private val SegmentedAnimationSpecFloat = tween<Float>(durationMillis = 220, easing = FastOutSlowInEasing)
 private val SegmentedAnimationSpecColor = tween<Color>(durationMillis = 220, easing = FastOutSlowInEasing)

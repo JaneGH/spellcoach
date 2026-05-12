@@ -5,9 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,6 +31,8 @@ import androidx.navigation.navigation
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.components.MainTab
 import com.example.spellcoach.core.designsystem.components.SpellCoachBottomBar
+import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.feature.addwords.presentation.AddWordsScreen
 import com.example.spellcoach.feature.practice.presentation.PracticeScreen
 import com.example.spellcoach.feature.results.presentation.ResultsScreen
@@ -55,6 +56,7 @@ fun SpellCoachNavHost(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             SpellCoachBottomBar(
                 selected = selectedTab,
@@ -232,30 +234,30 @@ private fun PracticeTabEntry(
     }
 
     if (id == null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(AppSpacing.xxl),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
+        SpellCoachScreenContainer {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(AppSpacing.xxl),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = stringResource(R.string.practice_pick_list_message),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = onOpenListsTab,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppSpacing.xxl),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
                 ) {
-                    Text(text = stringResource(R.string.practice_go_to_lists))
+                    Text(
+                        text = stringResource(R.string.practice_pick_list_message),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    SpellCoachPrimaryButton(
+                        text = stringResource(R.string.practice_go_to_lists),
+                        onClick = onOpenListsTab
+                    )
                 }
             }
         }

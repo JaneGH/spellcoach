@@ -1,6 +1,5 @@
 package com.example.spellcoach.feature.results.presentation
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,20 +14,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,7 +33,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.components.DesignProgressBar
 import com.example.spellcoach.core.designsystem.components.LearningCard
+import com.example.spellcoach.core.designsystem.components.SecondaryOutlinedButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.example.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
+import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
+import com.example.spellcoach.core.designsystem.tokens.AppDimensions
+import com.example.spellcoach.core.designsystem.tokens.AppRadius
+import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 
 @Composable
 fun ResultsScreen(
@@ -48,12 +52,10 @@ fun ResultsScreen(
 ) {
     val result = viewModel.result
     val toPractice = result?.let { (it.total - it.correct).coerceAtLeast(0) } ?: 0
+    val scheme = MaterialTheme.colorScheme
+    val extras = SpellCoachThemeExtras.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFF))
-    ) {
+    SpellCoachScreenContainer {
         SpellCoachTopBar(
             showBack = true,
             onBack = onBack,
@@ -66,36 +68,36 @@ fun ResultsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .spellCoachScreenHorizontalPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             Box(
                 modifier = Modifier
-                    .size(150.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .size(AppDimensions.resultsHeroImage)
+                    .clip(RoundedCornerShape(AppRadius.lg))
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.img_results),
                     contentDescription = null
                 )
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             Text(
                 text = "Good job!",
-                fontSize = 34.sp,
+                style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Black,
-                color = Color(0xFF0F172A)
+                color = scheme.onSurface
             )
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             Text(
                 text = "You worked hard and learned\nsome tricky words today.",
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF475569)
+                color = scheme.onSurfaceVariant
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 val correct = result?.correct ?: 0
@@ -109,17 +111,17 @@ fun ResultsScreen(
                         text = "$correct",
                         fontSize = 38.sp,
                         fontWeight = FontWeight.Black,
-                        color = Color(0xFF16A34A)
+                        color = extras.success
                     )
                     Text(
                         text = " / $total",
-                        fontSize = 22.sp,
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A),
-                        modifier = Modifier.padding(start = 4.dp)
+                        color = scheme.onSurface,
+                        modifier = Modifier.padding(start = AppSpacing.xs)
                     )
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(AppSpacing.sm))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -127,29 +129,29 @@ fun ResultsScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(Color(0xFFD1FAE5))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .clip(RoundedCornerShape(AppRadius.pill))
+                            .background(extras.success.copy(alpha = 0.15f))
+                            .padding(horizontal = AppSpacing.sm + AppSpacing.xs, vertical = AppSpacing.sm + AppSpacing.xs)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Filled.CheckCircle,
                                 contentDescription = null,
-                                tint = Color(0xFF16A34A),
+                                tint = extras.success,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = "  Words Correct",
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF166534)
+                                color = extras.onSuccessContainer
                             )
                         }
                     }
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -159,106 +161,85 @@ fun ResultsScreen(
                 ) {
                     Text(
                         text = "$toPractice",
-                        fontSize = 34.sp,
+                        style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Black,
-                        color = Color(0xFF7C3AED)
+                        color = scheme.tertiary
                     )
                 }
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(Color(0xFFEDE9FE))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .clip(RoundedCornerShape(AppRadius.pill))
+                            .background(scheme.tertiaryContainer.copy(alpha = 0.55f))
+                            .padding(horizontal = AppSpacing.sm + AppSpacing.xs, vertical = AppSpacing.sm + AppSpacing.xs)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Filled.Star,
                                 contentDescription = null,
-                                tint = Color(0xFF7C3AED),
+                                tint = scheme.tertiary,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = "  To Practice",
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF5B21B6)
+                                color = scheme.onTertiaryContainer
                             )
                         }
                     }
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(AppSpacing.md))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = "Goal", fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
-                    Text(text = "80%", fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
+                    Text(
+                        text = "Goal",
+                        fontWeight = FontWeight.Bold,
+                        color = scheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "80%",
+                        fontWeight = FontWeight.Bold,
+                        color = extras.success,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 DesignProgressBar(progress = 0.8f, fullMastered = false)
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 Text(
                     text = "Just 2 more sessions to reach your\ndiamond badge!",
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF475569)
+                    color = scheme.onSurfaceVariant
                 )
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
 
-            Button(
+            SpellCoachPrimaryButton(
+                text = "Practice Again",
                 onClick = {
                     val id = result?.listId
                     if (id != null) onPracticeAgain(id)
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0B6B8C))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-                Text(
-                    text = "  Practice Again",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
-            Spacer(Modifier.height(10.dp))
-            OutlinedButton(
+                leadingIcon = Icons.Filled.Refresh
+            )
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+            SecondaryOutlinedButton(
+                text = "Go to Lists",
                 onClick = onGoToLists,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color(0xFF0B6B8C)),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B6B8C))
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.List,
-                    contentDescription = null,
-                    tint = Color(0xFF0B6B8C)
-                )
-                Text(
-                    text = "  Go to Lists",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
-            Spacer(Modifier.height(20.dp))
+                leadingIcon = Icons.AutoMirrored.Filled.List
+            )
+            Spacer(Modifier.height(AppSpacing.xl))
         }
     }
 }
-
