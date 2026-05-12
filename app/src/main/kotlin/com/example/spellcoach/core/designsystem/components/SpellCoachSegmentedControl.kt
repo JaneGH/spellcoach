@@ -44,31 +44,33 @@ fun SpellCoachSegmentedControl(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(AppDimensions.buttonHeightLarge)
+            .height(AppDimensions.buttonHeightLarge - AppSpacing.xs)
             .clip(trackShape)
-            .background(scheme.surfaceVariant.copy(alpha = 0.45f))
+            .background(scheme.surfaceVariant.copy(alpha = 0.38f))
             .border(
                 width = 1.dp,
-                color = scheme.outlineVariant.copy(alpha = 0.55f),
+                color = scheme.outlineVariant.copy(alpha = 0.4f),
                 shape = trackShape
             )
-            .padding(AppSpacing.xs),
+            .padding(AppSpacing.xs + AppSpacing.xxs),
         horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
         verticalAlignment = Alignment.CenterVertically
     ) {
         options.forEachIndexed { idx, option ->
             val selected = idx == selectedIndex
             val pillShape = RoundedCornerShape(AppRadius.pill)
-            val bg = if (selected) scheme.primaryContainer else scheme.surface.copy(alpha = 0f)
-            val border = if (selected) scheme.primary.copy(alpha = 0.35f) else scheme.outlineVariant.copy(alpha = 0f)
-            val content = if (selected) scheme.primary else scheme.onSurfaceVariant
+            val bg = if (selected) {
+                scheme.primaryContainer.copy(alpha = 0.85f)
+            } else {
+                scheme.surface.copy(alpha = 0f)
+            }
+            val content = if (selected) scheme.onPrimaryContainer else scheme.onSurfaceVariant
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(AppDimensions.buttonHeightLarge - AppSpacing.sm)
+                    .height(AppDimensions.buttonHeightLarge - AppSpacing.sm - AppSpacing.xs)
                     .clip(pillShape)
                     .background(bg)
-                    .border(1.dp, border, pillShape)
                     .clickable { onSelectIndex(idx) },
                 contentAlignment = Alignment.Center
             ) {
@@ -87,7 +89,7 @@ fun SpellCoachSegmentedControl(
                         text = option.title,
                         color = content,
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
                     )
                 }
             }

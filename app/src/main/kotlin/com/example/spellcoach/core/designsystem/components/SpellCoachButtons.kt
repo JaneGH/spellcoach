@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
+import com.example.spellcoach.core.designsystem.tokens.AppElevation
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 
@@ -33,13 +34,19 @@ fun SpellCoachPrimaryButton(
     leadingIcon: ImageVector? = null
 ) {
     val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(AppRadius.lg)
     Button(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
             .height(AppDimensions.buttonHeightDefault),
-        shape = RoundedCornerShape(AppRadius.md),
+        shape = shape,
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = AppElevation.level1,
+            pressedElevation = AppElevation.level0,
+            disabledElevation = AppElevation.level0
+        ),
         colors = ButtonDefaults.buttonColors(
             containerColor = scheme.primary,
             contentColor = scheme.onPrimary,
@@ -57,7 +64,7 @@ fun SpellCoachPrimaryButton(
         }
         Text(
             text = text,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -76,7 +83,11 @@ fun PrimaryButton(
         modifier = modifier
             .fillMaxWidth()
             .height(AppDimensions.buttonHeightDefault),
-        shape = RoundedCornerShape(AppRadius.md),
+        shape = RoundedCornerShape(AppRadius.lg),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = AppElevation.level1,
+            pressedElevation = AppElevation.level0
+        ),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor
@@ -85,7 +96,46 @@ fun PrimaryButton(
         Text(
             text = text,
             color = contentColor,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+
+@Composable
+fun SpellCoachSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: ImageVector? = null
+) {
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(AppRadius.lg)
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(AppDimensions.buttonHeightDefault),
+        shape = shape,
+        border = BorderStroke(width = 1.dp, color = scheme.outlineVariant),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = scheme.onSurface,
+            disabledContentColor = scheme.onSurface.copy(alpha = 0.38f)
+        )
+    ) {
+        if (leadingIcon != null) {
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                modifier = Modifier.size(AppDimensions.topBarAvatar - 8.dp)
+            )
+            Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
+        }
+        Text(
+            text = text,
+            fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -98,30 +148,12 @@ fun SecondaryOutlinedButton(
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null
 ) {
-    val primary = MaterialTheme.colorScheme.primary
-    OutlinedButton(
+    SpellCoachSecondaryButton(
+        text = text,
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(AppDimensions.buttonHeightDefault),
-        shape = RoundedCornerShape(AppRadius.md),
-        border = BorderStroke(width = 1.dp, color = primary),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = primary)
-    ) {
-        if (leadingIcon != null) {
-            Icon(
-                imageVector = leadingIcon,
-                contentDescription = null,
-                modifier = Modifier.size(AppDimensions.topBarAvatar - 8.dp)
-            )
-            Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
-        }
-        Text(
-            text = text,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
+        modifier = modifier,
+        leadingIcon = leadingIcon
+    )
 }
 
 @Composable

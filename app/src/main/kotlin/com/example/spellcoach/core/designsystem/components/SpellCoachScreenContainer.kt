@@ -36,22 +36,32 @@ fun SpellCoachTopHeader(
     modifier: Modifier = Modifier,
     subtitle: String? = null
 ) {
+    SpellCoachHeader(title = title, modifier = modifier, subtitle = subtitle)
+}
+
+/** Screen title block: bold title, optional subtitle in [onSurfaceVariant]. */
+@Composable
+fun SpellCoachHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null
+) {
     Column(
         modifier = modifier
             .spellCoachScreenHorizontalPadding()
             .padding(
-                top = AppSpacing.sm,
-                bottom = AppSpacing.sm
+                top = AppSpacing.md,
+                bottom = AppSpacing.md
             )
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
         if (subtitle != null) {
-            Spacer(Modifier.height(AppSpacing.xs))
+            Spacer(Modifier.height(AppSpacing.sm))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyLarge,

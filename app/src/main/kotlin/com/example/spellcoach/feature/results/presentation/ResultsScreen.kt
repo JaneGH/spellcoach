@@ -33,7 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.components.DesignProgressBar
 import com.example.spellcoach.core.designsystem.components.LearningCard
-import com.example.spellcoach.core.designsystem.components.SecondaryOutlinedButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachSecondaryButton
 import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
@@ -85,8 +85,8 @@ fun ResultsScreen(
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             Text(
                 text = "Good job!",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
                 color = scheme.onSurface
             )
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
@@ -234,7 +234,7 @@ fun ResultsScreen(
                 leadingIcon = Icons.Filled.Refresh
             )
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-            SecondaryOutlinedButton(
+            SpellCoachSecondaryButton(
                 text = "Go to Lists",
                 onClick = onGoToLists,
                 leadingIcon = Icons.AutoMirrored.Filled.List

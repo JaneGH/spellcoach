@@ -41,12 +41,13 @@ fun SpellCoachBottomBar(
     onSelect: (MainTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scheme = MaterialTheme.colorScheme
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(scheme.surfaceContainerLow)
     ) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.35f))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -85,8 +86,12 @@ private fun SpellCoachNavItem(
     icon: ImageVector
 ) {
     val scheme = MaterialTheme.colorScheme
-    val bg = if (selected) scheme.primaryContainer else scheme.surface.copy(alpha = 0f)
-    val tint = if (selected) scheme.primary else scheme.onSurfaceVariant
+    val bg = if (selected) {
+        scheme.primaryContainer.copy(alpha = 0.72f)
+    } else {
+        scheme.surfaceContainerLow.copy(alpha = 0f)
+    }
+    val tint = if (selected) scheme.onPrimaryContainer else scheme.onSurfaceVariant
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier

@@ -60,9 +60,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.components.DesignProgressBar
 import com.example.spellcoach.core.designsystem.components.LearningCard
+import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
+import com.example.spellcoach.core.designsystem.tokens.AppElevation
 import com.example.spellcoach.core.designsystem.tokens.AppIconSize
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
@@ -130,12 +132,12 @@ fun WordListsScreen(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = AppSpacing.xl, bottom = AppSpacing.xxxl - AppSpacing.sm),
-            containerColor = scheme.primary,
-            contentColor = scheme.onPrimary,
-            shape = CircleShape,
+            containerColor = scheme.primaryContainer,
+            contentColor = scheme.primary,
+            shape = RoundedCornerShape(AppRadius.lg),
             elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = AppSpacing.sm,
-                pressedElevation = AppSpacing.sm
+                defaultElevation = AppElevation.level2,
+                pressedElevation = AppElevation.level1
             )
         ) {
             Icon(
@@ -186,9 +188,10 @@ private fun EmptyWordLists(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(AppSpacing.xxl))
-        Button(onClick = onCreateNewList) {
-            Text(text = stringResource(R.string.lists_empty_cta))
-        }
+        SpellCoachPrimaryButton(
+            text = stringResource(R.string.lists_empty_cta),
+            onClick = onCreateNewList
+        )
     }
 }
 
@@ -255,7 +258,7 @@ private fun WordListCard(
                     Icon(
                         imageVector = Icons.Filled.ChevronRight,
                         contentDescription = stringResource(R.string.content_desc_open_list),
-                        tint = scheme.primary,
+                        tint = scheme.onSurfaceVariant,
                         modifier = Modifier.size(AppIconSize.xl)
                     )
                 }

@@ -27,8 +27,6 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -144,29 +142,15 @@ fun AddWordsScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(AppSpacing.md))
-                OutlinedTextField(
+                SpellCoachOutlinedTextField(
                     value = state.rawInput,
                     onValueChange = viewModel::setRawInput,
-                    placeholder = {
-                        Text(
-                            text = "Type words here,\nseparated by spaces or\ncommas...",
-                            color = scheme.onSurfaceVariant.copy(alpha = 0.55f),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(AppDimensions.addWordsFieldHeight),
-                    shape = RoundedCornerShape(AppRadius.md),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = scheme.primary,
-                        unfocusedBorderColor = scheme.outlineVariant,
-                        focusedTextColor = scheme.onSurface,
-                        unfocusedTextColor = scheme.onSurface,
-                        focusedContainerColor = scheme.surface,
-                        unfocusedContainerColor = scheme.surface
-                    )
+                    placeholder = "Type words here, separated by spaces or commas…",
+                    modifier = Modifier.fillMaxWidth(),
+                    height = AppDimensions.addWordsFieldHeight,
+                    singleLine = false,
+                    minLines = 5,
+                    maxLines = 12
                 )
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -244,14 +228,14 @@ fun AddWordsScreen(
             }
 
             val dash = PathEffect.dashPathEffect(floatArrayOf(12f, 10f), 0f)
-            val previewOutline = scheme.outline
+            val previewOutline = scheme.outlineVariant.copy(alpha = 0.55f)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(AppRadius.lg))
-                    .background(scheme.primaryContainer.copy(alpha = 0.25f))
+                    .background(scheme.surfaceContainerLow.copy(alpha = 0.65f))
                     .drawBehind {
-                        val stroke = Stroke(width = 2.dp.toPx(), pathEffect = dash)
+                        val stroke = Stroke(width = 1.dp.toPx(), pathEffect = dash)
                         drawRoundRect(
                             color = previewOutline,
                             style = stroke,
@@ -317,7 +301,7 @@ private fun ImportCard(
                     .background(iconBg, RoundedCornerShape(AppRadius.xs)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = scheme.primary)
+                Icon(icon, contentDescription = null, tint = scheme.onSurfaceVariant)
             }
             Spacer(Modifier.width(AppSpacing.sm + AppSpacing.md))
             Column {

@@ -51,7 +51,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -67,7 +66,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -89,7 +87,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
-import com.example.spellcoach.core.designsystem.components.SecondaryOutlinedButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachSecondaryButton
 import com.example.spellcoach.core.designsystem.components.SegmentedOption
 import com.example.spellcoach.core.designsystem.components.SpellCoachCard
 import com.example.spellcoach.core.designsystem.components.SpellCoachOutlinedTextField
@@ -100,7 +98,6 @@ import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.example.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
-import com.example.spellcoach.core.designsystem.tokens.AppElevation
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 import com.google.mlkit.common.model.DownloadConditions
@@ -277,7 +274,7 @@ fun PracticeScreen(
 
                             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
-                            SecondaryOutlinedButton(
+                            SpellCoachSecondaryButton(
                                 text = "Back to Lists",
                                 onClick = onBack
                             )
@@ -628,9 +625,9 @@ private fun HintsSection(
         border = BorderStroke(
             1.dp,
             if (nudgeHints) {
-                scheme.tertiary
+                scheme.tertiary.copy(alpha = 0.45f)
             } else {
-                scheme.outlineVariant
+                scheme.outlineVariant.copy(alpha = 0.65f)
             }
         )
     ) {
@@ -750,7 +747,7 @@ private fun HandwritingInputPanel(
             .fillMaxWidth()
             .height(AppDimensions.handwritingPanelMinHeight)
             .clip(cardShape)
-            .background(scheme.surfaceVariant.copy(alpha = 0.45f))
+            .background(scheme.surfaceContainerLow.copy(alpha = 0.85f))
     ) {
 
         HandwritingCanvas(
@@ -832,7 +829,7 @@ private fun HandwritingInputPanel(
                 }
             },
             enabled = strokes.isNotEmpty() && !isRecognizing,
-            shape = RoundedCornerShape(999.dp),
+            shape = RoundedCornerShape(AppRadius.lg),
             colors = ButtonDefaults.buttonColors(
                 containerColor = scheme.primary,
                 contentColor = scheme.onPrimary,
@@ -1043,39 +1040,18 @@ private fun CorrectAnswerSuccessCard(
         label = "correct_progress"
     )
 
-    val cardShape = RoundedCornerShape(AppRadius.glassCard)
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = AppElevation.level3,
-                shape = cardShape,
-                clip = false
-            ),
-        shape = cardShape,
-        color = scheme.surface,
-        tonalElevation = AppElevation.level1
-    ) {
+    SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = AppSpacing.xxl, vertical = AppSpacing.xl + AppSpacing.sm),
+                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.sm + AppSpacing.xs),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//            Box(
-//                modifier = Modifier
-//                    .size(64.dp)
-//                    .clip(CircleShape)
-//                    .background(Color(0xFFDDF7E7)),
-//                contentAlignment = Alignment.Center
-//            ) {
                 Image(
                     painter = painterResource(R.drawable.fox_happy),
                     contentDescription = null,
                     modifier = Modifier.size(95.dp)
                 )
-//            }
 
             Spacer(Modifier.height(5.dp))
 

@@ -23,6 +23,8 @@ fun SpellCoachOutlinedTextField(
     modifier: Modifier = Modifier,
     height: Dp? = null,
     singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else 12,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None
@@ -48,20 +50,53 @@ fun SpellCoachOutlinedTextField(
             )
         },
         singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
         shape = shape,
         textStyle = MaterialTheme.typography.bodyLarge,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         visualTransformation = visualTransformation,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = scheme.primary,
+            focusedBorderColor = scheme.primary.copy(alpha = 0.42f),
             unfocusedBorderColor = scheme.outlineVariant,
+            disabledBorderColor = scheme.outlineVariant.copy(alpha = 0.45f),
             cursorColor = scheme.primary,
             focusedTextColor = scheme.onSurface,
             unfocusedTextColor = scheme.onSurface,
-            focusedContainerColor = scheme.surface,
-            unfocusedContainerColor = scheme.surface,
-            disabledContainerColor = scheme.surface
+            focusedContainerColor = scheme.surfaceContainerLow,
+            unfocusedContainerColor = scheme.surfaceContainerLow,
+            disabledContainerColor = scheme.surfaceContainerLow
         )
+    )
+}
+
+/** Alias for [SpellCoachOutlinedTextField] — same styling and behavior. */
+@Composable
+fun SpellCoachTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    height: Dp? = null,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else 12,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    visualTransformation: VisualTransformation = VisualTransformation.None
+) {
+    SpellCoachOutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = placeholder,
+        modifier = modifier,
+        height = height,
+        singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        visualTransformation = visualTransformation
     )
 }

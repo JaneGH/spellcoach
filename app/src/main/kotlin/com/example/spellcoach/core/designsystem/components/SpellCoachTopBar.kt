@@ -68,16 +68,16 @@ fun SpellCoachTopBar(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = brandTitle,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         if (brandAccent != null) {
                             Text(
                                 text = "  $brandAccent",
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(start = AppSpacing.xs)
                             )
                         }
@@ -97,14 +97,14 @@ fun SpellCoachTopBar(
                 modifier = Modifier
                     .size(AppDimensions.topBarAvatar)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.65f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = initials,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }

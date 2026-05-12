@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -122,23 +123,33 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
+                    val chipColors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = scheme.primaryContainer,
+                        selectedLabelColor = scheme.onPrimaryContainer,
+                        selectedLeadingIconColor = scheme.onPrimaryContainer,
+                        containerColor = scheme.surfaceVariant.copy(alpha = 0.35f),
+                        labelColor = scheme.onSurfaceVariant
+                    )
                     FilterChip(
                         selected = settings.themePreference == ThemePreference.SYSTEM,
                         onClick = { viewModel.setThemePreference(ThemePreference.SYSTEM) },
                         label = { Text(stringResource(R.string.settings_theme_system)) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = chipColors
                     )
                     FilterChip(
                         selected = settings.themePreference == ThemePreference.LIGHT,
                         onClick = { viewModel.setThemePreference(ThemePreference.LIGHT) },
                         label = { Text(stringResource(R.string.settings_theme_light)) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = chipColors
                     )
                     FilterChip(
                         selected = settings.themePreference == ThemePreference.DARK,
                         onClick = { viewModel.setThemePreference(ThemePreference.DARK) },
                         label = { Text(stringResource(R.string.settings_theme_dark)) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = chipColors
                     )
                 }
             }
@@ -276,8 +287,12 @@ fun SettingsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(AppRadius.md))
-                        .background(scheme.errorContainer.copy(alpha = 0.35f))
-                        .border(1.dp, scheme.error, RoundedCornerShape(AppRadius.md))
+                        .background(scheme.errorContainer.copy(alpha = 0.42f))
+                        .border(
+                            1.dp,
+                            scheme.outlineVariant.copy(alpha = 0.55f),
+                            RoundedCornerShape(AppRadius.md)
+                        )
                         .clickable { showResetAllConfirm = true }
                         .padding(vertical = AppSpacing.sm + AppSpacing.md),
                     contentAlignment = Alignment.Center
@@ -532,21 +547,25 @@ private fun NumberPickCell(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    val borderColor = if (selected) scheme.primary else scheme.outline
-    val bg = if (selected) scheme.primaryContainer else scheme.surface
+    val borderColor = if (selected) {
+        scheme.primary.copy(alpha = 0.35f)
+    } else {
+        scheme.outlineVariant.copy(alpha = 0.65f)
+    }
+    val bg = if (selected) scheme.primaryContainer.copy(alpha = 0.75f) else scheme.surfaceContainerLow
     Box(
         modifier = modifier
             .height(40.dp)
-            .clip(RoundedCornerShape(AppRadius.xs))
+            .clip(RoundedCornerShape(AppRadius.sm))
             .background(bg)
-            .border(2.dp, borderColor, RoundedCornerShape(AppRadius.xs))
+            .border(1.dp, borderColor, RoundedCornerShape(AppRadius.sm))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = n.toString(),
-            fontWeight = FontWeight.Bold,
-            color = if (selected) scheme.primary else scheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
+            color = if (selected) scheme.onPrimaryContainer else scheme.onSurfaceVariant,
             fontSize = 14.sp
         )
     }
@@ -560,23 +579,31 @@ private fun MistakeOptionRow(
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
-    val bg = if (selected) scheme.primaryContainer else scheme.surface
-    val border = if (selected) scheme.primary else scheme.outlineVariant
+    val bg = if (selected) scheme.secondaryContainer.copy(alpha = 0.55f) else scheme.surfaceContainerLow
+    val border = if (selected) {
+        scheme.primary.copy(alpha = 0.28f)
+    } else {
+        scheme.outlineVariant.copy(alpha = 0.5f)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(AppRadius.md))
             .background(bg)
-            .border(2.dp, border, RoundedCornerShape(AppRadius.md))
+            .border(1.dp, border, RoundedCornerShape(AppRadius.md))
             .clickable(onClick = onClick)
             .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm + AppSpacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = scheme.primary)
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = if (selected) scheme.primary else scheme.onSurfaceVariant
+        )
         Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
         Text(
             text = title,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = scheme.onSurface,
             style = MaterialTheme.typography.titleMedium
         )
