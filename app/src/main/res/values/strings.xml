@@ -12,7 +12,7 @@
     <string name="profile_initials_default">SP</string>
 
     <!-- Word lists -->
-    <string name="lists_subtitle">Keep track of your spelling progress across different groups.</string>
+    <string name="lists_subtitle">Keep track of your spelling progress</string>
     <string name="content_desc_add_word_list">Create new word list</string>
     <string name="content_desc_list_mastered">List mastered</string>
     <string name="content_desc_open_list">Open list</string>
@@ -90,7 +90,7 @@
     <string name="add_words_title_new">Add Words</string>
     <string name="add_words_title_edit">Edit List</string>
     <string name="add_words_list_name_label">List name</string>
-    <string name="add_words_list_name_placeholder">Animals</string>
+    <string name="add_words_list_name_placeholder">Lesson 1</string>
     <string name="add_words_type_paste_heading">TYPE OR PASTE WORDS</string>
     <string name="add_words_bulk_placeholder">Type words here,\nseparated by spaces or\ncommas…</string>
     <string name="add_words_add_button">Add</string>
@@ -115,7 +115,7 @@
     <string name="error_save_generic">Could not save.</string>
 
     <!-- Results -->
-    <string name="results_title_brand">SpellCoach</string>
+    <string name="results_nav_title">Results</string>
     <string name="results_headline">Good job!</string>
     <string name="results_subtitle">You worked hard and learned\nsome tricky words today.</string>
     <string name="results_score_format">%1$d</string>
@@ -132,7 +132,6 @@
     <string name="content_desc_go_to_lists">Go to word lists</string>
 
     <!-- Settings -->
-    <string name="settings_hero_title">Settings</string>
     <string name="settings_subtitle">Customize your learning experience to match your pace.</string>
     <string name="settings_tts_unavailable">Speech isn’t available on this device yet. You can open system settings to install or enable text‑to‑speech.</string>
 
@@ -162,10 +161,10 @@
     <string name="speech_rate_format">%1$.1f×</string>
 
     <string name="settings_reward_sounds_title">Reward sounds</string>
-    <string name="settings_reward_sounds_body">Play sounds for success and completion.</string>
+    <string name="settings_reward_sounds_body">Play sounds for achievements.</string>
 
     <string name="settings_animations_title">Animations</string>
-    <string name="settings_animations_body">Celebrate answers with gentle motion.</string>
+    <string name="settings_animations_body">Celebrate correct answers.</string>
 
     <string name="settings_open_tts">Open text‑to‑speech settings</string>
     <string name="settings_mascot_quote">Every mistake is a new chance\nto learn better!</string>

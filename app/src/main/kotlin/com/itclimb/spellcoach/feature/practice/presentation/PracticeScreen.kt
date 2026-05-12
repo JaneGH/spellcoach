@@ -86,6 +86,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -108,6 +109,7 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachProgressBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachSegmentedControl
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
 import com.itclimb.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.itclimb.spellcoach.core.designsystem.motion.SpellCoachMotion
 import com.itclimb.spellcoach.core.designsystem.motion.screenEnterSoft
@@ -240,20 +242,15 @@ fun PracticeScreen(
             val required = state.requiredCorrectAnswers.coerceAtLeast(1)
             val masteredWords = state.allWords.count { it.correctCount >= required }
 
-            val progressText = if (totalWords <= 0) {
-                "0 / 0 mastered"
-            } else {
-                "$masteredWords / $totalWords mastered"
-            }
-
             SpellCoachTopBar(
-                showBack = true,
+                variant = SpellCoachTopBarVariant.Inner,
                 onBack = onBack,
-                brandTitle = "Practice",
-                brandAccent = null,
-                screenTitle = progressText,
-                heroTitle = null,
-                subtitleBelowBrand = null
+                innerTitle = stringResource(R.string.practice_title),
+                innerCaption = stringResource(
+                    R.string.practice_progress_format,
+                    masteredWords,
+                    totalWords
+                )
             )
 
             if (!state.loading && state.sessionComplete && !showCorrectAnswerCard) {

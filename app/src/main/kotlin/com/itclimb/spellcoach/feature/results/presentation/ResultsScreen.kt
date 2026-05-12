@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +38,7 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachSecondaryBu
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
 import com.itclimb.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
@@ -57,12 +59,9 @@ fun ResultsScreen(
 
     SpellCoachScreenContainer {
         SpellCoachTopBar(
-            showBack = true,
+            variant = SpellCoachTopBarVariant.Inner,
             onBack = onBack,
-            brandTitle = "SpellCoach",
-            brandAccent = null,
-            screenTitle = null,
-            subtitleBelowBrand = null
+            innerTitle = stringResource(R.string.results_nav_title)
         )
 
         Column(

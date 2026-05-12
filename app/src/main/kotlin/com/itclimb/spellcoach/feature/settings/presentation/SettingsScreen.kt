@@ -57,6 +57,7 @@ import com.itclimb.spellcoach.core.designsystem.components.LearningCard
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
 import com.itclimb.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.itclimb.spellcoach.core.designsystem.motion.SpellCoachMotion
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
@@ -79,13 +80,8 @@ fun SettingsScreen(
 
     SpellCoachScreenContainer {
         SpellCoachTopBar(
-            showBack = false,
-            onBack = {},
-            brandTitle = stringResource(R.string.app_name),
-            brandAccent = null,
-            screenTitle = null,
-            heroTitle = stringResource(R.string.settings_hero_title),
-            subtitleBelowBrand = stringResource(R.string.settings_subtitle)
+            variant = SpellCoachTopBarVariant.BrandedRoot,
+            rootSubtitle = stringResource(R.string.settings_subtitle)
         )
 
         Column(
@@ -96,6 +92,36 @@ fun SettingsScreen(
                 .padding(bottom = AppSpacing.sheetBottom)
         ) {
             Spacer(Modifier.height(AppSpacing.md))
+
+            val mascotBg = extras.mascotPanel
+            val mascotFg = scheme.contentColorFor(mascotBg)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(AppDimensions.settingsBannerHeight)
+                    .clip(RoundedCornerShape(AppRadius.xxxl))
+                    .background(mascotBg),
+                contentAlignment = Alignment.BottomStart
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_mascot_quote),
+                    color = mascotFg,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(AppSpacing.lg)
+                )
+
+                Image(
+                    painter = painterResource(R.drawable.fox_happy2),
+                    contentDescription = stringResource(R.string.content_desc_settings_mascot),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = AppSpacing.sm, bottom = AppSpacing.sm + AppSpacing.xs)
+                        .size(85.dp)
+                )
+            }
+
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             if (ttsAvailability != TtsAvailability.Ready && ttsAvailability != TtsAvailability.Checking) {
                 Text(
@@ -314,10 +340,14 @@ fun SettingsScreen(
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = AppSpacing.sm),
+                        verticalAlignment = Alignment.Top
+                    ) {
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
@@ -332,7 +362,7 @@ fun SettingsScreen(
                             )
                         }
                         Spacer(Modifier.width(AppSpacing.sm + AppSpacing.md))
-                        Column {
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
                                 text = stringResource(R.string.settings_audio_title),
                                 style = MaterialTheme.typography.titleMedium,
@@ -346,14 +376,19 @@ fun SettingsScreen(
                             )
                         }
                     }
-                    Switch(
-                        checked = settings.audioEnabled,
-                        onCheckedChange = viewModel::setAudioEnabled,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = scheme.onPrimary,
-                            checkedTrackColor = scheme.primary
+                    Box(
+                        modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Switch(
+                            checked = settings.audioEnabled,
+                            onCheckedChange = viewModel::setAudioEnabled,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = scheme.onPrimary,
+                                checkedTrackColor = scheme.primary
+                            )
                         )
-                    )
+                    }
                 }
             }
 
@@ -362,10 +397,13 @@ fun SettingsScreen(
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = AppSpacing.sm)
+                    ) {
                         Text(
                             text = stringResource(R.string.settings_letter_hints_title),
                             style = MaterialTheme.typography.titleMedium,
@@ -378,14 +416,19 @@ fun SettingsScreen(
                             color = scheme.onSurfaceVariant
                         )
                     }
-                    Switch(
-                        checked = settings.letterHintsEnabled,
-                        onCheckedChange = viewModel::setLetterHintsEnabled,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = scheme.onPrimary,
-                            checkedTrackColor = scheme.primary
+                    Box(
+                        modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Switch(
+                            checked = settings.letterHintsEnabled,
+                            onCheckedChange = viewModel::setLetterHintsEnabled,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = scheme.onPrimary,
+                                checkedTrackColor = scheme.primary
+                            )
                         )
-                    )
+                    }
                 }
             }
 
@@ -433,10 +476,13 @@ fun SettingsScreen(
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = AppSpacing.sm)
+                    ) {
                         Text(
                             text = stringResource(R.string.settings_reward_sounds_title),
                             style = MaterialTheme.typography.titleMedium,
@@ -449,22 +495,30 @@ fun SettingsScreen(
                             color = scheme.onSurfaceVariant
                         )
                     }
-                    Switch(
-                        checked = settings.rewardSoundsEnabled,
-                        onCheckedChange = viewModel::setRewardSounds,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = scheme.onPrimary,
-                            checkedTrackColor = scheme.primary
+                    Box(
+                        modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Switch(
+                            checked = settings.rewardSoundsEnabled,
+                            onCheckedChange = viewModel::setRewardSounds,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = scheme.onPrimary,
+                                checkedTrackColor = scheme.primary
+                            )
                         )
-                    )
+                    }
                 }
                 Spacer(Modifier.height(AppSpacing.sectionGap))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = AppSpacing.sm)
+                    ) {
                         Text(
                             text = stringResource(R.string.settings_animations_title),
                             style = MaterialTheme.typography.titleMedium,
@@ -477,14 +531,19 @@ fun SettingsScreen(
                             color = scheme.onSurfaceVariant
                         )
                     }
-                    Switch(
-                        checked = settings.animationsEnabled,
-                        onCheckedChange = viewModel::setAnimations,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = scheme.onPrimary,
-                            checkedTrackColor = scheme.primary
+                    Box(
+                        modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Switch(
+                            checked = settings.animationsEnabled,
+                            onCheckedChange = viewModel::setAnimations,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = scheme.onPrimary,
+                                checkedTrackColor = scheme.primary
+                            )
                         )
-                    )
+                    }
                 }
             }
 
@@ -496,34 +555,6 @@ fun SettingsScreen(
             )
 
             Spacer(Modifier.height(AppSpacing.lg))
-
-            val mascotBg = extras.mascotPanel
-            val mascotFg = scheme.contentColorFor(mascotBg)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(AppDimensions.settingsBannerHeight)
-                    .clip(RoundedCornerShape(AppRadius.xxxl))
-                    .background(mascotBg),
-                contentAlignment = Alignment.BottomStart
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_mascot_quote),
-                    color = mascotFg,
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(AppSpacing.lg)
-                )
-
-                Image(
-                    painter = painterResource(R.drawable.fox_happy2),
-                    contentDescription = stringResource(R.string.content_desc_settings_mascot),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = AppSpacing.sm, bottom = AppSpacing.sm + AppSpacing.xs)
-                        .size(84.dp)
-                )
-            }
         }
     }
 

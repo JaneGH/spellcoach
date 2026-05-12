@@ -64,6 +64,7 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachPrimaryButt
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachProgressBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
 import com.itclimb.spellcoach.core.designsystem.motion.pressScale
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.itclimb.spellcoach.core.designsystem.tokens.AppElevation
@@ -86,11 +87,8 @@ fun WordListsScreen(
         SpellCoachScreenContainer {
             Column(Modifier.fillMaxSize()) {
                 SpellCoachTopBar(
-                    showBack = false,
-                    onBack = {},
-                    brandTitle = stringResource(R.string.app_name),
-                    screenTitle = null,
-                    subtitleBelowBrand = stringResource(R.string.lists_subtitle)
+                    variant = SpellCoachTopBarVariant.BrandedRoot,
+                    rootSubtitle = stringResource(R.string.lists_subtitle)
                 )
                 when {
                     state.loading -> Unit

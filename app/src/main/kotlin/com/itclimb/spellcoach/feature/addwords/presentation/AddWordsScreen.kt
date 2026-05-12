@@ -40,15 +40,18 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.itclimb.spellcoach.R
 import com.itclimb.spellcoach.core.designsystem.components.LearningCard
 import com.itclimb.spellcoach.core.designsystem.components.SaveGreenButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachOutlinedTextField
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
 import com.itclimb.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
@@ -99,12 +102,11 @@ fun AddWordsScreen(
             .imePadding()
     ) {
         SpellCoachTopBar(
-            showBack = true,
+            variant = SpellCoachTopBarVariant.Inner,
             onBack = onBack,
-            brandTitle = if (state.isEditMode) "Edit List" else "Add Words",
-            brandAccent = null,
-            screenTitle = null,
-            subtitleBelowBrand = null
+            innerTitle = stringResource(
+                if (state.isEditMode) R.string.add_words_title_edit else R.string.add_words_title_new
+            )
         )
 
         Column(
@@ -128,7 +130,7 @@ fun AddWordsScreen(
                 SpellCoachOutlinedTextField(
                     value = state.listName,
                     onValueChange = viewModel::setListName,
-                    placeholder = "Animals",
+                    placeholder = "Lesson 1",
                     modifier = Modifier.fillMaxWidth(),
                     height = 56.dp
                 )
