@@ -30,13 +30,14 @@ fun SpellCoachCard(
 
     // Subtly tint the card toward primaryContainer so it lifts off the background
     // without feeling stark, but still keeps depth via elevation.
+    val baseSurface = scheme.surfaceContainerLow
     val container = if (isLight) {
-        lerp(scheme.surface, scheme.primaryContainer, 0.025f)
+        lerp(baseSurface, scheme.primaryContainer, 0.04f)
     } else {
-        lerp(scheme.surface, scheme.primaryContainer, 0.05f)
+        lerp(baseSurface, scheme.primaryContainer, 0.07f)
     }
 
-    val borderAlpha = if (isLight) 0.06f else 0.10f
+    val borderAlpha = if (isLight) 0.08f else 0.12f
 
     Card(
         modifier = modifier.clip(shape),
@@ -46,11 +47,11 @@ fun SpellCoachCard(
             contentColor = scheme.onSurface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = AppElevation.level2,
-            pressedElevation = AppElevation.level1,
-            focusedElevation = AppElevation.level2,
-            hoveredElevation = AppElevation.level2,
-            draggedElevation = AppElevation.level2,
+            defaultElevation = AppElevation.level3,
+            pressedElevation = AppElevation.level2,
+            focusedElevation = AppElevation.level3,
+            hoveredElevation = AppElevation.level3,
+            draggedElevation = AppElevation.level3,
             disabledElevation = AppElevation.level0
         ),
         border = BorderStroke(

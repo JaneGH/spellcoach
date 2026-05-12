@@ -1,7 +1,7 @@
 package com.example.spellcoach.core.designsystem.components
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import com.example.spellcoach.core.designsystem.motion.SpellCoachMotion
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,7 +53,7 @@ fun SpellCoachProgressBar(
     val target = progress.coerceIn(0f, 1f)
     val animated by animateFloatAsState(
         targetValue = target,
-        animationSpec = tween(durationMillis = 480),
+        animationSpec = SpellCoachMotion.gentleSpring(),
         label = "spellcoach_progress"
     )
     val displayed = if (animate) animated else target

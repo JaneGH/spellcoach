@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
@@ -69,8 +71,8 @@ fun SpellCoachTopBar(
                         Text(
                             text = brandTitle,
                             color = MaterialTheme.colorScheme.onBackground,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
                         )
                         if (brandAccent != null) {
                             Text(
@@ -108,6 +110,11 @@ fun SpellCoachTopBar(
                 )
             }
         }
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = AppSpacing.lg),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
+        )
         if (heroTitle != null) {
             Text(
                 text = heroTitle,

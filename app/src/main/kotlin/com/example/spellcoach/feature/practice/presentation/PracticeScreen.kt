@@ -4,16 +4,22 @@ import android.os.SystemClock
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,8 +54,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -102,6 +109,9 @@ import com.example.spellcoach.core.designsystem.components.SpellCoachScreenConta
 import com.example.spellcoach.core.designsystem.components.SpellCoachSegmentedControl
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.example.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
+import com.example.spellcoach.core.designsystem.motion.SpellCoachMotion
+import com.example.spellcoach.core.designsystem.motion.screenEnterSoft
+import com.example.spellcoach.core.designsystem.motion.screenExitSoft
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
 import com.example.spellcoach.core.designsystem.tokens.AppElevation
@@ -144,11 +154,42 @@ fun PracticeScreen(
     }
 
 
+    val orbInteraction = remember { MutableInteractionSource() }
+    val orbScaleAnim = remember { Animatable(1f) }
+    val orbOffsetXAnim = remember { Animatable(0f) }
+
     LaunchedEffect(state.animationHint) {
-        if (state.animationHint != PracticeAnimHint.None) {
-            kotlinx.coroutines.delay(350)
-            viewModel.clearAnimationHint()
+        when (state.animationHint) {
+            PracticeAnimHint.None -> return@LaunchedEffect
+            PracticeAnimHint.BounceOk -> {
+                orbScaleAnim.snapTo(1f)
+                orbScaleAnim.animateTo(
+                    1.11f,
+                    spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+                orbScaleAnim.animateTo(
+                    1f,
+                    spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+            }
+
+            PracticeAnimHint.ShakeWrong -> {
+                orbOffsetXAnim.snapTo(0f)
+                repeat(4) {
+                    orbOffsetXAnim.animateTo(5.5f, tween(44))
+                    orbOffsetXAnim.animateTo(-5.5f, tween(44))
+                }
+                orbOffsetXAnim.animateTo(0f, tween(90))
+            }
         }
+        kotlinx.coroutines.delay(380)
+        viewModel.clearAnimationHint()
     }
 
     LaunchedEffect(Unit) {
@@ -304,8 +345,8 @@ fun PracticeScreen(
 
             AnimatedVisibility(
                 visible = showCorrectAnswerCard,
-                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 6 }),
-                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 6 })
+                enter = screenEnterSoft(),
+                exit = screenExitSoft()
             ) {
                 Box(
                     modifier = Modifier
@@ -339,8 +380,8 @@ fun PracticeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 6 }),
-                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 6 })
+                enter = screenEnterSoft(),
+                exit = screenExitSoft()
             ) {
                 Column(
                     modifier = Modifier
@@ -371,19 +412,38 @@ fun PracticeScreen(
 
                             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
+                            val orbPressed by orbInteraction.collectIsPressedAsState()
+                            val orbPressMul by animateFloatAsState(
+                                targetValue = if (orbPressed) 0.93f else 1f,
+                                animationSpec = SpellCoachMotion.gentleSpring(),
+                                label = "orb_press"
+                            )
                             Box(
                                 modifier = Modifier
+                                    .graphicsLayer {
+                                        scaleX = orbScaleAnim.value * orbPressMul
+                                        scaleY = orbScaleAnim.value * orbPressMul
+                                        translationX = orbOffsetXAnim.value
+                                    }
                                     .size(AppDimensions.practiceSpeakerOrb)
                                     .shadow(
-                                        elevation = AppElevation.level2,
+                                        elevation = AppElevation.level3,
                                         shape = CircleShape,
-                                        ambientColor = scheme.primary.copy(alpha = 0.07f),
-                                        spotColor = scheme.primary.copy(alpha = 0.11f)
+                                        ambientColor = scheme.primary.copy(
+                                            alpha = 0.08f + (if (orbPressed) 0.05f else 0f)
+                                        ),
+                                        spotColor = scheme.primary.copy(
+                                            alpha = 0.12f + (if (orbPressed) 0.05f else 0f)
+                                        )
                                     )
                                     .clip(CircleShape)
-                                    .background(lerp(scheme.primaryContainer, scheme.surface, 0.14f))
+                                    .background(lerp(scheme.primaryContainer, scheme.surface, 0.12f))
                                     .semantics { role = Role.Button }
-                                    .clickable(onClick = viewModel::listen),
+                                    .clickable(
+                                        interactionSource = orbInteraction,
+                                        indication = null,
+                                        onClick = viewModel::listen
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -461,8 +521,8 @@ fun PracticeScreen(
 
                             AnimatedVisibility(
                                 visible = showWrongAnswerCard,
-                                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 6 }),
-                                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 6 })
+                                enter = screenEnterSoft(),
+                                exit = screenExitSoft()
                             ) {
                                 WrongAnswerCard(
                                     spacedCorrectWord = spacedCorrectWord,
@@ -477,17 +537,29 @@ fun PracticeScreen(
 
                             AnimatedVisibility(
                                 visible = !showWrongAnswerCard,
-                                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 6 }),
-                                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 6 })
+                                enter = screenEnterSoft(),
+                                exit = screenExitSoft()
                             ) {
                                 AnimatedContent(
                                     targetState = inputMode,
                                     transitionSpec = {
-                                        (fadeIn() + slideInVertically(initialOffsetY = { it / 8 }))
-                                            .togetherWith(
-                                                fadeOut() + slideOutVertically(targetOffsetY = { it / 8 })
+                                        (
+                                            fadeIn(SpellCoachMotion.fadeMedium) + slideInVertically(
+                                                animationSpec = spring(
+                                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                                    stiffness = Spring.StiffnessMediumLow
+                                                ),
+                                                initialOffsetY = { it / 8 }
                                             )
-                                            .using(SizeTransform(clip = false))
+                                            ).togetherWith(
+                                            fadeOut(SpellCoachMotion.fadeTween) + slideOutVertically(
+                                                animationSpec = spring(
+                                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                                    stiffness = Spring.StiffnessMediumLow
+                                                ),
+                                                targetOffsetY = { it / 8 }
+                                            )
+                                        ).using(SizeTransform(clip = false))
                                     },
                                     label = "input_mode_switch"
                                 ) { mode ->
@@ -498,7 +570,13 @@ fun PracticeScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(AppRadius.xl))
-                                                    .background(flowScheme.surfaceVariant.copy(alpha = 0.16f))
+                                                    .background(
+                                                        lerp(
+                                                            flowScheme.surfaceContainerLow,
+                                                            flowScheme.surfaceVariant,
+                                                            0.35f
+                                                        ).copy(alpha = 0.55f)
+                                                    )
                                                     .padding(
                                                         horizontal = AppSpacing.md + AppSpacing.xs,
                                                         vertical = AppSpacing.md
@@ -720,8 +798,8 @@ private fun HintsSection(
 
     AnimatedVisibility(
         visible = showHints,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 4 }),
-        exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 4 })
+        enter = screenEnterSoft(),
+        exit = screenExitSoft()
     ) {
         Column {
             Spacer(Modifier.height(AppSpacing.sm))

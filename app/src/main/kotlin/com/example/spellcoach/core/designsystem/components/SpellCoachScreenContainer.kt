@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
@@ -26,15 +27,27 @@ fun SpellCoachScreenContainer(
 ) {
     val scheme = MaterialTheme.colorScheme
     val isLight = scheme.background.luminance() > 0.5f
-    val scrim = lerp(
+    val top = lerp(
         scheme.background,
         scheme.primaryContainer,
-        if (isLight) 0.07f else 0.055f
+        if (isLight) 0.055f else 0.07f
+    )
+    val mid = scheme.background
+    val bottom = lerp(
+        scheme.background,
+        scheme.secondaryContainer,
+        if (isLight) 0.04f else 0.05f
     )
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(scrim),
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(top, mid, bottom),
+                    startY = 0f,
+                    endY = 1600f
+                )
+            ),
         content = content
     )
 }

@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,7 @@ import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButt
 import com.example.spellcoach.core.designsystem.components.SpellCoachProgressBar
 import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
+import com.example.spellcoach.core.designsystem.motion.pressScale
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.example.spellcoach.core.designsystem.tokens.AppElevation
 import com.example.spellcoach.core.designsystem.tokens.AppIconSize
@@ -133,19 +135,22 @@ fun WordListsScreen(
             scheme.surface,
             0.18f
         )
+        val fabInteraction = remember { MutableInteractionSource() }
         FloatingActionButton(
             onClick = onCreateNewList,
+            interactionSource = fabInteraction,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
+                .pressScale(fabInteraction, pressedScale = 0.92f)
                 .padding(end = AppSpacing.lg, bottom = AppSpacing.fabBottomInset),
             containerColor = fabContainer,
             contentColor = scheme.primary,
             shape = RoundedCornerShape(AppRadius.xl),
             elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = AppElevation.level1,
-                pressedElevation = AppElevation.level0,
-                hoveredElevation = AppElevation.level2,
-                focusedElevation = AppElevation.level1
+                defaultElevation = AppElevation.level4,
+                pressedElevation = AppElevation.level2,
+                hoveredElevation = AppElevation.level4 + AppElevation.level1,
+                focusedElevation = AppElevation.level4
             )
         ) {
             Icon(

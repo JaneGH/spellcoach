@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,6 +58,7 @@ import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButt
 import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.example.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
+import com.example.spellcoach.core.designsystem.motion.SpellCoachMotion
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
@@ -404,10 +407,17 @@ fun SettingsScreen(
                 Slider(
                     value = settings.speechRate,
                     onValueChange = viewModel::setSpeechRate,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp),
                     valueRange = 0.5f..2f,
                     colors = SliderDefaults.colors(
                         thumbColor = scheme.primary,
-                        activeTrackColor = scheme.primary
+                        activeTrackColor = scheme.primary,
+                        inactiveTrackColor = scheme.surfaceContainerHighest.copy(alpha = 0.88f),
+                        disabledActiveTrackColor = scheme.primary.copy(alpha = 0.35f),
+                        disabledInactiveTrackColor = scheme.surfaceVariant.copy(alpha = 0.35f),
+                        disabledThumbColor = scheme.primary.copy(alpha = 0.35f)
                     )
                 )
                 Text(
@@ -547,6 +557,11 @@ private fun NumberPickCell(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.04f else 1f,
+        animationSpec = SpellCoachMotion.gentleSpring(),
+        label = "number_pick_scale"
+    )
     val borderColor = if (selected) {
         scheme.primary.copy(alpha = 0.22f)
     } else {
@@ -560,6 +575,10 @@ private fun NumberPickCell(
     Box(
         modifier = modifier
             .height(40.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(RoundedCornerShape(AppRadius.sm))
             .background(bg)
             .border(1.dp, borderColor, RoundedCornerShape(AppRadius.sm))

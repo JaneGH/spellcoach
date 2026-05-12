@@ -1,7 +1,6 @@
 package com.example.spellcoach.core.designsystem.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +27,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.spellcoach.core.designsystem.motion.SpellCoachMotion
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 
@@ -82,12 +82,12 @@ fun SpellCoachSegmentedControl(
             }
             val animatedBg by animateColorAsState(
                 targetValue = targetBg,
-                animationSpec = tween(durationMillis = 220),
+                animationSpec = SpellCoachMotion.gentleSpring(),
                 label = "segment_bg"
             )
             val animatedContent by animateColorAsState(
                 targetValue = targetContent,
-                animationSpec = tween(durationMillis = 220),
+                animationSpec = SpellCoachMotion.gentleSpring(),
                 label = "segment_content"
             )
             Box(
