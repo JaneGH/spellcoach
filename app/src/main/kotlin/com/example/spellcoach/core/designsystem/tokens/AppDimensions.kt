@@ -5,8 +5,8 @@ import androidx.compose.ui.unit.dp
 
 object AppDimensions {
     val minTouchTarget: Dp = 48.dp
-    val buttonHeightDefault: Dp = 52.dp
-    val buttonHeightLarge: Dp = 56.dp
+    val buttonHeightDefault: Dp = 48.dp
+    val buttonHeightLarge: Dp = 52.dp
     val bottomBarHeightMin: Dp = 56.dp
     val topBarAvatar: Dp = 40.dp
     val settingsBannerHeight: Dp = 160.dp

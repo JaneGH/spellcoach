@@ -45,10 +45,8 @@ import androidx.compose.material.icons.rounded.Draw
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -66,6 +64,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -75,6 +77,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -98,6 +101,7 @@ import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.example.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
+import com.example.spellcoach.core.designsystem.tokens.AppElevation
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 import com.google.mlkit.common.model.DownloadConditions
@@ -354,6 +358,7 @@ fun PracticeScreen(
                             )
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            val scheme = MaterialTheme.colorScheme
                             val correctWord = state.words.getOrNull(state.currentIndex)?.text.orEmpty()
                             val spacedCorrectWord = remember(correctWord) {
                                 correctWord
@@ -363,21 +368,32 @@ fun PracticeScreen(
                                     .joinToString(" ")
                             }
 
-                            FilledIconButton(
-                                onClick = viewModel::listen,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.primary
-                                ),
-                                modifier = Modifier.size(56.dp)
+                            Spacer(Modifier.height(AppSpacing.md))
+
+                            Box(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .shadow(
+                                        elevation = AppElevation.level3,
+                                        shape = CircleShape,
+                                        ambientColor = scheme.primary.copy(alpha = 0.07f),
+                                        spotColor = scheme.primary.copy(alpha = 0.11f)
+                                    )
+                                    .clip(CircleShape)
+                                    .background(lerp(scheme.primaryContainer, scheme.surface, 0.14f))
+                                    .semantics { role = Role.Button }
+                                    .clickable(onClick = viewModel::listen),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                    contentDescription = "Listen"
+                                    contentDescription = "Listen",
+                                    tint = scheme.primary,
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
 
-                            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+                            Spacer(Modifier.height(AppSpacing.xl))
 
                             SpellCoachSegmentedControl(
                                 options = listOf(
@@ -395,7 +411,7 @@ fun PracticeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            Spacer(Modifier.height(AppSpacing.sm))
+                            Spacer(Modifier.height(AppSpacing.lg))
 
                             val current = state.words.getOrNull(state.currentIndex)
                             if (current != null) {
@@ -403,12 +419,12 @@ fun PracticeScreen(
 
                                 Text(
                                     text = "$cur of $required correct",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = scheme.onSurfaceVariant.copy(alpha = 0.72f),
                                     fontWeight = FontWeight.Medium,
-                                    style = MaterialTheme.typography.labelMedium
+                                    style = MaterialTheme.typography.bodySmall
                                 )
 
-                                Spacer(Modifier.height(AppSpacing.sm))
+                                Spacer(Modifier.height(AppSpacing.md + AppSpacing.xs))
                             }
 
                             AnimatedVisibility(
@@ -445,7 +461,17 @@ fun PracticeScreen(
                                 ) { mode ->
                                     when (mode) {
                                         PracticeInputMode.Keyboard -> {
-                                            Column {
+                                            val flowScheme = MaterialTheme.colorScheme
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(AppRadius.xl))
+                                                    .background(flowScheme.surfaceVariant.copy(alpha = 0.2f))
+                                                    .padding(
+                                                        horizontal = AppSpacing.md + AppSpacing.xs,
+                                                        vertical = AppSpacing.md
+                                                    )
+                                            ) {
                                                 Box(modifier = Modifier.fillMaxWidth()) {
                                                     SpellCoachOutlinedTextField(
                                                         value = state.input,
@@ -454,7 +480,7 @@ fun PracticeScreen(
                                                         modifier = Modifier
                                                             .fillMaxWidth()
                                                             .focusRequester(focusRequester),
-                                                        height = 92.dp,
+                                                        height = 88.dp,
                                                         keyboardOptions = KeyboardOptions(
                                                             imeAction = ImeAction.Done,
                                                             autoCorrectEnabled = false,
@@ -482,7 +508,7 @@ fun PracticeScreen(
                                                     )
                                                 }
 
-                                                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+                                                Spacer(Modifier.height(AppSpacing.md))
 
                                                 SpellCoachPrimaryButton(
                                                     text = "Check word",
@@ -541,11 +567,17 @@ private fun WrongAnswerCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(
+                elevation = AppElevation.level2,
+                shape = RoundedCornerShape(AppRadius.sheet),
+                ambientColor = scheme.error.copy(alpha = 0.08f),
+                spotColor = scheme.error.copy(alpha = 0.12f)
+            )
             .clip(RoundedCornerShape(AppRadius.sheet))
-            .background(scheme.errorContainer.copy(alpha = 0.35f))
+            .background(scheme.errorContainer.copy(alpha = 0.38f))
             .border(
                 width = 1.dp,
-                color = scheme.error.copy(alpha = 0.35f),
+                color = scheme.error.copy(alpha = 0.22f),
                 shape = RoundedCornerShape(AppRadius.sheet)
             )
             .padding(horizontal = AppSpacing.lg + AppSpacing.xs, vertical = AppSpacing.lg + AppSpacing.xs),
@@ -625,9 +657,9 @@ private fun HintsSection(
         border = BorderStroke(
             1.dp,
             if (nudgeHints) {
-                scheme.tertiary.copy(alpha = 0.45f)
+                scheme.tertiary.copy(alpha = 0.26f)
             } else {
-                scheme.outlineVariant.copy(alpha = 0.65f)
+                scheme.outlineVariant.copy(alpha = 0.32f)
             }
         )
     ) {
@@ -747,7 +779,7 @@ private fun HandwritingInputPanel(
             .fillMaxWidth()
             .height(AppDimensions.handwritingPanelMinHeight)
             .clip(cardShape)
-            .background(scheme.surfaceContainerLow.copy(alpha = 0.85f))
+            .background(scheme.surfaceVariant.copy(alpha = 0.34f))
     ) {
 
         HandwritingCanvas(
@@ -830,8 +862,17 @@ private fun HandwritingInputPanel(
             },
             enabled = strokes.isNotEmpty() && !isRecognizing,
             shape = RoundedCornerShape(AppRadius.lg),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = AppElevation.level2,
+                pressedElevation = AppElevation.level1,
+                disabledElevation = AppElevation.level0
+            ),
             colors = ButtonDefaults.buttonColors(
-                containerColor = scheme.primary,
+                containerColor = lerp(
+                    scheme.primary,
+                    scheme.primaryContainer,
+                    0.22f
+                ),
                 contentColor = scheme.onPrimary,
                 disabledContainerColor = scheme.primary.copy(alpha = 0.38f),
                 disabledContentColor = scheme.onPrimary.copy(alpha = 0.65f)
@@ -876,11 +917,17 @@ private fun MinimalCircleOutlineIconButton(
         enabled = enabled,
         modifier = Modifier
             .size(46.dp)
+            .shadow(
+                elevation = AppElevation.level1,
+                shape = shape,
+                ambientColor = scheme.primary.copy(alpha = 0.06f),
+                spotColor = scheme.primary.copy(alpha = 0.08f)
+            )
             .clip(shape)
-            .background(scheme.surface.copy(alpha = 0.9f))
+            .background(scheme.surface.copy(alpha = 0.94f))
             .border(
                 width = 1.dp,
-                color = scheme.outlineVariant.copy(alpha = if (enabled) 0.85f else 0.45f),
+                color = scheme.outlineVariant.copy(alpha = if (enabled) 0.32f else 0.22f),
                 shape = shape
             )
     ) {
@@ -1161,11 +1208,17 @@ private fun LetterChip(
                 width = AppDimensions.letterChipMinSize,
                 height = AppDimensions.letterChipMinSize
             )
+            .shadow(
+                elevation = AppElevation.level1,
+                shape = RoundedCornerShape(AppRadius.lg),
+                ambientColor = scheme.primary.copy(alpha = 0.05f),
+                spotColor = scheme.primary.copy(alpha = 0.08f)
+            )
             .clip(RoundedCornerShape(AppRadius.lg))
             .background(scheme.surface)
             .border(
                 width = 1.dp,
-                color = scheme.outlineVariant.copy(alpha = 0.65f),
+                color = scheme.outlineVariant.copy(alpha = 0.32f),
                 shape = RoundedCornerShape(AppRadius.lg)
             )
             .clickable(onClick = onClick),

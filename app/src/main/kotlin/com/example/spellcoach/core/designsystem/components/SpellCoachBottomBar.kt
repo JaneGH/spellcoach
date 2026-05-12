@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,12 +23,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
@@ -42,17 +47,24 @@ fun SpellCoachBottomBar(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    val isLight = scheme.background.luminance() > 0.5f
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(scheme.surfaceContainerLow)
+            .background(
+                lerp(
+                    scheme.surface,
+                    scheme.background,
+                    if (isLight) 0.1f else 0.06f
+                )
+            )
     ) {
-        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.35f))
+        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.22f))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(vertical = AppSpacing.sm + AppSpacing.xs, horizontal = AppSpacing.md),
+                .padding(vertical = AppSpacing.xs + AppSpacing.xs, horizontal = AppSpacing.sm),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -86,12 +98,17 @@ private fun SpellCoachNavItem(
     icon: ImageVector
 ) {
     val scheme = MaterialTheme.colorScheme
+    val isLight = scheme.background.luminance() > 0.5f
     val bg = if (selected) {
-        scheme.primaryContainer.copy(alpha = 0.72f)
+        scheme.primary.copy(alpha = if (isLight) 0.07f else 0.13f)
     } else {
-        scheme.surfaceContainerLow.copy(alpha = 0f)
+        Color.Transparent
     }
-    val tint = if (selected) scheme.onPrimaryContainer else scheme.onSurfaceVariant
+    val tint = if (selected) {
+        scheme.primary
+    } else {
+        scheme.onSurfaceVariant.copy(alpha = 0.88f)
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -99,24 +116,23 @@ private fun SpellCoachNavItem(
                 minWidth = AppDimensions.minTouchTarget,
                 minHeight = AppDimensions.minTouchTarget
             )
-            .clip(RoundedCornerShape(AppRadius.xxl))
+            .clip(RoundedCornerShape(AppRadius.sm))
             .semantics { role = Role.Button }
             .background(bg)
             .clickable(onClick = onClick)
-            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm)
+            .padding(horizontal = AppSpacing.sm + AppSpacing.xs, vertical = AppSpacing.xs + AppSpacing.xs)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = label,
             tint = tint,
-            modifier = Modifier
-                .padding(vertical = AppSpacing.xxs)
+            modifier = Modifier.size(22.dp)
         )
         Text(
             text = label,
             color = tint,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
         )
     }
 }

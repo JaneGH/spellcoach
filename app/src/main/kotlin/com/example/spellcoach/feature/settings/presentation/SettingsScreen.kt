@@ -93,7 +93,7 @@ fun SettingsScreen(
                 .spellCoachScreenHorizontalPadding()
                 .padding(bottom = AppSpacing.sheetBottom)
         ) {
-            Spacer(Modifier.height(AppSpacing.sm))
+            Spacer(Modifier.height(AppSpacing.md))
 
             if (ttsAvailability != TtsAvailability.Ready && ttsAvailability != TtsAvailability.Checking) {
                 Text(
@@ -548,11 +548,11 @@ private fun NumberPickCell(
 ) {
     val scheme = MaterialTheme.colorScheme
     val borderColor = if (selected) {
-        scheme.primary.copy(alpha = 0.35f)
+        scheme.primary.copy(alpha = 0.26f)
     } else {
-        scheme.outlineVariant.copy(alpha = 0.65f)
+        scheme.outlineVariant.copy(alpha = 0.38f)
     }
-    val bg = if (selected) scheme.primaryContainer.copy(alpha = 0.75f) else scheme.surfaceContainerLow
+    val bg = if (selected) scheme.primaryContainer.copy(alpha = 0.68f) else scheme.surfaceContainerLow
     Box(
         modifier = modifier
             .height(40.dp)
@@ -579,11 +579,11 @@ private fun MistakeOptionRow(
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
-    val bg = if (selected) scheme.secondaryContainer.copy(alpha = 0.55f) else scheme.surfaceContainerLow
+    val bg = if (selected) scheme.secondaryContainer.copy(alpha = 0.48f) else scheme.surfaceContainerLow
     val border = if (selected) {
-        scheme.primary.copy(alpha = 0.28f)
+        scheme.primary.copy(alpha = 0.22f)
     } else {
-        scheme.outlineVariant.copy(alpha = 0.5f)
+        scheme.outlineVariant.copy(alpha = 0.36f)
     }
     Row(
         modifier = Modifier

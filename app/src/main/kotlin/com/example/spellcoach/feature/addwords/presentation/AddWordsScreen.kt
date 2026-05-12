@@ -139,7 +139,7 @@ fun AddWordsScreen(
                     text = "TYPE OR PASTE WORDS",
                     style = MaterialTheme.typography.labelMedium,
                     color = scheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(AppSpacing.md))
                 SpellCoachOutlinedTextField(
@@ -228,12 +228,12 @@ fun AddWordsScreen(
             }
 
             val dash = PathEffect.dashPathEffect(floatArrayOf(12f, 10f), 0f)
-            val previewOutline = scheme.outlineVariant.copy(alpha = 0.55f)
+            val previewOutline = scheme.outlineVariant.copy(alpha = 0.38f)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(AppRadius.lg))
-                    .background(scheme.surfaceContainerLow.copy(alpha = 0.65f))
+                    .background(scheme.surface.copy(alpha = 0.98f))
                     .drawBehind {
                         val stroke = Stroke(width = 1.dp.toPx(), pathEffect = dash)
                         drawRoundRect(

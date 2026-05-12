@@ -11,6 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 
@@ -22,10 +24,17 @@ fun SpellCoachScreenContainer(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val scheme = MaterialTheme.colorScheme
+    val isLight = scheme.background.luminance() > 0.5f
+    val scrim = lerp(
+        scheme.background,
+        scheme.primaryContainer,
+        if (isLight) 0.07f else 0.055f
+    )
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(scrim),
         content = content
     )
 }
@@ -50,8 +59,8 @@ fun SpellCoachHeader(
         modifier = modifier
             .spellCoachScreenHorizontalPadding()
             .padding(
-                top = AppSpacing.md,
-                bottom = AppSpacing.md
+                top = AppSpacing.lg,
+                bottom = AppSpacing.lg
             )
     ) {
         Text(
@@ -61,11 +70,11 @@ fun SpellCoachHeader(
             color = MaterialTheme.colorScheme.onBackground
         )
         if (subtitle != null) {
-            Spacer(Modifier.height(AppSpacing.sm))
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f)
             )
         }
     }

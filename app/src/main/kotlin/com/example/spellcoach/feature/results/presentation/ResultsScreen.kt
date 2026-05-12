@@ -71,7 +71,7 @@ fun ResultsScreen(
                 .spellCoachScreenHorizontalPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+            Spacer(Modifier.height(AppSpacing.md))
             Box(
                 modifier = Modifier
                     .size(AppDimensions.resultsHeroImage)

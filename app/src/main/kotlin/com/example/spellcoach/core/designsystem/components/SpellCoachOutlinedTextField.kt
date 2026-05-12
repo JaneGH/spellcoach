@@ -11,6 +11,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
@@ -30,7 +31,8 @@ fun SpellCoachOutlinedTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     val scheme = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(AppRadius.md)
+    val shape = RoundedCornerShape(AppRadius.lg)
+
     val fieldModifier = if (height != null) {
         modifier
             .fillMaxWidth()
@@ -38,6 +40,7 @@ fun SpellCoachOutlinedTextField(
     } else {
         modifier.fillMaxWidth()
     }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -45,8 +48,9 @@ fun SpellCoachOutlinedTextField(
         placeholder = {
             Text(
                 text = placeholder,
-                style = MaterialTheme.typography.bodyLarge,
-                color = scheme.onSurfaceVariant.copy(alpha = 0.55f)
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Normal,
+                color = scheme.onSurfaceVariant.copy(alpha = 0.44f)
             )
         },
         singleLine = singleLine,
@@ -58,15 +62,15 @@ fun SpellCoachOutlinedTextField(
         keyboardActions = keyboardActions,
         visualTransformation = visualTransformation,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = scheme.primary.copy(alpha = 0.42f),
-            unfocusedBorderColor = scheme.outlineVariant,
-            disabledBorderColor = scheme.outlineVariant.copy(alpha = 0.45f),
+            focusedBorderColor = scheme.primary.copy(alpha = 0.26f),
+            unfocusedBorderColor = scheme.outlineVariant.copy(alpha = 0.28f),
+            disabledBorderColor = scheme.outlineVariant.copy(alpha = 0.22f),
             cursorColor = scheme.primary,
             focusedTextColor = scheme.onSurface,
             unfocusedTextColor = scheme.onSurface,
-            focusedContainerColor = scheme.surfaceContainerLow,
-            unfocusedContainerColor = scheme.surfaceContainerLow,
-            disabledContainerColor = scheme.surfaceContainerLow
+            focusedContainerColor = scheme.surface,
+            unfocusedContainerColor = scheme.surfaceVariant.copy(alpha = 0.36f),
+            disabledContainerColor = scheme.surfaceVariant.copy(alpha = 0.24f)
         )
     )
 }

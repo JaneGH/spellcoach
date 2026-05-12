@@ -42,7 +42,7 @@ fun SpellCoachTopBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = AppSpacing.xs, vertical = AppSpacing.sm),
+                .padding(horizontal = AppSpacing.xs, vertical = AppSpacing.sm + AppSpacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -62,7 +62,7 @@ fun SpellCoachTopBar(
                 Column(
                     modifier = Modifier.padding(
                         start = if (showBack) AppSpacing.none else AppSpacing.md,
-                        end = AppSpacing.sm
+                        end = AppSpacing.md
                     )
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -75,7 +75,7 @@ fun SpellCoachTopBar(
                         if (brandAccent != null) {
                             Text(
                                 text = "  $brandAccent",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(start = AppSpacing.xs)
@@ -85,10 +85,10 @@ fun SpellCoachTopBar(
                     if (screenTitle != null) {
                         Text(
                             text = screenTitle,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(top = AppSpacing.xs)
+                            modifier = Modifier.padding(top = AppSpacing.xs + AppSpacing.xs)
                         )
                     }
                 }
@@ -117,7 +117,7 @@ fun SpellCoachTopBar(
                 modifier = Modifier.padding(
                     start = AppSpacing.lg,
                     end = AppSpacing.lg,
-                    top = AppSpacing.xs
+                    top = AppSpacing.sm
                 )
             )
         }
@@ -129,8 +129,8 @@ fun SpellCoachTopBar(
                 modifier = Modifier.padding(
                     start = AppSpacing.lg,
                     end = AppSpacing.lg,
-                    top = AppSpacing.sm,
-                    bottom = AppSpacing.sm
+                    top = AppSpacing.sm + AppSpacing.xs,
+                    bottom = AppSpacing.md
                 )
             )
         }

@@ -15,7 +15,8 @@ private val BlueSecondaryDark = Color(0xFF89D7F0)
 private val PurpleTertiary = Color(0xFF7E22CE)
 private val PurpleTertiaryDark = Color(0xFFD8B4FF)
 
-private val LightBackground = Color(0xFFF8FAFC)
+/** Slight cool tint so screens read less flat than pure gray; tuned for soft lift off cards. */
+private val LightBackground = Color(0xFFEFF3F8)
 private val LightSurface = Color(0xFFFFFFFF)
 private val LightSurfaceVariant = Color(0xFFE2E8F0)
 
@@ -44,9 +45,9 @@ internal val SpellCoachLightColorScheme = lightColorScheme(
     surface = LightSurface,
     onSurface = Color(0xFF1A1C1E),
     surfaceVariant = LightSurfaceVariant,
-    onSurfaceVariant = Color(0xFF44474E),
+    onSurfaceVariant = Color(0xFF3D4047),
     outline = Color(0xFFB6DDEF),
-    outlineVariant = Color(0xFFCBD5E1),
+    outlineVariant = Color(0xFFC5CED8),
     error = Color(0xFFB3261E),
     onError = Color(0xFFFFFFFF),
     errorContainer = Color(0xFFFFF1F2),

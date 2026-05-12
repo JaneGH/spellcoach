@@ -105,7 +105,7 @@ fun WordListsScreen(
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                                 start = AppSpacing.screenHorizontal,
                                 end = AppSpacing.screenHorizontal,
-                                top = AppSpacing.sm + AppSpacing.xs,
+                                top = AppSpacing.lg,
                                 bottom = AppSpacing.fabClearance
                             ),
                         verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
@@ -223,7 +223,7 @@ private fun WordListCard(
                 Text(
                     text = list.name,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface
                 )
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
@@ -352,7 +352,7 @@ private fun WordListCard(
                         modifier = Modifier
                             .clip(RoundedCornerShape(AppRadius.pill))
                             .background(bg)
-                            .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm)
+                            .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs + AppSpacing.sm)
                     ) {
                         Text(
                             text = chip,
