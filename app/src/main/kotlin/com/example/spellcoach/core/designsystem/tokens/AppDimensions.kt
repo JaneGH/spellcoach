@@ -19,4 +19,8 @@ object AppDimensions {
     val letterChipMinSize: Dp = 52.dp
     val handwritingSubmitWidth: Dp = 120.dp
     val handwritingSubmitHeight: Dp = 44.dp
+
+    /** Practice “listen” control: slightly smaller orb keeps the speaker glyph visually balanced. */
+    val practiceSpeakerOrb: Dp = 56.dp
+    val practiceSpeakerIcon: Dp = 30.dp
 }

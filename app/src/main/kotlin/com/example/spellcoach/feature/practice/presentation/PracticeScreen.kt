@@ -79,12 +79,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -248,7 +251,7 @@ fun PracticeScreen(
                                     "Great progress today. $masteredWords / $totalWords words mastered."
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
+                                color = scheme.onSurfaceVariant.copy(alpha = 0.86f),
                                 textAlign = TextAlign.Center
                             )
 
@@ -262,7 +265,7 @@ fun PracticeScreen(
                                         "$wordsNeedingReview words still need practice"
                                     },
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
+                                    color = scheme.onSurfaceVariant.copy(alpha = 0.86f),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -366,13 +369,13 @@ fun PracticeScreen(
                                     .joinToString(" ")
                             }
 
-                            Spacer(Modifier.height(AppSpacing.md))
+                            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
                             Box(
                                 modifier = Modifier
-                                    .size(60.dp)
+                                    .size(AppDimensions.practiceSpeakerOrb)
                                     .shadow(
-                                        elevation = AppElevation.level3,
+                                        elevation = AppElevation.level2,
                                         shape = CircleShape,
                                         ambientColor = scheme.primary.copy(alpha = 0.07f),
                                         spotColor = scheme.primary.copy(alpha = 0.11f)
@@ -387,11 +390,11 @@ fun PracticeScreen(
                                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                     contentDescription = "Listen",
                                     tint = scheme.primary,
-                                    modifier = Modifier.size(28.dp)
+                                    modifier = Modifier.size(AppDimensions.practiceSpeakerIcon)
                                 )
                             }
 
-                            Spacer(Modifier.height(AppSpacing.xl))
+                            Spacer(Modifier.height(AppSpacing.lg))
 
                             SpellCoachSegmentedControl(
                                 options = listOf(
@@ -409,20 +412,51 @@ fun PracticeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            Spacer(Modifier.height(AppSpacing.lg))
+                            Spacer(Modifier.height(AppSpacing.md + AppSpacing.xs))
 
                             val current = state.words.getOrNull(state.currentIndex)
                             if (current != null) {
                                 val cur = current.correctCount.coerceIn(0, required)
-
+                                val progressLabel = buildAnnotatedString {
+                                    withStyle(
+                                        SpanStyle(
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = scheme.onSurfaceVariant.copy(alpha = 0.92f)
+                                        )
+                                    ) {
+                                        append(cur.toString())
+                                    }
+                                    withStyle(
+                                        SpanStyle(
+                                            fontWeight = FontWeight.Medium,
+                                            color = scheme.onSurfaceVariant.copy(alpha = 0.88f)
+                                        )
+                                    ) {
+                                        append(" of ")
+                                    }
+                                    withStyle(
+                                        SpanStyle(
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = scheme.onSurfaceVariant.copy(alpha = 0.92f)
+                                        )
+                                    ) {
+                                        append(required.toString())
+                                    }
+                                    withStyle(
+                                        SpanStyle(
+                                            fontWeight = FontWeight.Medium,
+                                            color = scheme.onSurfaceVariant.copy(alpha = 0.88f)
+                                        )
+                                    ) {
+                                        append(" correct")
+                                    }
+                                }
                                 Text(
-                                    text = "$cur of $required correct",
-                                    color = scheme.onSurfaceVariant.copy(alpha = 0.72f),
-                                    fontWeight = FontWeight.Medium,
-                                    style = MaterialTheme.typography.bodySmall
+                                    text = progressLabel,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
 
-                                Spacer(Modifier.height(AppSpacing.md + AppSpacing.xs))
+                                Spacer(Modifier.height(AppSpacing.md))
                             }
 
                             AnimatedVisibility(
@@ -1127,8 +1161,8 @@ private fun CorrectAnswerSuccessCard(
 
                 Text(
                     text = wordProgressText,
-                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
-                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.88f),
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
             }

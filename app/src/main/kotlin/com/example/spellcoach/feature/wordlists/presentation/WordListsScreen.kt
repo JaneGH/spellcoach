@@ -108,7 +108,7 @@ fun WordListsScreen(
                                 top = AppSpacing.sm,
                                 bottom = AppSpacing.fabClearance
                             ),
-                            verticalArrangement = Arrangement.spacedBy(AppSpacing.md + AppSpacing.xs)
+                            verticalArrangement = Arrangement.spacedBy(AppSpacing.sectionGap)
                         ) {
                             items(state.lists) { list ->
                                 WordListCard(
@@ -137,15 +137,15 @@ fun WordListsScreen(
             onClick = onCreateNewList,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = AppSpacing.lg, bottom = AppSpacing.xxl),
+                .padding(end = AppSpacing.lg, bottom = AppSpacing.fabBottomInset),
             containerColor = fabContainer,
             contentColor = scheme.primary,
             shape = RoundedCornerShape(AppRadius.xl),
             elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = AppElevation.level2,
-                pressedElevation = AppElevation.level1,
-                hoveredElevation = AppElevation.level3,
-                focusedElevation = AppElevation.level2
+                defaultElevation = AppElevation.level1,
+                pressedElevation = AppElevation.level0,
+                hoveredElevation = AppElevation.level2,
+                focusedElevation = AppElevation.level1
             )
         ) {
             Icon(
@@ -195,7 +195,7 @@ private fun EmptyWordLists(
         Text(
             text = stringResource(R.string.lists_empty_message),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.88f)
         )
         Spacer(Modifier.height(AppSpacing.xxl))
         SpellCoachPrimaryButton(
@@ -244,7 +244,7 @@ private fun WordListCard(
                         list.totalWords
                     ),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.onSurfaceVariant.copy(alpha = 0.74f)
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.9f)
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -268,7 +268,7 @@ private fun WordListCard(
                         imageVector = Icons.Filled.ChevronRight,
                         contentDescription = stringResource(R.string.content_desc_open_list),
                         tint = scheme.onSurfaceVariant,
-                        modifier = Modifier.size(AppIconSize.xl)
+                        modifier = Modifier.size(AppIconSize.listCardTrailing)
                     )
                 }
                 Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
@@ -276,7 +276,8 @@ private fun WordListCard(
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
                         contentDescription = stringResource(R.string.content_desc_list_menu),
-                        tint = scheme.onSurfaceVariant
+                        tint = scheme.onSurfaceVariant,
+                        modifier = Modifier.size(AppIconSize.listCardTrailing)
                     )
                 }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {

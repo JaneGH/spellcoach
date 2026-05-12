@@ -9,6 +9,8 @@ object AppIconSize {
     val md: Dp = 18.dp
     val lg: Dp = 20.dp
     val xl: Dp = 22.dp
+    /** Trailing row actions on list cards (chevron, overflow). */
+    val listCardTrailing: Dp = 24.dp
     val xxl: Dp = 26.dp
     val xxxl: Dp = 30.dp
     val orbDefault: Dp = 70.dp

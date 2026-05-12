@@ -61,7 +61,7 @@ fun SpellCoachCard(
         Column(
             Modifier
                 .fillMaxWidth()
-                .padding(AppSpacing.lg),
+                .padding(AppSpacing.cardContentPadding),
             content = content
         )
     }

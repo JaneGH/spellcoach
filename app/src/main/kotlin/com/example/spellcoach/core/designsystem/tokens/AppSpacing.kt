@@ -13,9 +13,18 @@ object AppSpacing {
 
     /** Horizontal inset for screen content below the top bar. */
     val screenHorizontal: Dp = lg
+
+    /** Inner padding for elevated cards ([SpellCoachCard], [LearningCard]). */
+    val cardContentPadding: Dp = lg
     val xl: Dp = 20.dp
     val xxl: Dp = 24.dp
     val xxxl: Dp = 32.dp
     val sheetBottom: Dp = 88.dp
     val fabClearance: Dp = 90.dp
+
+    /** Vertical gap between cards on scroll screens (Lists, Settings). */
+    val sectionGap: Dp = sm + md
+
+    /** FAB distance from the bottom of the screen; clears bottom nav without sitting too low. */
+    val fabBottomInset: Dp = xxl + sm
 }

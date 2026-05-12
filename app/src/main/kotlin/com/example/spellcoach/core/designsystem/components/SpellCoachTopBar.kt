@@ -75,7 +75,7 @@ fun SpellCoachTopBar(
                         if (brandAccent != null) {
                             Text(
                                 text = "  $brandAccent",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.86f),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(start = AppSpacing.xs)
@@ -85,7 +85,7 @@ fun SpellCoachTopBar(
                     if (screenTitle != null) {
                         Text(
                             text = screenTitle,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.88f),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(top = AppSpacing.xxs + AppSpacing.xs)
@@ -124,7 +124,7 @@ fun SpellCoachTopBar(
         if (subtitleBelowBrand != null) {
             Text(
                 text = subtitleBelowBrand,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.88f),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(
                     start = AppSpacing.lg,

@@ -49,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.components.LearningCard
@@ -116,12 +115,12 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_theme_body),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f)
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.9f)
                 )
-                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+                Spacer(Modifier.height(AppSpacing.sectionGap))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)
                 ) {
                     val chipColors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = scheme.primaryContainer,
@@ -154,7 +153,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.Top) {
@@ -187,7 +186,7 @@ fun SettingsScreen(
                         )
                     }
                 }
-                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+                Spacer(Modifier.height(AppSpacing.sectionGap))
                 Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm + AppSpacing.xs)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -218,7 +217,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.Top) {
@@ -251,12 +250,13 @@ fun SettingsScreen(
                         )
                     }
                 }
-                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+                Spacer(Modifier.height(AppSpacing.sectionGap))
                 MistakeOptionRow(
                     title = stringResource(R.string.settings_mistake_decrease),
                     icon = Icons.AutoMirrored.Filled.TrendingDown,
                     selected = settings.mistakeBehavior == MistakeBehavior.DECREASE_PROGRESS,
-                    onClick = { viewModel.setMistakeBehavior(MistakeBehavior.DECREASE_PROGRESS) }
+                    onClick = { viewModel.setMistakeBehavior(MistakeBehavior.DECREASE_PROGRESS) },
+                    softerSelectedHighlight = true
                 )
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 MistakeOptionRow(
@@ -267,7 +267,7 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -306,7 +306,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -354,7 +354,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -386,7 +386,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -418,7 +418,7 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -448,7 +448,7 @@ fun SettingsScreen(
                         )
                     )
                 }
-                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+                Spacer(Modifier.height(AppSpacing.sectionGap))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -478,7 +478,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+            Spacer(Modifier.height(AppSpacing.sectionGap))
 
             SpellCoachPrimaryButton(
                 text = stringResource(R.string.settings_open_tts),
@@ -569,8 +569,12 @@ private fun NumberPickCell(
         Text(
             text = n.toString(),
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (selected) scheme.onPrimaryContainer else scheme.onSurfaceVariant,
-            fontSize = 14.sp
+            color = if (selected) {
+                scheme.onPrimaryContainer
+            } else {
+                scheme.onSurface.copy(alpha = 0.72f)
+            },
+            style = MaterialTheme.typography.titleSmall
         )
     }
 }
@@ -580,16 +584,22 @@ private fun MistakeOptionRow(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    softerSelectedHighlight: Boolean = false
 ) {
     val scheme = MaterialTheme.colorScheme
-    val bg = if (selected) {
-        scheme.secondaryContainer.copy(alpha = 0.42f)
+    val selectedBgAlpha = when {
+        selected && softerSelectedHighlight -> 0.30f
+        selected -> 0.42f
+        else -> null
+    }
+    val bg = if (selectedBgAlpha != null) {
+        scheme.secondaryContainer.copy(alpha = selectedBgAlpha)
     } else {
         scheme.surfaceVariant.copy(alpha = 0.32f)
     }
     val border = if (selected) {
-        scheme.primary.copy(alpha = 0.18f)
+        scheme.primary.copy(alpha = if (softerSelectedHighlight) 0.12f else 0.18f)
     } else {
         scheme.outlineVariant.copy(alpha = 0.16f)
     }
