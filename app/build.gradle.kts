@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.spellcoach"
+    namespace = "com.itclimb.spellcoach"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.spellcoach"
+        applicationId = "com.itclimb.spellcoach"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
