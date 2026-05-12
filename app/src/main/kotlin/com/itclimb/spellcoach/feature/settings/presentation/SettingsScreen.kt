@@ -436,13 +436,6 @@ fun SettingsScreen(
 
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = stringResource(R.string.settings_speech_rate_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = scheme.onSurface
-                )
-                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-                Text(
                     text = stringResource(R.string.settings_speech_rate_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = scheme.onSurfaceVariant

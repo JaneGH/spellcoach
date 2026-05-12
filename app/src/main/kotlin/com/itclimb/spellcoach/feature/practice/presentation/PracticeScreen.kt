@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -13,14 +14,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,8 +37,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -50,13 +48,14 @@ import androidx.compose.material.icons.rounded.Draw
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -71,12 +70,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -87,26 +84,33 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.common.model.RemoteModelManager
+import com.google.mlkit.vision.digitalink.DigitalInkRecognition
+import com.google.mlkit.vision.digitalink.DigitalInkRecognitionModel
+import com.google.mlkit.vision.digitalink.DigitalInkRecognitionModelIdentifier
+import com.google.mlkit.vision.digitalink.DigitalInkRecognizer
+import com.google.mlkit.vision.digitalink.DigitalInkRecognizerOptions
+import com.google.mlkit.vision.digitalink.Ink
 import com.itclimb.spellcoach.R
-import com.itclimb.spellcoach.core.designsystem.components.SpellCoachSecondaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SegmentedOption
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachCard
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachOutlinedTextField
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachProgressBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
+import com.itclimb.spellcoach.core.designsystem.components.SpellCoachSecondaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachSegmentedControl
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
@@ -120,14 +124,6 @@ import com.itclimb.spellcoach.core.designsystem.tokens.AppElevation
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 import com.itclimb.spellcoach.domain.model.isLearnedAtThreshold
-import com.google.mlkit.common.model.DownloadConditions
-import com.google.mlkit.common.model.RemoteModelManager
-import com.google.mlkit.vision.digitalink.DigitalInkRecognition
-import com.google.mlkit.vision.digitalink.DigitalInkRecognitionModel
-import com.google.mlkit.vision.digitalink.DigitalInkRecognitionModelIdentifier
-import com.google.mlkit.vision.digitalink.DigitalInkRecognizer
-import com.google.mlkit.vision.digitalink.DigitalInkRecognizerOptions
-import com.google.mlkit.vision.digitalink.Ink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -257,7 +253,8 @@ fun PracticeScreen(
             if (!state.loading && state.sessionComplete && !showCorrectAnswerCard) {
                 val totalWords = state.allWords.size
                 val masteredWords = state.masteredWordsCount.coerceIn(0, totalWords)
-                val wordsNeedingReview = state.wordsNeedingReviewCount.coerceAtLeast(0)
+                val stillLearning = (totalWords - masteredWords).coerceAtLeast(0)
+                val listFullyMastered = totalWords > 0 && masteredWords >= totalWords
 
                 Box(
                     modifier = Modifier
@@ -266,75 +263,32 @@ fun PracticeScreen(
                         .padding(vertical = AppSpacing.lg),
                     contentAlignment = Alignment.Center
                 ) {
-                    SpellCoachCard(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val scheme = MaterialTheme.colorScheme
-                            Text(
-                                text = if (totalWords <= 0) "No words to practice yet" else "Practice completed!",
-                                fontWeight = FontWeight.SemiBold,
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = scheme.onSurface,
-                                textAlign = TextAlign.Center
-                            )
-
-                            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-
-                            Text(
-                                text = if (totalWords <= 0) {
-                                    "Add some words to start your spelling practice."
-                                } else if (wordsNeedingReview <= 0) {
-                                    "Great job. All words are ready for review!"
-                                } else {
-                                    "Great progress today. $masteredWords / $totalWords words mastered."
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = scheme.onSurfaceVariant.copy(alpha = 0.86f),
-                                textAlign = TextAlign.Center
-                            )
-
-                            if (totalWords > 0) {
-                                Spacer(Modifier.height(AppSpacing.sm))
-
-                                Text(
-                                    text = if (wordsNeedingReview <= 0) {
-                                        "No review needed today."
-                                    } else {
-                                        "$wordsNeedingReview words still need practice"
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = scheme.onSurfaceVariant.copy(alpha = 0.86f),
-                                    textAlign = TextAlign.Center
+                    when {
+                        totalWords <= 0 -> {
+                            SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
+                                PracticeCompletionEmptyBody(
+                                    onPracticeAgain = viewModel::practiceAgain,
+                                    onBackToLists = onBack,
+                                    onResetProgress = viewModel::resetListProgress
                                 )
                             }
+                        }
 
-                            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
-
-                            SpellCoachPrimaryButton(
-                                text = "Practice again",
-                                onClick = viewModel::practiceAgain
+                        listFullyMastered -> {
+                            PracticeCompletionListMasteredCard(
+                                onReviewMastered = viewModel::practiceAgain,
+                                onBackToLists = onBack,
+                                onResetProgress = viewModel::resetListProgress
                             )
+                        }
 
-                            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-
-                            SpellCoachSecondaryButton(
-                                text = "Back to Lists",
-                                onClick = onBack
+                        else -> {
+                            PracticeCompletionDailyDoneCard(
+                                masteredWords = masteredWords,
+                                stillLearningWords = stillLearning,
+                                onContinueLearning = viewModel::practiceAgain,
+                                onBackToLists = onBack
                             )
-
-                            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-
-                            TextButton(
-                                onClick = viewModel::resetListProgress,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "Reset progress",
-                                    color = scheme.error,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
                         }
                     }
                 }
@@ -663,6 +617,285 @@ fun PracticeScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PracticeCompletionDailyDoneCard(
+    masteredWords: Int,
+    stillLearningWords: Int,
+    onContinueLearning: () -> Unit,
+    onBackToLists: () -> Unit
+) {
+    val scheme = MaterialTheme.colorScheme
+    SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Spacer(Modifier.height(AppSpacing.sm))
+
+            Text(
+                text = stringResource(R.string.practice_complete_daily_title),
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.headlineSmall,
+                color = scheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+
+
+            Spacer(Modifier.height(AppSpacing.sm))
+
+            Text(
+                text = stringResource(
+                    R.string.practice_complete_daily_progress_hint,
+                    masteredWords,
+                    stillLearningWords
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = scheme.primary.copy(alpha = 0.92f),
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+
+            SpellCoachPrimaryButton(
+                text = stringResource(R.string.practice_complete_daily_primary),
+                onClick = onContinueLearning
+            )
+
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+            SpellCoachSecondaryButton(
+                text = stringResource(R.string.practice_back_to_lists),
+                onClick = onBackToLists
+            )
+        }
+    }
+}
+
+@Composable
+private fun PracticeCompletionListMasteredCard(
+    onReviewMastered: () -> Unit,
+    onBackToLists: () -> Unit,
+    onResetProgress: () -> Unit
+) {
+    val scheme = MaterialTheme.colorScheme
+    val extras = SpellCoachThemeExtras.current
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = extras.success.copy(alpha = 0.34f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            extras.success.copy(alpha = 0.14f),
+                            extras.success.copy(alpha = 0.08f),
+                            scheme.surface.copy(alpha = 0.98f)
+                        )
+                    )
+                )
+                .padding(AppSpacing.lg)
+        ) {
+            Text(
+                text = "✦",
+                color = extras.success.copy(alpha = 0.28f),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+
+            Text(
+                text = "✦",
+                color = extras.success.copy(alpha = 0.22f),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.align(Alignment.TopEnd)
+            )
+
+            Text(
+                text = "•",
+                color = extras.success.copy(alpha = 0.24f),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 44.dp, end = 28.dp)
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(extras.success.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "🏆",
+                        style = MaterialTheme.typography.displaySmall
+                    )
+                }
+
+                Spacer(Modifier.height(AppSpacing.md))
+
+                Text(
+                    text = stringResource(R.string.practice_complete_list_mastered_title),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = extras.success,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+                Text(
+                    text = stringResource(R.string.practice_complete_list_mastered_subtitle),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.88f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(AppSpacing.xs))
+
+                Text(
+                    text = stringResource(R.string.practice_complete_list_mastered_supporting),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = extras.success.copy(alpha = 0.86f),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(Modifier.height(AppSpacing.lg))
+
+                SpellCoachPrimaryButton(
+                    text = stringResource(R.string.practice_complete_list_mastered_primary),
+                    onClick = onReviewMastered
+                )
+
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+                SpellCoachSecondaryButton(
+                    text = stringResource(R.string.practice_back_to_lists),
+                    onClick = onBackToLists
+                )
+
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+                TextButton(
+                    onClick = onResetProgress,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.practice_reset_progress),
+                        color = scheme.error.copy(alpha = 0.82f),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+}
+@Composable
+private fun PracticeCompletionEmptyBody(
+    onPracticeAgain: () -> Unit,
+    onBackToLists: () -> Unit,
+    onResetProgress: () -> Unit
+) {
+    val scheme = MaterialTheme.colorScheme
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = stringResource(R.string.practice_completed_title_empty),
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.headlineSmall,
+            color = scheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+        Text(
+            text = stringResource(R.string.practice_completed_body_empty),
+            style = MaterialTheme.typography.bodyMedium,
+            color = scheme.onSurfaceVariant.copy(alpha = 0.86f),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+
+        SpellCoachPrimaryButton(
+            text = stringResource(R.string.practice_again),
+            onClick = onPracticeAgain
+        )
+
+        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+        SpellCoachSecondaryButton(
+            text = stringResource(R.string.practice_back_to_lists),
+            onClick = onBackToLists
+        )
+
+        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+        TextButton(
+            onClick = onResetProgress,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = stringResource(R.string.practice_reset_progress),
+                color = scheme.error,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
+private fun PracticeCompletionCalmAccentDots(color: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(3) { i ->
+            if (i > 0) Spacer(Modifier.width(10.dp))
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.35f + i * 0.12f))
+            )
+        }
+    }
+}
+
+@Composable
+private fun PracticeCompletionConfettiStrip(colors: List<Color>) {
+    if (colors.isEmpty()) return
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val sizes = listOf(6.dp, 9.dp, 7.dp, 8.dp, 6.dp, 10.dp, 7.dp)
+        sizes.forEachIndexed { i, size ->
+            if (i > 0) Spacer(Modifier.width(8.dp))
+            val c = colors[i % colors.size]
+            val shape = if (i % 2 == 0) CircleShape else RoundedCornerShape(3.dp)
+            Box(
+                modifier = Modifier
+                    .size(size)
+                    .clip(shape)
+                    .background(c)
+            )
         }
     }
 }

@@ -61,6 +61,17 @@
     <string name="practice_reset_progress">Reset progress</string>
     <string name="practice_word_progress_label_format">Word progress: %1$d of %2$d correct</string>
 
+    <!-- Practice session complete: daily reviews done, list not fully mastered -->
+    <string name="practice_complete_daily_title">Practice completed 🎉</string>
+    <string name="practice_complete_daily_progress_hint">%1$d words mastered • %2$d still learning</string>
+    <string name="practice_complete_daily_primary">Continue learning</string>
+
+    <!-- Practice session complete: entire list mastered -->
+    <string name="practice_complete_list_mastered_title">List mastered!</string>
+    <string name="practice_complete_list_mastered_subtitle">You’ve mastered every word in this list.</string>
+    <string name="practice_complete_list_mastered_supporting">Fantastic progress — keep it up!</string>
+    <string name="practice_complete_list_mastered_primary">Review words</string>
+
     <string name="practice_wrong_title">Keep trying!</string>
     <string name="practice_wrong_subtitle">The correct spelling is:</string>
     <string name="practice_wrong_encouragement">You’re doing great. Try it once more.</string>
@@ -156,7 +167,6 @@
     <string name="settings_letter_hints_title">Enable Letter Hints</string>
     <string name="settings_letter_hints_body">Show optional letter chips during practice.</string>
 
-    <string name="settings_speech_rate_title">Speech rate</string>
     <string name="settings_speech_rate_body">Adjust how fast words are spoken.</string>
     <string name="speech_rate_format">%1$.1f×</string>
 
