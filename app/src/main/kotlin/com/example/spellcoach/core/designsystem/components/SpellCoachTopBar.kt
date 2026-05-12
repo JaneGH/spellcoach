@@ -70,12 +70,12 @@ fun SpellCoachTopBar(
                             text = brandTitle,
                             color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold
                         )
                         if (brandAccent != null) {
                             Text(
                                 text = "  $brandAccent",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(start = AppSpacing.xs)
@@ -88,7 +88,7 @@ fun SpellCoachTopBar(
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(top = AppSpacing.xs + AppSpacing.xs)
+                            modifier = Modifier.padding(top = AppSpacing.xxs + AppSpacing.xs)
                         )
                     }
                 }
@@ -124,12 +124,12 @@ fun SpellCoachTopBar(
         if (subtitleBelowBrand != null) {
             Text(
                 text = subtitleBelowBrand,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(
                     start = AppSpacing.lg,
                     end = AppSpacing.lg,
-                    top = AppSpacing.sm + AppSpacing.xs,
+                    top = AppSpacing.xs + AppSpacing.xxs,
                     bottom = AppSpacing.md
                 )
             )

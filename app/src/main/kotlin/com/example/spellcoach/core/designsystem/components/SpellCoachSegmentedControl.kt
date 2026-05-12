@@ -1,5 +1,7 @@
 package com.example.spellcoach.core.designsystem.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +18,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
@@ -41,20 +46,19 @@ fun SpellCoachSegmentedControl(
     val scheme = MaterialTheme.colorScheme
     val isLight = scheme.background.luminance() > 0.5f
     val trackShape = RoundedCornerShape(AppRadius.pill)
-    val trackHeight = 36.dp
-    val segmentHeight = 28.dp
+    val trackHeight = 38.dp
+    val segmentHeight = 30.dp
+    val trackColor = if (isLight) {
+        lerp(scheme.surfaceVariant, scheme.surface, 0.5f)
+    } else {
+        scheme.surfaceVariant.copy(alpha = 0.32f)
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(trackHeight)
             .clip(trackShape)
-            .background(
-                if (isLight) {
-                    scheme.surfaceVariant.copy(alpha = 0.4f)
-                } else {
-                    scheme.surfaceVariant.copy(alpha = 0.36f)
-                }
-            )
+            .background(trackColor)
             .padding(horizontal = AppSpacing.xs, vertical = AppSpacing.xxs),
         horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
         verticalAlignment = Alignment.CenterVertically
@@ -62,22 +66,36 @@ fun SpellCoachSegmentedControl(
         options.forEachIndexed { idx, option ->
             val selected = idx == selectedIndex
             val pillShape = RoundedCornerShape(AppRadius.pill)
-            val bg = if (selected) {
-                scheme.secondaryContainer.copy(alpha = if (isLight) 0.88f else 0.72f)
+            val targetBg = if (selected) {
+                if (isLight) {
+                    scheme.surface
+                } else {
+                    lerp(scheme.surface, scheme.surfaceVariant, 0.4f)
+                }
             } else {
-                scheme.surface.copy(alpha = 0f)
+                Color.Transparent
             }
-            val content = if (selected) {
-                scheme.onSecondaryContainer
+            val targetContent = if (selected) {
+                scheme.onSurface
             } else {
-                scheme.onSurfaceVariant
+                scheme.onSurfaceVariant.copy(alpha = 0.78f)
             }
+            val animatedBg by animateColorAsState(
+                targetValue = targetBg,
+                animationSpec = tween(durationMillis = 220),
+                label = "segment_bg"
+            )
+            val animatedContent by animateColorAsState(
+                targetValue = targetContent,
+                animationSpec = tween(durationMillis = 220),
+                label = "segment_content"
+            )
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .height(segmentHeight)
                     .clip(pillShape)
-                    .background(bg)
+                    .background(animatedBg)
                     .clickable { onSelectIndex(idx) },
                 contentAlignment = Alignment.Center
             ) {
@@ -89,13 +107,13 @@ fun SpellCoachSegmentedControl(
                     Icon(
                         imageVector = option.icon,
                         contentDescription = null,
-                        tint = content,
-                        modifier = Modifier.size(17.dp)
+                        tint = animatedContent,
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(AppSpacing.sm))
                     Text(
                         text = option.title,
-                        color = content,
+                        color = animatedContent,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
                     )

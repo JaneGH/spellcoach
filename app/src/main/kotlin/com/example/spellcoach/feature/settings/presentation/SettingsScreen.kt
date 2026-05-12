@@ -109,14 +109,14 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_theme_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface
                 )
-                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+                Spacer(Modifier.height(AppSpacing.xs + AppSpacing.xxs))
                 Text(
                     text = stringResource(R.string.settings_theme_body),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.onSurfaceVariant
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f)
                 )
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
                 Row(
@@ -176,7 +176,7 @@ fun SettingsScreen(
                         Text(
                             text = stringResource(R.string.settings_required_correct_title),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = scheme.onSurface
                         )
                         Spacer(Modifier.height(AppSpacing.xs))
@@ -240,7 +240,7 @@ fun SettingsScreen(
                         Text(
                             text = stringResource(R.string.settings_mistake_behavior_title),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = scheme.onSurface
                         )
                         Spacer(Modifier.height(AppSpacing.xs))
@@ -273,7 +273,7 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_progress_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface
                 )
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
@@ -287,10 +287,10 @@ fun SettingsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(AppRadius.md))
-                        .background(scheme.errorContainer.copy(alpha = 0.42f))
+                        .background(scheme.errorContainer.copy(alpha = 0.36f))
                         .border(
                             1.dp,
-                            scheme.outlineVariant.copy(alpha = 0.55f),
+                            scheme.error.copy(alpha = 0.18f),
                             RoundedCornerShape(AppRadius.md)
                         )
                         .clickable { showResetAllConfirm = true }
@@ -300,7 +300,7 @@ fun SettingsScreen(
                     Text(
                         text = stringResource(R.string.settings_reset_all_progress),
                         color = scheme.error,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -333,7 +333,7 @@ fun SettingsScreen(
                             Text(
                                 text = stringResource(R.string.settings_audio_title),
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = scheme.onSurface
                             )
                             Text(
@@ -366,7 +366,7 @@ fun SettingsScreen(
                         Text(
                             text = stringResource(R.string.settings_letter_hints_title),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = scheme.onSurface
                         )
                         Text(
@@ -392,7 +392,7 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_speech_rate_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface
                 )
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
@@ -412,9 +412,9 @@ fun SettingsScreen(
                 )
                 Text(
                     text = stringResource(R.string.speech_rate_format, settings.speechRate),
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = scheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
 
@@ -430,7 +430,7 @@ fun SettingsScreen(
                         Text(
                             text = stringResource(R.string.settings_reward_sounds_title),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = scheme.onSurface
                         )
                         Text(
@@ -458,7 +458,7 @@ fun SettingsScreen(
                         Text(
                             text = stringResource(R.string.settings_animations_title),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = scheme.onSurface
                         )
                         Text(
@@ -500,7 +500,7 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_mascot_quote),
                     color = mascotFg,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(AppSpacing.lg)
                 )
@@ -548,11 +548,15 @@ private fun NumberPickCell(
 ) {
     val scheme = MaterialTheme.colorScheme
     val borderColor = if (selected) {
-        scheme.primary.copy(alpha = 0.26f)
+        scheme.primary.copy(alpha = 0.22f)
     } else {
-        scheme.outlineVariant.copy(alpha = 0.38f)
+        scheme.outlineVariant.copy(alpha = 0.18f)
     }
-    val bg = if (selected) scheme.primaryContainer.copy(alpha = 0.68f) else scheme.surfaceContainerLow
+    val bg = if (selected) {
+        scheme.primaryContainer.copy(alpha = 0.62f)
+    } else {
+        scheme.surfaceVariant.copy(alpha = 0.32f)
+    }
     Box(
         modifier = modifier
             .height(40.dp)
@@ -564,7 +568,7 @@ private fun NumberPickCell(
     ) {
         Text(
             text = n.toString(),
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
             color = if (selected) scheme.onPrimaryContainer else scheme.onSurfaceVariant,
             fontSize = 14.sp
         )
@@ -579,11 +583,15 @@ private fun MistakeOptionRow(
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
-    val bg = if (selected) scheme.secondaryContainer.copy(alpha = 0.48f) else scheme.surfaceContainerLow
-    val border = if (selected) {
-        scheme.primary.copy(alpha = 0.22f)
+    val bg = if (selected) {
+        scheme.secondaryContainer.copy(alpha = 0.42f)
     } else {
-        scheme.outlineVariant.copy(alpha = 0.36f)
+        scheme.surfaceVariant.copy(alpha = 0.32f)
+    }
+    val border = if (selected) {
+        scheme.primary.copy(alpha = 0.18f)
+    } else {
+        scheme.outlineVariant.copy(alpha = 0.16f)
     }
     Row(
         modifier = Modifier
@@ -603,7 +611,7 @@ private fun MistakeOptionRow(
         Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
         Text(
             text = title,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
             color = scheme.onSurface,
             style = MaterialTheme.typography.titleMedium
         )

@@ -60,8 +60,9 @@ private val LightExtras = SpellCoachExtras(
     chipBlueFg = Color(0xFF0369A1),
     chipPurpleBg = Color(0xFFF3E8FF),
     chipPurpleFg = Color(0xFF7E22CE),
-    progressTrack = Color(0xFFE0F2FE),
-    progressFill = Color(0xFF22C55E),
+    // Calm tonal track + on-palette success fill (less neon than the previous bright green).
+    progressTrack = Color(0xFFE3ECF3),
+    progressFill = Color(0xFF16A34A),
     progressMastered = Color(0xFF15803D),
     mascotPanel = Color(0xFF7EC8E3)
 )
@@ -79,9 +80,9 @@ private val DarkExtras = SpellCoachExtras(
     chipBlueFg = Color(0xFFBAE6FD),
     chipPurpleBg = Color(0xFF3B255C),
     chipPurpleFg = Color(0xFFE9D5FF),
-    progressTrack = Color(0xFF1E3A5F),
-    progressFill = Color(0xFF4ADE80),
-    progressMastered = Color(0xFF86EFAC),
+    progressTrack = Color(0xFF22344A),
+    progressFill = Color(0xFF34D399),
+    progressMastered = Color(0xFF6EE7B7),
     mascotPanel = Color(0xFF1A4A63)
 )
 

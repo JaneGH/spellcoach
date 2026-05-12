@@ -74,7 +74,7 @@ fun SpellCoachPrimaryButton(
         Text(
             text = text,
             fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.labelLarge
         )
     }
 }
@@ -119,7 +119,7 @@ fun PrimaryButton(
             text = text,
             color = contentColor,
             fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.labelLarge
         )
     }
 }
@@ -160,8 +160,8 @@ fun SpellCoachSecondaryButton(
         }
         Text(
             text = text,
-            fontWeight = FontWeight.Medium,
-            style = MaterialTheme.typography.bodyLarge
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelLarge
         )
     }
 }

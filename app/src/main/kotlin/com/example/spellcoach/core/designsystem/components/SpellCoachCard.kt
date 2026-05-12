@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import com.example.spellcoach.core.designsystem.tokens.AppElevation
@@ -26,12 +27,22 @@ fun SpellCoachCard(
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(AppRadius.card)
     val isLight = scheme.background.luminance() > 0.5f
-    val borderAlpha = if (isLight) 0.09f else 0.14f
+
+    // Subtly tint the card toward primaryContainer so it lifts off the background
+    // without feeling stark, but still keeps depth via elevation.
+    val container = if (isLight) {
+        lerp(scheme.surface, scheme.primaryContainer, 0.025f)
+    } else {
+        lerp(scheme.surface, scheme.primaryContainer, 0.05f)
+    }
+
+    val borderAlpha = if (isLight) 0.06f else 0.10f
+
     Card(
         modifier = modifier.clip(shape),
         shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = scheme.surface,
+            containerColor = container,
             contentColor = scheme.onSurface
         ),
         elevation = CardDefaults.cardElevation(

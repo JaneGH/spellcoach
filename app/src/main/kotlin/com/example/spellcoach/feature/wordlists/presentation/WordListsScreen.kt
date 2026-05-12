@@ -58,9 +58,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
-import com.example.spellcoach.core.designsystem.components.DesignProgressBar
 import com.example.spellcoach.core.designsystem.components.LearningCard
 import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachProgressBar
 import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.example.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
@@ -105,44 +105,53 @@ fun WordListsScreen(
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                                 start = AppSpacing.screenHorizontal,
                                 end = AppSpacing.screenHorizontal,
-                                top = AppSpacing.lg,
+                                top = AppSpacing.sm,
                                 bottom = AppSpacing.fabClearance
                             ),
-                        verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
-                    ) {
-                        items(state.lists) { list ->
-                            WordListCard(
-                                list = list,
-                                onClick = {
-                                    viewModel.rememberPracticeList(list.id)
-                                    onPracticeList(list.id)
-                                },
-                                onEdit = { onEditList(list.id) },
-                                onResetProgress = { viewModel.resetListProgress(list.id) },
-                                onDelete = { viewModel.deleteList(list.id) }
-                            )
+                            verticalArrangement = Arrangement.spacedBy(AppSpacing.md + AppSpacing.xs)
+                        ) {
+                            items(state.lists) { list ->
+                                WordListCard(
+                                    list = list,
+                                    onClick = {
+                                        viewModel.rememberPracticeList(list.id)
+                                        onPracticeList(list.id)
+                                    },
+                                    onEdit = { onEditList(list.id) },
+                                    onResetProgress = { viewModel.resetListProgress(list.id) },
+                                    onDelete = { viewModel.deleteList(list.id) }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-        }
+
+        val fabContainer = androidx.compose.ui.graphics.lerp(
+            scheme.primaryContainer,
+            scheme.surface,
+            0.18f
+        )
         FloatingActionButton(
             onClick = onCreateNewList,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = AppSpacing.xl, bottom = AppSpacing.xxxl - AppSpacing.sm),
-            containerColor = scheme.primaryContainer,
+                .padding(end = AppSpacing.lg, bottom = AppSpacing.xxl),
+            containerColor = fabContainer,
             contentColor = scheme.primary,
-            shape = RoundedCornerShape(AppRadius.lg),
+            shape = RoundedCornerShape(AppRadius.xl),
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = AppElevation.level2,
-                pressedElevation = AppElevation.level1
+                pressedElevation = AppElevation.level1,
+                hoveredElevation = AppElevation.level3,
+                focusedElevation = AppElevation.level2
             )
         ) {
             Icon(
                 Icons.Filled.Add,
-                contentDescription = stringResource(R.string.content_desc_add_word_list)
+                contentDescription = stringResource(R.string.content_desc_add_word_list),
+                modifier = Modifier.size(AppIconSize.xxl)
             )
         }
     }
@@ -179,13 +188,14 @@ private fun EmptyWordLists(
         Text(
             text = stringResource(R.string.lists_empty_title),
             style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(Modifier.height(AppSpacing.sm))
         Text(
             text = stringResource(R.string.lists_empty_message),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f)
         )
         Spacer(Modifier.height(AppSpacing.xxl))
         SpellCoachPrimaryButton(
@@ -226,7 +236,7 @@ private fun WordListCard(
                     fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface
                 )
-                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+                Spacer(Modifier.height(AppSpacing.xs + AppSpacing.xxs))
                 Text(
                     text = stringResource(
                         R.string.lists_progress_format,
@@ -234,8 +244,7 @@ private fun WordListCard(
                         list.totalWords
                     ),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.74f)
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -313,12 +322,12 @@ private fun WordListCard(
                 }
             }
         }
-        Spacer(Modifier.height(AppSpacing.md + AppSpacing.xs))
-        DesignProgressBar(
+        Spacer(Modifier.height(AppSpacing.md))
+        SpellCoachProgressBar(
             progress = list.progress,
             fullMastered = list.isMastered
         )
-        Spacer(Modifier.height(AppSpacing.md + AppSpacing.xs))
+        Spacer(Modifier.height(AppSpacing.md))
         if (list.isMastered) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -339,7 +348,7 @@ private fun WordListCard(
                 Text(
                     text = stringResource(R.string.lists_mastered_badge),
                     color = extras.progressMastered,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.labelMedium
                 )
             }
@@ -357,7 +366,7 @@ private fun WordListCard(
                         Text(
                             text = chip,
                             color = fg,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Medium,
                             style = MaterialTheme.typography.labelMedium
                         )
                     }

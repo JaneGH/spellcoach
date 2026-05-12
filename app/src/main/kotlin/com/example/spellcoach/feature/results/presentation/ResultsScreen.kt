@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.R
-import com.example.spellcoach.core.designsystem.components.DesignProgressBar
 import com.example.spellcoach.core.designsystem.components.LearningCard
+import com.example.spellcoach.core.designsystem.components.SpellCoachProgressBar
 import com.example.spellcoach.core.designsystem.components.SpellCoachSecondaryButton
 import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
@@ -86,15 +86,14 @@ fun ResultsScreen(
             Text(
                 text = "Good job!",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = scheme.onSurface
             )
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+            Spacer(Modifier.height(AppSpacing.xs + AppSpacing.xxs))
             Text(
                 text = "You worked hard and learned\nsome tricky words today.",
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = scheme.onSurfaceVariant
+                color = scheme.onSurfaceVariant.copy(alpha = 0.78f)
             )
 
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
@@ -143,7 +142,7 @@ fun ResultsScreen(
                             Text(
                                 text = "  Words Correct",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = extras.onSuccessContainer
                             )
                         }
@@ -187,7 +186,7 @@ fun ResultsScreen(
                             Text(
                                 text = "  To Practice",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = scheme.onTertiaryContainer
                             )
                         }
@@ -201,25 +200,24 @@ fun ResultsScreen(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         text = "Goal",
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = scheme.onSurface,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = "80%",
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = extras.success,
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-                DesignProgressBar(progress = 0.8f, fullMastered = false)
+                SpellCoachProgressBar(progress = 0.8f, fullMastered = false)
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 Text(
                     text = "Just 2 more sessions to reach your\ndiamond badge!",
                     style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium,
-                    color = scheme.onSurfaceVariant
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f)
                 )
             }
 

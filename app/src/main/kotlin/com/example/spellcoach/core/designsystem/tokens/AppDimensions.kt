@@ -13,7 +13,9 @@ object AppDimensions {
     val handwritingPanelMinHeight: Dp = 320.dp
     val resultsHeroImage: Dp = 150.dp
     val addWordsFieldHeight: Dp = 160.dp
-    val progressBarTrackHeight: Dp = 10.dp
+    val progressBarTrackHeight: Dp = 8.dp
+    /** Premium slim track used by [SpellCoachProgressBar] for cards and inline progress. */
+    val progressBarTrackSlim: Dp = 6.dp
     val letterChipMinSize: Dp = 52.dp
     val handwritingSubmitWidth: Dp = 120.dp
     val handwritingSubmitHeight: Dp = 44.dp

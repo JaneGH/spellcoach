@@ -4,7 +4,6 @@ import android.os.SystemClock
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -95,6 +94,7 @@ import com.example.spellcoach.core.designsystem.components.SegmentedOption
 import com.example.spellcoach.core.designsystem.components.SpellCoachCard
 import com.example.spellcoach.core.designsystem.components.SpellCoachOutlinedTextField
 import com.example.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
+import com.example.spellcoach.core.designsystem.components.SpellCoachProgressBar
 import com.example.spellcoach.core.designsystem.components.SpellCoachScreenContainer
 import com.example.spellcoach.core.designsystem.components.SpellCoachSegmentedControl
 import com.example.spellcoach.core.designsystem.components.SpellCoachTopBar
@@ -247,9 +247,8 @@ fun PracticeScreen(
                                 } else {
                                     "Great progress today. $masteredWords / $totalWords words mastered."
                                 },
-                                fontWeight = FontWeight.Medium,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = scheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
                                 textAlign = TextAlign.Center
                             )
 
@@ -262,9 +261,8 @@ fun PracticeScreen(
                                     } else {
                                         "$wordsNeedingReview words still need practice"
                                     },
-                                    fontWeight = FontWeight.Medium,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = scheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -466,7 +464,7 @@ fun PracticeScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(AppRadius.xl))
-                                                    .background(flowScheme.surfaceVariant.copy(alpha = 0.2f))
+                                                    .background(flowScheme.surfaceVariant.copy(alpha = 0.16f))
                                                     .padding(
                                                         horizontal = AppSpacing.md + AppSpacing.xs,
                                                         vertical = AppSpacing.md
@@ -603,8 +601,7 @@ private fun WrongAnswerCard(
 
         Text(
             text = "The correct spelling is:",
-            color = scheme.onErrorContainer,
-            fontWeight = FontWeight.Medium,
+            color = scheme.onErrorContainer.copy(alpha = 0.82f),
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
         )
@@ -625,8 +622,7 @@ private fun WrongAnswerCard(
 
         Text(
             text = "You’re doing great. Try it once more.",
-            color = scheme.onErrorContainer.copy(alpha = 0.85f),
-            fontWeight = FontWeight.Medium,
+            color = scheme.onErrorContainer.copy(alpha = 0.78f),
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
         )
@@ -927,7 +923,7 @@ private fun MinimalCircleOutlineIconButton(
             .background(scheme.surface.copy(alpha = 0.94f))
             .border(
                 width = 1.dp,
-                color = scheme.outlineVariant.copy(alpha = if (enabled) 0.32f else 0.22f),
+                color = scheme.outlineVariant.copy(alpha = if (enabled) 0.18f else 0.12f),
                 shape = shape
             )
     ) {
@@ -1082,11 +1078,6 @@ private fun CorrectAnswerSuccessCard(
         (completed.toFloat() / total.toFloat()).coerceIn(0f, 1f)
     }
 
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress,
-        label = "correct_progress"
-    )
-
     SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
@@ -1114,9 +1105,8 @@ private fun CorrectAnswerSuccessCard(
 
             Text(
                 text = "Great job, you're a spelling star!",
-                color = scheme.onSurfaceVariant,
-                fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.bodyLarge,
+                color = scheme.onSurfaceVariant.copy(alpha = 0.82f),
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
 
@@ -1137,8 +1127,7 @@ private fun CorrectAnswerSuccessCard(
 
                 Text(
                     text = wordProgressText,
-                    color = scheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium,
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
                 )
@@ -1152,8 +1141,7 @@ private fun CorrectAnswerSuccessCard(
             ) {
                 Text(
                     text = "Progress",
-                    color = scheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium,
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
                     style = MaterialTheme.typography.labelMedium
                 )
 
@@ -1169,21 +1157,10 @@ private fun CorrectAnswerSuccessCard(
 
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(AppDimensions.progressBarTrackHeight)
-                    .clip(CircleShape)
-                    .background(scheme.surfaceVariant)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(animatedProgress)
-                        .height(AppDimensions.progressBarTrackHeight)
-                        .clip(CircleShape)
-                        .background(extras.progressFill)
-                )
-            }
+            SpellCoachProgressBar(
+                progress = progress,
+                fillColor = extras.progressFill
+            )
 
             Spacer(Modifier.height(AppSpacing.xl + AppSpacing.sm))
 
@@ -1211,14 +1188,14 @@ private fun LetterChip(
             .shadow(
                 elevation = AppElevation.level1,
                 shape = RoundedCornerShape(AppRadius.lg),
-                ambientColor = scheme.primary.copy(alpha = 0.05f),
-                spotColor = scheme.primary.copy(alpha = 0.08f)
+                ambientColor = scheme.primary.copy(alpha = 0.04f),
+                spotColor = scheme.primary.copy(alpha = 0.06f)
             )
             .clip(RoundedCornerShape(AppRadius.lg))
             .background(scheme.surface)
             .border(
                 width = 1.dp,
-                color = scheme.outlineVariant.copy(alpha = 0.32f),
+                color = scheme.outlineVariant.copy(alpha = 0.18f),
                 shape = RoundedCornerShape(AppRadius.lg)
             )
             .clickable(onClick = onClick),

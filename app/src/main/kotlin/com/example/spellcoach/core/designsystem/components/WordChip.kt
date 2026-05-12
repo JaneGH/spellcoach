@@ -31,7 +31,7 @@ fun WordChip(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(AppRadius.pill))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
             .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -45,7 +45,7 @@ fun WordChip(
         Icon(
             imageVector = Icons.Filled.Close,
             contentDescription = stringResource(R.string.content_desc_remove_word, word),
-            tint = MaterialTheme.colorScheme.outline,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             modifier = Modifier
                 .padding(AppSpacing.xs)
                 .clickable(onClick = onRemove)

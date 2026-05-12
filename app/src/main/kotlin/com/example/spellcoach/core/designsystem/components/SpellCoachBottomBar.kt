@@ -32,9 +32,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.example.spellcoach.R
 import com.example.spellcoach.core.designsystem.tokens.AppDimensions
+import com.example.spellcoach.core.designsystem.tokens.AppIconSize
 import com.example.spellcoach.core.designsystem.tokens.AppRadius
 import com.example.spellcoach.core.designsystem.tokens.AppSpacing
 
@@ -59,7 +59,7 @@ fun SpellCoachBottomBar(
                 )
             )
     ) {
-        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.22f))
+        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.16f))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -100,14 +100,19 @@ private fun SpellCoachNavItem(
     val scheme = MaterialTheme.colorScheme
     val isLight = scheme.background.luminance() > 0.5f
     val bg = if (selected) {
-        scheme.primary.copy(alpha = if (isLight) 0.07f else 0.13f)
+        scheme.primary.copy(alpha = if (isLight) 0.085f else 0.16f)
     } else {
         Color.Transparent
     }
-    val tint = if (selected) {
+    val iconTint = if (selected) {
         scheme.primary
     } else {
-        scheme.onSurfaceVariant.copy(alpha = 0.88f)
+        scheme.onSurfaceVariant.copy(alpha = 0.78f)
+    }
+    val labelColor = if (selected) {
+        scheme.primary
+    } else {
+        scheme.onSurfaceVariant.copy(alpha = 0.82f)
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -116,21 +121,21 @@ private fun SpellCoachNavItem(
                 minWidth = AppDimensions.minTouchTarget,
                 minHeight = AppDimensions.minTouchTarget
             )
-            .clip(RoundedCornerShape(AppRadius.sm))
+            .clip(RoundedCornerShape(AppRadius.md))
             .semantics { role = Role.Button }
             .background(bg)
             .clickable(onClick = onClick)
-            .padding(horizontal = AppSpacing.sm + AppSpacing.xs, vertical = AppSpacing.xs + AppSpacing.xs)
+            .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs + AppSpacing.xs)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = tint,
-            modifier = Modifier.size(22.dp)
+            tint = iconTint,
+            modifier = Modifier.size(AppIconSize.xl)
         )
         Text(
             text = label,
-            color = tint,
+            color = labelColor,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
         )

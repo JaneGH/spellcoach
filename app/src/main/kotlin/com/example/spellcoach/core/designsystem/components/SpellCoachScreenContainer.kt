@@ -66,15 +66,15 @@ fun SpellCoachHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
         if (subtitle != null) {
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+            Spacer(Modifier.height(AppSpacing.xs + AppSpacing.xxs))
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f)
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.74f)
             )
         }
     }

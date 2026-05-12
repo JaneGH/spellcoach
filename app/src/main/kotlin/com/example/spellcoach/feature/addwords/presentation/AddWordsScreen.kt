@@ -42,7 +42,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.spellcoach.core.designsystem.components.LearningCard
 import com.example.spellcoach.core.designsystem.components.SaveGreenButton
@@ -117,8 +116,12 @@ fun AddWordsScreen(
                 Text(
                     text = "List name",
                     style = MaterialTheme.typography.labelMedium,
-                    color = scheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = AppSpacing.sm + AppSpacing.xs, bottom = AppSpacing.sm + AppSpacing.xs)
+                    fontWeight = FontWeight.Medium,
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
+                    modifier = Modifier.padding(
+                        start = AppSpacing.sm + AppSpacing.xs,
+                        bottom = AppSpacing.sm
+                    )
                 )
 
                 SpellCoachOutlinedTextField(
@@ -138,7 +141,7 @@ fun AddWordsScreen(
                 Text(
                     text = "TYPE OR PASTE WORDS",
                     style = MaterialTheme.typography.labelMedium,
-                    color = scheme.onSurfaceVariant,
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(AppSpacing.md))
@@ -198,19 +201,19 @@ fun AddWordsScreen(
                 Text(
                     text = "Word Preview",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface
                 )
                 Box(
                     modifier = Modifier
-                        .background(scheme.surfaceVariant.copy(alpha = 0.55f), RoundedCornerShape(AppRadius.pill))
+                        .background(scheme.surfaceVariant.copy(alpha = 0.42f), RoundedCornerShape(AppRadius.pill))
                         .padding(horizontal = AppSpacing.sm + AppSpacing.xs, vertical = AppSpacing.xs)
                 ) {
                     Text(
                         text = "${state.previewWords.size} Words",
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = scheme.onSurfaceVariant
+                        fontWeight = FontWeight.SemiBold,
+                        color = scheme.onSurfaceVariant.copy(alpha = 0.82f)
                     )
                 }
             }
@@ -227,13 +230,13 @@ fun AddWordsScreen(
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             }
 
-            val dash = PathEffect.dashPathEffect(floatArrayOf(12f, 10f), 0f)
-            val previewOutline = scheme.outlineVariant.copy(alpha = 0.38f)
+            val dash = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f)
+            val previewOutline = scheme.outlineVariant.copy(alpha = 0.22f)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(AppRadius.lg))
-                    .background(scheme.surface.copy(alpha = 0.98f))
+                    .background(scheme.surface.copy(alpha = 0.92f))
                     .drawBehind {
                         val stroke = Stroke(width = 1.dp.toPx(), pathEffect = dash)
                         drawRoundRect(
@@ -298,7 +301,7 @@ private fun ImportCard(
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .background(iconBg, RoundedCornerShape(AppRadius.xs)),
+                    .background(iconBg, RoundedCornerShape(AppRadius.sm)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, contentDescription = null, tint = scheme.onSurfaceVariant)
@@ -307,15 +310,14 @@ private fun ImportCard(
             Column {
                 Text(
                     text = title,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
                     text = subtitle,
-                    color = scheme.onSurfaceVariant,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
