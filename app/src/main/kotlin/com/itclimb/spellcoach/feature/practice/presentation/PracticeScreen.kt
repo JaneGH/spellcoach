@@ -5,8 +5,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -687,6 +691,49 @@ private fun PracticeCompletionListMasteredCard(
     val scheme = MaterialTheme.colorScheme
     val extras = SpellCoachThemeExtras.current
 
+    val mascotScale = remember { Animatable(0.86f) }
+    val mascotAlpha = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        launch {
+            mascotAlpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 350)
+            )
+        }
+        launch {
+            mascotScale.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        }
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "mastered_completion_motion")
+
+    val mascotBounce by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -7f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "mascot_bounce"
+    )
+
+    val sparkleAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 950),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "sparkle_alpha"
+    )
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -709,43 +756,71 @@ private fun PracticeCompletionListMasteredCard(
                 )
                 .padding(AppSpacing.lg)
         ) {
-            Text(
-                text = "✦",
-                color = extras.success.copy(alpha = 0.28f),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.align(Alignment.TopStart)
-            )
-
-            Text(
-                text = "✦",
-                color = extras.success.copy(alpha = 0.22f),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.align(Alignment.TopEnd)
-            )
-
-            Text(
-                text = "•",
-                color = extras.success.copy(alpha = 0.24f),
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 44.dp, end = 28.dp)
-            )
-
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(extras.success.copy(alpha = 0.14f)),
+                    modifier = Modifier.size(175.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "🏆",
-                        style = MaterialTheme.typography.displaySmall
+                        text = "✦",
+                        color = extras.success.copy(alpha = sparkleAlpha * 0.55f),
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .graphicsLayer {
+                                translationY = -mascotBounce * 0.35f
+                            }
+                    )
+
+                    Text(
+                        text = "✦",
+                        color = scheme.primary.copy(alpha = sparkleAlpha * 0.45f),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .graphicsLayer {
+                                translationY = mascotBounce * 0.45f
+                            }
+                    )
+
+                    Text(
+                        text = "•",
+                        color = extras.success.copy(alpha = sparkleAlpha * 0.45f),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(start = 8.dp)
+                            .graphicsLayer {
+                                translationY = mascotBounce * 0.25f
+                            }
+                    )
+
+                    Text(
+                        text = "•",
+                        color = scheme.primary.copy(alpha = sparkleAlpha * 0.35f),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 6.dp)
+                            .graphicsLayer {
+                                translationY = -mascotBounce * 0.3f
+                            }
+                    )
+
+                    Image(
+                        painter = painterResource(R.drawable.fox_practice_completed_all),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(155.dp)
+                            .graphicsLayer {
+                                alpha = mascotAlpha.value
+                                scaleX = mascotScale.value
+                                scaleY = mascotScale.value
+                                translationY = mascotBounce
+                            }
                     )
                 }
 
@@ -808,6 +883,7 @@ private fun PracticeCompletionListMasteredCard(
         }
     }
 }
+
 @Composable
 private fun PracticeCompletionEmptyBody(
     onPracticeAgain: () -> Unit,
