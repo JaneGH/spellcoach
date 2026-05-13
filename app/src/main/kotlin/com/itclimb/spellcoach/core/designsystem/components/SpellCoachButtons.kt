@@ -22,9 +22,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.itclimb.spellcoach.core.designsystem.motion.pressScale
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppElevation
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
@@ -73,7 +73,7 @@ fun SpellCoachPrimaryButton(
             Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
-                modifier = Modifier.size(AppDimensions.topBarAvatar - 12.dp)
+                modifier = Modifier.size(AppDimensions.topBarAvatar - AppSpacing.md)
             )
             Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
         }
@@ -154,7 +154,7 @@ fun SpellCoachSecondaryButton(
             .pressScale(interactionSource),
         shape = shape,
         border = BorderStroke(
-            width = 1.dp,
+            width = AppBorder.hairline,
             color = scheme.outlineVariant.copy(alpha = 0.4f)
         ),
         colors = ButtonDefaults.outlinedButtonColors(
@@ -166,7 +166,7 @@ fun SpellCoachSecondaryButton(
             Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
-                modifier = Modifier.size(AppDimensions.topBarAvatar - 12.dp)
+                modifier = Modifier.size(AppDimensions.topBarAvatar - AppSpacing.md)
             )
             Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
         }

@@ -2,6 +2,7 @@ package com.itclimb.spellcoach.core.navigation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +24,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -45,6 +45,7 @@ import com.itclimb.spellcoach.feature.practice.presentation.PracticeScreen
 import com.itclimb.spellcoach.feature.results.presentation.ResultsScreen
 import com.itclimb.spellcoach.feature.settings.presentation.SettingsScreen
 import com.itclimb.spellcoach.feature.wordlists.presentation.WordListsScreen
+import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 import com.itclimb.spellcoach.feature.practice.PracticeListHolder
 
@@ -275,13 +276,24 @@ private fun PracticeTabEntry(
                         .padding(horizontal = AppSpacing.xxl),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.fox_advice_pose),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(96.dp)
-                            .alpha(0.95f)
-                    )
+                    BoxWithConstraints(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val mascot =
+                            (maxWidth * AppDimensions.mascotPromoWidthFraction).coerceIn(
+                                AppDimensions.mascotPromoMin,
+                                AppDimensions.mascotPromoMax
+                            )
+
+                        Image(
+                            painter = painterResource(R.drawable.fox_advice_pose),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(mascot)
+                                .alpha(0.95f)
+                        )
+                    }
                     Spacer(Modifier.height(AppSpacing.sm))
                     Text(
                         text = stringResource(R.string.practice_pick_list_message),

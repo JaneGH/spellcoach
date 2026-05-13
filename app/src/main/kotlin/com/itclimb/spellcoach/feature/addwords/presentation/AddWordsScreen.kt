@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,7 +53,9 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenConta
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
 import com.itclimb.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
+import com.itclimb.spellcoach.core.designsystem.tokens.AppIconSize
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 import com.itclimb.spellcoach.core.designsystem.components.WordChip
@@ -247,11 +248,11 @@ fun AddWordsScreen(
                     .clip(RoundedCornerShape(AppRadius.lg))
                     .background(scheme.surface.copy(alpha = 0.92f))
                     .drawBehind {
-                        val stroke = Stroke(width = 1.dp.toPx(), pathEffect = dash)
+                        val stroke = Stroke(width = AppBorder.hairline.toPx(), pathEffect = dash)
                         drawRoundRect(
                             color = previewOutline,
                             style = stroke,
-                            cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx())
+                            cornerRadius = CornerRadius(AppRadius.lg.toPx(), AppRadius.lg.toPx())
                         )
                     }
                     .padding(AppSpacing.sm + AppSpacing.md)
@@ -311,7 +312,7 @@ private fun ImportCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(AppIconSize.mascotSmall)
                     .background(iconBg, RoundedCornerShape(AppRadius.sm)),
                 contentAlignment = Alignment.Center
             ) {

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.unit.dp
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
 import com.itclimb.spellcoach.core.designsystem.tokens.AppElevation
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
@@ -55,7 +55,7 @@ fun SpellCoachCard(
             disabledElevation = AppElevation.level0
         ),
         border = BorderStroke(
-            width = 1.dp,
+            width = AppBorder.hairline,
             color = scheme.outlineVariant.copy(alpha = borderAlpha)
         )
     ) {

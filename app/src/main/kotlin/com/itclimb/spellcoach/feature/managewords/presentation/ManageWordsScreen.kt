@@ -77,6 +77,7 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVariant
 import com.itclimb.spellcoach.core.designsystem.motion.pressScale
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
 import com.itclimb.spellcoach.core.designsystem.tokens.AppElevation
 import com.itclimb.spellcoach.core.designsystem.tokens.AppIconSize
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
@@ -579,7 +580,7 @@ private fun ManageWordRowCard(
             defaultElevation = AppElevation.level2,
             pressedElevation = AppElevation.level1,
         ),
-        border = BorderStroke(1.dp, borderColor)
+        border = BorderStroke(AppBorder.hairline, borderColor)
     ) {
         Row(
             modifier = Modifier
@@ -618,7 +619,7 @@ private fun ManageWordRowCard(
                             modifier = Modifier
                                 .size(AppIconSize.lg + AppSpacing.xs)
                                 .clip(CircleShape)
-                                .padding(2.dp),
+                                .padding(AppSpacing.xxs),
                             contentAlignment = Alignment.Center
                         ) {
                         }

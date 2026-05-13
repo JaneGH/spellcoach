@@ -38,8 +38,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.itclimb.spellcoach.R
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppIconSize
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
@@ -81,7 +81,7 @@ fun SpellCoachBottomBar(
                 )
                 .clip(barShape)
                 .background(barFill.copy(alpha = if (isLight) 0.94f else 0.92f))
-                .border(1.dp, barBorder, barShape)
+                .border(AppBorder.hairline, barBorder, barShape)
                 .padding(vertical = AppSpacing.xs + AppSpacing.xxs, horizontal = AppSpacing.sm),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically

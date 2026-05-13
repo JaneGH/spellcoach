@@ -28,12 +28,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -93,7 +96,6 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -122,8 +124,10 @@ import com.itclimb.spellcoach.core.designsystem.motion.SpellCoachMotion
 import com.itclimb.spellcoach.core.designsystem.motion.screenEnterSoft
 import com.itclimb.spellcoach.core.designsystem.motion.screenExitSoft
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppElevation
+import com.itclimb.spellcoach.core.designsystem.tokens.AppIconSize
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 import com.itclimb.spellcoach.domain.model.isLearnedAtThreshold
@@ -535,32 +539,42 @@ fun PracticeScreen(
                                                         vertical = AppSpacing.md
                                                     )
                                             ) {
-                                                Box(
+                                                BoxWithConstraints(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
+                                                    val inlineMascot =
+                                                        (maxWidth * AppDimensions.mascotInlineWidthFraction).coerceIn(
+                                                            AppDimensions.mascotInlineMin,
+                                                            AppDimensions.mascotInlineMax
+                                                        )
+                                                    Box(modifier = Modifier.fillMaxWidth()) {
 
-                                                    SpellCoachOutlinedTextField(
-                                                        value = state.input,
-                                                        onValueChange = viewModel::onInputChange,
-                                                        placeholder = stringResource(R.string.practice_placeholder_type),
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .padding(end = AppSpacing.sm + AppSpacing.xs)
-                                                            .focusRequester(focusRequester),
-                                                        height = AppDimensions.practiceKeyboardInputFieldHeight
-                                                    )
+                                                        SpellCoachOutlinedTextField(
+                                                            value = state.input,
+                                                            onValueChange = viewModel::onInputChange,
+                                                            placeholder = stringResource(R.string.practice_placeholder_type),
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(end = AppSpacing.sm + AppSpacing.xs)
+                                                                .focusRequester(focusRequester),
+                                                            height = AppDimensions.practiceKeyboardInputFieldHeight
+                                                        )
 
-                                                    Image(
-                                                        painter = painterResource(id = R.drawable.fox_neutral),
-                                                        contentDescription = stringResource(R.string.content_desc_fox_neutral),
-                                                        modifier = Modifier
-                                                            .align(Alignment.CenterEnd)
-                                                            .padding(end = 10.dp, bottom = 15.dp)
-                                                            .size(50.dp)
-                                                            .graphicsLayer {
-                                                                alpha = 0.92f
-                                                            }
-                                                    )
+                                                        Image(
+                                                            painter = painterResource(id = R.drawable.fox_neutral),
+                                                            contentDescription = stringResource(R.string.content_desc_fox_neutral),
+                                                            modifier = Modifier
+                                                                .align(Alignment.CenterEnd)
+                                                                .padding(
+                                                                    end = AppSpacing.sm + AppSpacing.xxs,
+                                                                    bottom = AppSpacing.md + AppSpacing.xs
+                                                                )
+                                                                .size(inlineMascot)
+                                                                .graphicsLayer {
+                                                                    alpha = 0.92f
+                                                                }
+                                                        )
+                                                    }
                                                 }
                                                 Spacer(Modifier.height(AppSpacing.md))
 
@@ -644,11 +658,11 @@ private fun PracticeCompletionDailyDoneCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(AppRadius.glassCard),
         colors = CardDefaults.cardColors(
             containerColor = scheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.level0)
     ) {
         Box(
             modifier = Modifier
@@ -663,32 +677,39 @@ private fun PracticeCompletionDailyDoneCard(
                     )
                 )
                 .border(
-                    width = 1.dp,
+                    width = AppBorder.hairline,
                     color = scheme.outlineVariant.copy(alpha = 0.18f),
-                    shape = RoundedCornerShape(28.dp)
+                    shape = RoundedCornerShape(AppRadius.glassCard)
                 )
                 .padding(AppSpacing.lg)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier.size(132.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.fox_practice_completed_pose),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(118.dp)
-                            .graphicsLayer {
-                                alpha = mascotAlpha.value
-                                scaleX = mascotScale.value
-                                scaleY = mascotScale.value
-                            }
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val ring =
+                    (maxWidth * AppDimensions.mascotCompletionDailyRingWidthFraction).coerceIn(
+                        AppDimensions.mascotCompletionDailyRingMin,
+                        AppDimensions.mascotCompletionDailyRingMax
                     )
-                }
+                val image = ring * AppDimensions.mascotCompletionDailyImageOfRing
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier.size(ring),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.fox_practice_completed_pose),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(image)
+                                .graphicsLayer {
+                                    alpha = mascotAlpha.value
+                                    scaleX = mascotScale.value
+                                    scaleY = mascotScale.value
+                                }
+                        )
+                    }
 
                 Spacer(Modifier.height(AppSpacing.sm))
 
@@ -733,6 +754,7 @@ private fun PracticeCompletionDailyDoneCard(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
             }
         }
     }
@@ -792,11 +814,11 @@ private fun PracticeCompletionListMasteredCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(AppRadius.glassCard),
         colors = CardDefaults.cardColors(
             containerColor = extras.success.copy(alpha = 0.34f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.level0)
     ) {
         Box(
             modifier = Modifier
@@ -812,73 +834,80 @@ private fun PracticeCompletionListMasteredCard(
                 )
                 .padding(AppSpacing.lg)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier.size(175.dp),
-                    contentAlignment = Alignment.Center
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val ring =
+                    (maxWidth * AppDimensions.mascotCompletionMasteredRingWidthFraction).coerceIn(
+                        AppDimensions.mascotCompletionMasteredRingMin,
+                        AppDimensions.mascotCompletionMasteredRingMax
+                    )
+                val image = ring * AppDimensions.mascotCompletionMasteredImageOfRing
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "✦",
-                        color = extras.success.copy(alpha = sparkleAlpha * 0.55f),
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .graphicsLayer {
-                                translationY = -mascotBounce * 0.35f
-                            }
-                    )
+                    Box(
+                        modifier = Modifier.size(ring),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "✦",
+                            color = extras.success.copy(alpha = sparkleAlpha * 0.55f),
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .graphicsLayer {
+                                    translationY = -mascotBounce * 0.35f
+                                }
+                        )
 
-                    Text(
-                        text = "✦",
-                        color = scheme.primary.copy(alpha = sparkleAlpha * 0.45f),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .graphicsLayer {
-                                translationY = mascotBounce * 0.45f
-                            }
-                    )
+                        Text(
+                            text = "✦",
+                            color = scheme.primary.copy(alpha = sparkleAlpha * 0.45f),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .graphicsLayer {
+                                    translationY = mascotBounce * 0.45f
+                                }
+                        )
 
-                    Text(
-                        text = "•",
-                        color = extras.success.copy(alpha = sparkleAlpha * 0.45f),
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = 8.dp)
-                            .graphicsLayer {
-                                translationY = mascotBounce * 0.25f
-                            }
-                    )
+                        Text(
+                            text = "•",
+                            color = extras.success.copy(alpha = sparkleAlpha * 0.45f),
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = AppSpacing.sm)
+                                .graphicsLayer {
+                                    translationY = mascotBounce * 0.25f
+                                }
+                        )
 
-                    Text(
-                        text = "•",
-                        color = scheme.primary.copy(alpha = sparkleAlpha * 0.35f),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 6.dp)
-                            .graphicsLayer {
-                                translationY = -mascotBounce * 0.3f
-                            }
-                    )
+                        Text(
+                            text = "•",
+                            color = scheme.primary.copy(alpha = sparkleAlpha * 0.35f),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = AppSpacing.xs + AppSpacing.xxs)
+                                .graphicsLayer {
+                                    translationY = -mascotBounce * 0.3f
+                                }
+                        )
 
-                    Image(
-                        painter = painterResource(R.drawable.fox_practice_completed_all),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(155.dp)
-                            .graphicsLayer {
-                                alpha = mascotAlpha.value
-                                scaleX = mascotScale.value
-                                scaleY = mascotScale.value
-                                translationY = mascotBounce
-                            }
-                    )
-                }
+                        Image(
+                            painter = painterResource(R.drawable.fox_practice_completed_all),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(image)
+                                .graphicsLayer {
+                                    alpha = mascotAlpha.value
+                                    scaleX = mascotScale.value
+                                    scaleY = mascotScale.value
+                                    translationY = mascotBounce
+                                }
+                        )
+                    }
 
                 Spacer(Modifier.height(AppSpacing.md))
 
@@ -935,6 +964,7 @@ private fun PracticeCompletionListMasteredCard(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
+            }
             }
         }
     }
@@ -1008,32 +1038,38 @@ private fun WrongAnswerCard(
         }
     }
     val scheme = MaterialTheme.colorScheme
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = AppElevation.level2,
-                shape = RoundedCornerShape(AppRadius.sheet),
-                ambientColor = scheme.error.copy(alpha = 0.08f),
-                spotColor = scheme.error.copy(alpha = 0.12f)
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val wrongCardMascot =
+            (maxWidth * AppDimensions.mascotWrongCardWidthFraction).coerceIn(
+                AppDimensions.mascotWrongCardMin,
+                AppDimensions.mascotWrongCardMax
             )
-            .clip(RoundedCornerShape(AppRadius.sheet))
-            .background(scheme.errorContainer.copy(alpha = 0.38f))
-            .border(
-                width = 1.dp,
-                color = scheme.error.copy(alpha = 0.22f),
-                shape = RoundedCornerShape(AppRadius.sheet)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = AppElevation.level2,
+                    shape = RoundedCornerShape(AppRadius.sheet),
+                    ambientColor = scheme.error.copy(alpha = 0.08f),
+                    spotColor = scheme.error.copy(alpha = 0.12f)
+                )
+                .clip(RoundedCornerShape(AppRadius.sheet))
+                .background(scheme.errorContainer.copy(alpha = 0.38f))
+                .border(
+                    width = AppBorder.hairline,
+                    color = scheme.error.copy(alpha = 0.22f),
+                    shape = RoundedCornerShape(AppRadius.sheet)
+                )
+                .padding(horizontal = AppSpacing.lg + AppSpacing.xs, vertical = AppSpacing.lg + AppSpacing.xs),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.fox_supportive),
+                contentDescription = stringResource(R.string.content_desc_fox_supportive),
+                modifier = Modifier.size(wrongCardMascot)
             )
-            .padding(horizontal = AppSpacing.lg + AppSpacing.xs, vertical = AppSpacing.lg + AppSpacing.xs),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(R.drawable.fox_supportive),
-            contentDescription = stringResource(R.string.content_desc_fox_supportive),
-            modifier = Modifier.size(80.dp)
-        )
 
-        Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(AppSpacing.sm))
 
         Text(
             text = stringResource(R.string.practice_wrong_title),
@@ -1080,6 +1116,7 @@ private fun WrongAnswerCard(
             onClick = onTryAgain,
             leadingIcon = Icons.Filled.Refresh
         )
+        }
     }
 }
 
@@ -1097,7 +1134,7 @@ private fun HintsSection(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(AppRadius.lg),
         border = BorderStroke(
-            1.dp,
+            AppBorder.hairline,
             if (nudgeHints) {
                 scheme.tertiary.copy(alpha = 0.26f)
             } else {
@@ -1219,7 +1256,8 @@ private fun HandwritingInputPanel(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(AppDimensions.handwritingPanelMinHeight)
+            .fillMaxHeight()
+            .heightIn(min = AppDimensions.handwritingPanelMinHeight)
             .clip(cardShape)
             .background(scheme.surfaceVariant.copy(alpha = 0.34f))
     ) {
@@ -1227,7 +1265,10 @@ private fun HandwritingInputPanel(
         HandwritingCanvas(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 10.dp),
+                .padding(
+                    horizontal = AppSpacing.sm + AppSpacing.xxs,
+                    vertical = AppSpacing.sm + AppSpacing.xxs
+                ),
             strokes = strokes,
             inkColor = inkColor,
             onStrokeFinished = { recognizeTick++ }
@@ -1242,15 +1283,18 @@ private fun HandwritingInputPanel(
                 maxLines = 1,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 12.dp, end = 14.dp)
+                    .padding(top = AppSpacing.md, end = AppSpacing.md + AppSpacing.xxs)
             )
         }
 
         Row(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 14.dp, bottom = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(
+                    start = AppSpacing.md + AppSpacing.xxs,
+                    bottom = AppSpacing.md + AppSpacing.xxs
+                ),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm + AppSpacing.xxs),
             verticalAlignment = Alignment.CenterVertically
         ) {
             MinimalCircleOutlineIconButton(
@@ -1342,7 +1386,7 @@ private fun HandwritingInputPanel(
                 imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = stringResource(R.string.content_desc_submit_handwriting),
                 tint = scheme.onPrimary,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(AppIconSize.sm)
             )
         }
     }
@@ -1372,7 +1416,7 @@ private fun MinimalCircleOutlineIconButton(
             .clip(shape)
             .background(scheme.surface.copy(alpha = 0.94f))
             .border(
-                width = 1.dp,
+                width = AppBorder.hairline,
                 color = scheme.outlineVariant.copy(alpha = if (enabled) 0.18f else 0.12f),
                 shape = shape
             )
@@ -1381,7 +1425,7 @@ private fun MinimalCircleOutlineIconButton(
             imageVector = imageVector,
             contentDescription = contentDescription,
             tint = scheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.45f),
-            modifier = Modifier.size(19.dp)
+            modifier = Modifier.size(AppIconSize.md)
         )
     }
 }
@@ -1536,21 +1580,29 @@ private fun CorrectAnswerSuccessCard(
     }
 
     SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.sm + AppSpacing.xs),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.sm + AppSpacing.xs)
         ) {
+            val mascot =
+                (maxWidth * AppDimensions.mascotCorrectCardWidthFraction).coerceIn(
+                    AppDimensions.mascotCorrectCardMin,
+                    AppDimensions.mascotCorrectCardMax
+                )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Image(
                     painter = painterResource(R.drawable.fox_happy),
                     contentDescription = stringResource(R.string.content_desc_fox_happy),
-                    modifier = Modifier.size(95.dp)
+                    modifier = Modifier.size(mascot)
                 )
 
-            Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(AppSpacing.xs + AppSpacing.xxs + AppSpacing.xxs))
 
-            Text(
+                Text(
                 text = stringResource(R.string.practice_correct_title),
                 color = extras.success,
                 fontWeight = FontWeight.SemiBold,
@@ -1626,6 +1678,7 @@ private fun CorrectAnswerSuccessCard(
                 onClick = onNextWord,
                 leadingIcon = Icons.AutoMirrored.Filled.ArrowForward
             )
+            }
         }
     }
 }
@@ -1651,7 +1704,7 @@ private fun LetterChip(
             .clip(RoundedCornerShape(AppRadius.lg))
             .background(scheme.surface)
             .border(
-                width = 1.dp,
+                width = AppBorder.hairline,
                 color = scheme.outlineVariant.copy(alpha = 0.18f),
                 shape = RoundedCornerShape(AppRadius.lg)
             )

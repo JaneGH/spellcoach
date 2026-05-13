@@ -23,6 +23,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
+import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 
 @Composable
 fun GlassTextField(
@@ -56,8 +58,8 @@ fun GlassTextField(
             .height(height)
             .clip(shape)
             .background(fill)
-            .border(1.dp, borderColor, shape)
-            .padding(horizontal = 6.dp),
+            .border(AppBorder.hairline, borderColor, shape)
+            .padding(horizontal = AppSpacing.xs + AppSpacing.xxs),
         textStyle = textStyle.merge(MaterialTheme.typography.bodyLarge),
         placeholder = {
             Text(

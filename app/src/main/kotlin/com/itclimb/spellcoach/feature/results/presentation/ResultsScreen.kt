@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itclimb.spellcoach.R
@@ -43,6 +43,7 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVaria
 import com.itclimb.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
+import com.itclimb.spellcoach.core.designsystem.tokens.AppIconSize
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 
@@ -72,15 +73,25 @@ fun ResultsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(AppSpacing.md))
-            Box(
-                modifier = Modifier
-                    .size(AppDimensions.resultsHeroImage)
-                    .clip(RoundedCornerShape(AppRadius.lg))
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.img_results),
-                    contentDescription = stringResource(R.string.content_desc_results_illustration)
-                )
+                val heroSide =
+                    (maxWidth * AppDimensions.resultsHeroImageWidthFraction).coerceIn(
+                        AppDimensions.resultsHeroImageMin,
+                        AppDimensions.resultsHeroImageMax
+                    )
+                Box(
+                    modifier = Modifier
+                        .size(heroSide)
+                        .clip(RoundedCornerShape(AppRadius.lg))
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.img_results),
+                        contentDescription = stringResource(R.string.content_desc_results_illustration)
+                    )
+                }
             }
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             Text(
@@ -137,7 +148,7 @@ fun ResultsScreen(
                                 imageVector = Icons.Filled.CheckCircle,
                                 contentDescription = null,
                                 tint = extras.success,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(AppIconSize.sm)
                             )
                             Spacer(Modifier.width(AppSpacing.sm))
                             Text(
@@ -182,7 +193,7 @@ fun ResultsScreen(
                                 imageVector = Icons.Filled.Star,
                                 contentDescription = null,
                                 tint = scheme.tertiary,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(AppIconSize.sm)
                             )
                             Spacer(Modifier.width(AppSpacing.sm))
                             Text(

@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,7 +49,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itclimb.spellcoach.R
 import com.itclimb.spellcoach.core.designsystem.components.LearningCard
@@ -59,6 +59,7 @@ import com.itclimb.spellcoach.core.designsystem.components.SpellCoachTopBarVaria
 import com.itclimb.spellcoach.core.designsystem.components.spellCoachScreenHorizontalPadding
 import com.itclimb.spellcoach.core.designsystem.motion.SpellCoachMotion
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachThemeExtras
+import com.itclimb.spellcoach.core.designsystem.tokens.AppBorder
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
@@ -98,25 +99,33 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .height(AppDimensions.settingsBannerHeight)
                     .clip(RoundedCornerShape(AppRadius.xxxl))
-                    .background(mascotBg),
-                contentAlignment = Alignment.BottomStart
+                    .background(mascotBg)
             ) {
-                Text(
-                    text = stringResource(R.string.settings_mascot_quote),
-                    color = mascotFg,
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(AppSpacing.lg)
-                )
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                    val bannerMascot =
+                        (maxWidth * AppDimensions.mascotSettingsBannerWidthFraction).coerceIn(
+                            AppDimensions.mascotSettingsBannerMin,
+                            AppDimensions.mascotSettingsBannerMax
+                        )
+                    Text(
+                        text = stringResource(R.string.settings_mascot_quote),
+                        color = mascotFg,
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(AppSpacing.lg)
+                    )
 
-                Image(
-                    painter = painterResource(R.drawable.fox_happy2),
-                    contentDescription = stringResource(R.string.content_desc_settings_mascot),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = AppSpacing.sm, bottom = AppSpacing.sm + AppSpacing.xs)
-                        .size(85.dp)
-                )
+                    Image(
+                        painter = painterResource(R.drawable.fox_happy2),
+                        contentDescription = stringResource(R.string.content_desc_settings_mascot),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = AppSpacing.sm, bottom = AppSpacing.sm + AppSpacing.xs)
+                            .size(bannerMascot)
+                    )
+                }
             }
 
             Spacer(Modifier.height(AppSpacing.sectionGap))
@@ -186,7 +195,7 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.Top) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(AppDimensions.topBarAvatar)
                             .clip(RoundedCornerShape(AppRadius.md))
                             .background(scheme.primaryContainer.copy(alpha = 0.45f)),
                         contentAlignment = Alignment.Center
@@ -250,7 +259,7 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.Top) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(AppDimensions.topBarAvatar)
                             .clip(RoundedCornerShape(AppRadius.md))
                             .background(scheme.tertiaryContainer.copy(alpha = 0.55f)),
                         contentAlignment = Alignment.Center
@@ -316,7 +325,7 @@ fun SettingsScreen(
                         .clip(RoundedCornerShape(AppRadius.md))
                         .background(scheme.errorContainer.copy(alpha = 0.36f))
                         .border(
-                            1.dp,
+                            AppBorder.hairline,
                             scheme.error.copy(alpha = 0.18f),
                             RoundedCornerShape(AppRadius.md)
                         )
@@ -348,7 +357,7 @@ fun SettingsScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(AppDimensions.topBarAvatar)
                                 .clip(RoundedCornerShape(AppRadius.md))
                                 .background(scheme.secondaryContainer.copy(alpha = 0.45f)),
                             contentAlignment = Alignment.Center
@@ -488,14 +497,14 @@ private fun NumberPickCell(
     }
     Box(
         modifier = modifier
-            .height(40.dp)
+            .height(AppDimensions.topBarAvatar)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
             .clip(RoundedCornerShape(AppRadius.sm))
             .background(bg)
-            .border(1.dp, borderColor, RoundedCornerShape(AppRadius.sm))
+            .border(AppBorder.hairline, borderColor, RoundedCornerShape(AppRadius.sm))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -541,7 +550,7 @@ private fun MistakeOptionRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(AppRadius.md))
             .background(bg)
-            .border(1.dp, border, RoundedCornerShape(AppRadius.md))
+            .border(AppBorder.hairline, border, RoundedCornerShape(AppRadius.md))
             .clickable(onClick = onClick)
             .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm + AppSpacing.md),
         verticalAlignment = Alignment.CenterVertically
