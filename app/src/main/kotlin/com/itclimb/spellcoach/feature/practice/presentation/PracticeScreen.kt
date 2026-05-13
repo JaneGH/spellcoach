@@ -565,7 +565,7 @@ fun PracticeScreen(
                                                             .fillMaxWidth()
                                                             .padding(end = 12.dp)
                                                             .focusRequester(focusRequester),
-                                                        height = 82.dp
+                                                        height = 64.dp
                                                     )
 
                                                     Image(
@@ -613,8 +613,7 @@ fun PracticeScreen(
 
                     if (
                         inputMode == PracticeInputMode.Keyboard &&
-                        state.hintsEnabled &&
-                        state.input.isNotBlank()
+                        state.hintsEnabled
                     ) {
                         HintsSection(
                             showHints = state.showHints,
