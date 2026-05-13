@@ -197,9 +197,9 @@
     <string name="settings_progress_body">Reset your mastery progress for all lists.</string>
     <string name="settings_reset_all_progress">Reset all progress</string>
 
-    <string name="settings_audio_title">Audio Pronunciation</string>
-    <string name="settings_audio_body">Read words aloud automatically.</string>
-    <string name="content_desc_audio_icon">Audio pronunciation</string>
+    <string name="settings_answer_sounds_title">Answer Sounds</string>
+    <string name="settings_answer_sounds_description">Play sounds for correct and incorrect answers.</string>
+    <string name="content_desc_answer_sounds_icon">Answer sounds</string>
 
     <string name="settings_letter_hints_title">Enable Letter Hints</string>
     <string name="settings_letter_hints_body">Show optional letter chips during practice.</string>

@@ -36,13 +36,21 @@ class SoundEffectPlayer @Inject constructor(
         completionId = pool.load(context, R.raw.completion, 1)
     }
 
-    override suspend fun playSuccess() = playIfEnabled(successId)
+    override suspend fun playSuccess() = playAnswerSoundIfEnabled(successId)
 
-    override suspend fun playRetry() = playIfEnabled(retryId)
+    override suspend fun playRetry() = playAnswerSoundIfEnabled(retryId)
 
-    override suspend fun playCompletion() = playIfEnabled(completionId)
+    override suspend fun playCompletion() = playCompletionIfEnabled(completionId)
 
-    private suspend fun playIfEnabled(soundId: Int) {
+    private suspend fun playAnswerSoundIfEnabled(soundId: Int) {
+        if (soundId == 0) return
+        val enabled = settingsDataStore.appSettings.first().answerSoundsEnabled
+        if (enabled) {
+            pool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+    }
+
+    private suspend fun playCompletionIfEnabled(soundId: Int) {
         if (soundId == 0) return
         val enabled = settingsDataStore.appSettings.first().rewardSoundsEnabled
         if (enabled) {

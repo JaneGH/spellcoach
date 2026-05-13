@@ -355,20 +355,20 @@ fun SettingsScreen(
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = stringResource(R.string.content_desc_audio_icon),
+                                contentDescription = stringResource(R.string.content_desc_answer_sounds_icon),
                                 tint = scheme.secondary
                             )
                         }
                         Spacer(Modifier.width(AppSpacing.sm + AppSpacing.md))
                         Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
-                                text = stringResource(R.string.settings_audio_title),
+                                text = stringResource(R.string.settings_answer_sounds_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = scheme.onSurface
                             )
                             Text(
-                                text = stringResource(R.string.settings_audio_body),
+                                text = stringResource(R.string.settings_answer_sounds_description),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = scheme.onSurfaceVariant
                             )
@@ -379,8 +379,8 @@ fun SettingsScreen(
                         contentAlignment = Alignment.TopCenter
                     ) {
                         Switch(
-                            checked = settings.audioEnabled,
-                            onCheckedChange = viewModel::setAudioEnabled,
+                            checked = settings.answerSoundsEnabled,
+                            onCheckedChange = viewModel::setAnswerSoundsEnabled,
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = scheme.onPrimary,
                                 checkedTrackColor = scheme.primary

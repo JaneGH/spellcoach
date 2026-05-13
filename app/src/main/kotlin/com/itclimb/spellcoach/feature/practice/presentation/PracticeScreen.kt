@@ -324,6 +324,8 @@ fun PracticeScreen(
                                 "Word progress: $cur of $required correct"
                             }
                         },
+                        answerSoundsEnabled = state.answerSoundsEnabled,
+                        onAnswerSound = viewModel::playAnswerSuccessSound,
                         onNextWord = {
                             showCorrectAnswerCard = false
                             viewModel.onNextWord()
@@ -488,6 +490,8 @@ fun PracticeScreen(
                             ) {
                                 WrongAnswerCard(
                                     spacedCorrectWord = spacedCorrectWord,
+                                    answerSoundsEnabled = state.answerSoundsEnabled,
+                                    onAnswerSound = viewModel::playAnswerRetrySound,
                                     onTryAgain = {
                                         viewModel.onInputChange("")
                                         viewModel.clearFeedback()
@@ -903,8 +907,15 @@ private fun PracticeCompletionConfettiStrip(colors: List<Color>) {
 @Composable
 private fun WrongAnswerCard(
     spacedCorrectWord: String,
+    answerSoundsEnabled: Boolean,
+    onAnswerSound: () -> Unit,
     onTryAgain: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        if (answerSoundsEnabled) {
+            onAnswerSound()
+        }
+    }
     val scheme = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
@@ -1412,8 +1423,15 @@ private fun CorrectAnswerSuccessCard(
     total: Int,
     showWordMastered: Boolean,
     wordProgressText: String,
+    answerSoundsEnabled: Boolean,
+    onAnswerSound: () -> Unit,
     onNextWord: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        if (answerSoundsEnabled) {
+            onAnswerSound()
+        }
+    }
     val scheme = MaterialTheme.colorScheme
     val extras = SpellCoachThemeExtras.current
     val progress = if (total <= 0) {

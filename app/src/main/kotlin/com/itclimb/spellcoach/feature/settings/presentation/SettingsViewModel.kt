@@ -59,9 +59,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setAudioEnabled(enabled: Boolean) {
+    fun setAnswerSoundsEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            updateSettings { it.copy(audioEnabled = enabled) }
+            updateSettings { it.copy(answerSoundsEnabled = enabled) }
         }
     }
 

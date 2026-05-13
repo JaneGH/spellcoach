@@ -60,7 +60,7 @@ data class PracticeUiState(
     val loading: Boolean = true,
     val feedbackCorrect: Boolean? = null,
     val animationHint: PracticeAnimHint = PracticeAnimHint.None,
-    val audioEnabled: Boolean = true,
+    val answerSoundsEnabled: Boolean = true,
     val requiredCorrectAnswers: Int = 3,
     val wordJustMastered: Boolean = false,
     val lastWordId: Long? = null,
@@ -127,7 +127,7 @@ class PracticeViewModel @Inject constructor(
             settingsFlow.collect { s ->
                 _state.update { cur ->
                     cur.copy(
-                        audioEnabled = s.audioEnabled,
+                        answerSoundsEnabled = s.answerSoundsEnabled,
                         hintsEnabled = s.letterHintsEnabled,
                         showHints = if (s.letterHintsEnabled) cur.showHints else false,
                         requiredCorrectAnswers = s.requiredCorrectAnswers
@@ -232,9 +232,15 @@ class PracticeViewModel @Inject constructor(
 
     fun listen() {
         val w = currentWord() ?: return
-        if (_state.value.audioEnabled) {
-            tts.speak(w.text)
-        }
+        tts.speak(w.text)
+    }
+
+    fun playAnswerSuccessSound() {
+        viewModelScope.launch { sound.playSuccess() }
+    }
+
+    fun playAnswerRetrySound() {
+        viewModelScope.launch { sound.playRetry() }
     }
 
     fun onInputChange(value: String) {
@@ -302,7 +308,6 @@ class PracticeViewModel @Inject constructor(
                 val before = rewardRepository.rewardState.first()
                 val isFirstEver = before.totalCorrectLifetime == 0
                 sessionBadges += rewardRepository.onCorrectAnswer(isFirstEver)
-                sound.playSuccess()
                 val newSessionCorrect = _state.value.sessionCorrect + 1
 
                 _state.update {
@@ -319,7 +324,6 @@ class PracticeViewModel @Inject constructor(
                     )
                 }
             } else {
-                sound.playRetry()
                 _state.update {
                     it.copy(
                         incorrectSubmissions = it.incorrectSubmissions + 1,
