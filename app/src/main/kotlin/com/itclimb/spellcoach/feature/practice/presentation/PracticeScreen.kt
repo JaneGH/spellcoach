@@ -86,6 +86,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -637,47 +638,121 @@ private fun PracticeCompletionDailyDoneCard(
     onBackToLists: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
-    SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    val extras = SpellCoachThemeExtras.current
 
-            Spacer(Modifier.height(AppSpacing.sm))
+    val mascotAlpha = remember { Animatable(0f) }
+    val mascotScale = remember { Animatable(0.96f) }
 
-            Text(
-                text = stringResource(R.string.practice_complete_daily_title),
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.headlineSmall,
-                color = scheme.onSurface,
-                textAlign = TextAlign.Center
+    LaunchedEffect(Unit) {
+        launch {
+            mascotAlpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 320)
             )
-
-
-            Spacer(Modifier.height(AppSpacing.sm))
-
-            Text(
-                text = stringResource(
-                    R.string.practice_complete_daily_progress_hint,
-                    masteredWords,
-                    stillLearningWords
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                color = scheme.primary.copy(alpha = 0.92f),
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
+        }
+        launch {
+            mascotScale.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
             )
+        }
+    }
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = scheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            extras.success.copy(alpha = 0.045f),
+                            scheme.surface,
+                            scheme.surface
+                        )
+                    )
+                )
+                .border(
+                    width = 1.dp,
+                    color = scheme.outlineVariant.copy(alpha = 0.18f),
+                    shape = RoundedCornerShape(28.dp)
+                )
+                .padding(AppSpacing.lg)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier.size(132.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.fox_practice_completed_pose),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(118.dp)
+                            .graphicsLayer {
+                                alpha = mascotAlpha.value
+                                scaleX = mascotScale.value
+                                scaleY = mascotScale.value
+                            }
+                    )
+                }
 
-            SpellCoachPrimaryButton(
-                text = stringResource(R.string.practice_complete_daily_primary),
-                onClick = onContinueLearning
-            )
+                Spacer(Modifier.height(AppSpacing.sm))
 
-            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+                Text(
+                    text = stringResource(R.string.practice_complete_daily_title),
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = scheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
 
-            SpellCoachSecondaryButton(
-                text = stringResource(R.string.practice_back_to_lists),
-                onClick = onBackToLists
-            )
+                Spacer(Modifier.height(AppSpacing.sm))
+
+                Text(
+                    text = stringResource(
+                        R.string.practice_complete_daily_progress_hint,
+                        masteredWords,
+                        stillLearningWords
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = scheme.onSurfaceVariant.copy(alpha = 0.82f),
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(AppSpacing.lg))
+
+                SpellCoachSecondaryButton(
+                    text = stringResource(R.string.practice_complete_daily_primary),
+                    onClick = onContinueLearning
+                )
+
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+                TextButton(
+                    onClick = onBackToLists,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.practice_back_to_lists),
+                        color = scheme.onSurfaceVariant.copy(alpha = 0.86f),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
         }
     }
 }
@@ -938,47 +1013,6 @@ private fun PracticeCompletionEmptyBody(
     }
 }
 
-@Composable
-private fun PracticeCompletionCalmAccentDots(color: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        repeat(3) { i ->
-            if (i > 0) Spacer(Modifier.width(10.dp))
-            Box(
-                modifier = Modifier
-                    .size(7.dp)
-                    .clip(CircleShape)
-                    .background(color.copy(alpha = 0.35f + i * 0.12f))
-            )
-        }
-    }
-}
-
-@Composable
-private fun PracticeCompletionConfettiStrip(colors: List<Color>) {
-    if (colors.isEmpty()) return
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val sizes = listOf(6.dp, 9.dp, 7.dp, 8.dp, 6.dp, 10.dp, 7.dp)
-        sizes.forEachIndexed { i, size ->
-            if (i > 0) Spacer(Modifier.width(8.dp))
-            val c = colors[i % colors.size]
-            val shape = if (i % 2 == 0) CircleShape else RoundedCornerShape(3.dp)
-            Box(
-                modifier = Modifier
-                    .size(size)
-                    .clip(shape)
-                    .background(c)
-            )
-        }
-    }
-}
 
 @Composable
 private fun WrongAnswerCard(

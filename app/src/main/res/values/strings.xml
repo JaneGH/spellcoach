@@ -99,7 +99,7 @@
     <string name="practice_word_progress_label_format">Word progress: %1$d of %2$d correct</string>
 
     <!-- Practice session complete: daily reviews done, list not fully mastered -->
-    <string name="practice_complete_daily_title">Practice completed 🎉</string>
+    <string name="practice_complete_daily_title">Practice completed!</string>
     <string name="practice_complete_daily_progress_hint">%1$d words mastered • %2$d still learning</string>
     <string name="practice_complete_daily_primary">Continue learning</string>
 
