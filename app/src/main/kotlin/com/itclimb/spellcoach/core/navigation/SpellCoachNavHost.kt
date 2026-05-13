@@ -1,12 +1,15 @@
 package com.itclimb.spellcoach.core.navigation
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -16,8 +19,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -260,22 +266,30 @@ private fun PracticeTabEntry(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(AppSpacing.xxl),
-                contentAlignment = Alignment.Center
+                    .padding(AppSpacing.xxl)
             ) {
                 Column(
                     modifier = Modifier
+                        .align(Alignment.Center)
                         .fillMaxWidth()
                         .padding(horizontal = AppSpacing.xxl),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Image(
+                        painter = painterResource(R.drawable.fox_advice_pose),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(96.dp)
+                            .alpha(0.95f)
+                    )
+                    Spacer(Modifier.height(AppSpacing.sm))
                     Text(
                         text = stringResource(R.string.practice_pick_list_message),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Spacer(Modifier.height(AppSpacing.lg))
                     SpellCoachPrimaryButton(
                         text = stringResource(R.string.practice_go_to_lists),
                         onClick = onOpenListsTab
