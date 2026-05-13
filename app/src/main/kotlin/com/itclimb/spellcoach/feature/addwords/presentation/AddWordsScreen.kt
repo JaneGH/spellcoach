@@ -30,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +43,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.itclimb.spellcoach.R
 import com.itclimb.spellcoach.core.designsystem.components.LearningCard
 import com.itclimb.spellcoach.core.designsystem.components.SaveGreenButton
@@ -66,7 +67,9 @@ fun AddWordsScreen(
     onSaved: () -> Unit,
     viewModel: AddWordsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle(
+        lifecycleOwner = LocalLifecycleOwner.current
+    )
     val context = LocalContext.current
     val scheme = MaterialTheme.colorScheme
 
@@ -117,7 +120,7 @@ fun AddWordsScreen(
             Column {
 
                 Text(
-                    text = "List name",
+                    text = stringResource(R.string.add_words_list_name_label),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Medium,
                     color = scheme.onSurfaceVariant.copy(alpha = 0.9f),
@@ -130,9 +133,9 @@ fun AddWordsScreen(
                 SpellCoachOutlinedTextField(
                     value = state.listName,
                     onValueChange = viewModel::setListName,
-                    placeholder = "Lesson 1",
+                    placeholder = stringResource(R.string.add_words_list_name_placeholder),
                     modifier = Modifier.fillMaxWidth(),
-                    height = 56.dp
+                    height = AppDimensions.addWordsListNameFieldHeight
                 )
             }
 
@@ -142,7 +145,7 @@ fun AddWordsScreen(
                 Spacer(Modifier.height(AppSpacing.md))
 
                 Text(
-                    text = "TYPE OR PASTE WORDS",
+                    text = stringResource(R.string.add_words_type_paste_heading),
                     style = MaterialTheme.typography.labelMedium,
                     color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
                     fontWeight = FontWeight.SemiBold
@@ -151,7 +154,7 @@ fun AddWordsScreen(
                 SpellCoachOutlinedTextField(
                     value = state.rawInput,
                     onValueChange = viewModel::setRawInput,
-                    placeholder = "Type words here, separated by spaces or commas…",
+                    placeholder = stringResource(R.string.add_words_bulk_placeholder),
                     modifier = Modifier.fillMaxWidth(),
                     height = AppDimensions.addWordsFieldHeight,
                     singleLine = false,
@@ -161,9 +164,9 @@ fun AddWordsScreen(
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     SpellCoachPrimaryButton(
-                        text = "Add",
+                        text = stringResource(R.string.add_words_add_button),
                         onClick = viewModel::addParsedWordsFromInput,
-                        modifier = Modifier.width(160.dp)
+                        modifier = Modifier.width(AppDimensions.addWordsAddButtonMinWidth)
                     )
                 }
             }
@@ -173,8 +176,8 @@ fun AddWordsScreen(
             ImportCard(
                 iconBg = scheme.primaryContainer.copy(alpha = 0.65f),
                 icon = Icons.Filled.PictureAsPdf,
-                title = "Import from PDF",
-                subtitle = "Upload worksheets",
+                title = stringResource(R.string.add_words_import_pdf_title),
+                subtitle = stringResource(R.string.add_words_import_pdf_subtitle),
                 onClick = { pdfPicker.launch(arrayOf("application/pdf")) }
             )
 
@@ -183,8 +186,8 @@ fun AddWordsScreen(
             ImportCard(
                 iconBg = scheme.tertiaryContainer.copy(alpha = 0.55f),
                 icon = Icons.Filled.CameraAlt,
-                title = "Scan from Photo",
-                subtitle = "Snap a picture",
+                title = stringResource(R.string.add_words_import_photo_title),
+                subtitle = stringResource(R.string.add_words_import_photo_subtitle),
                 onClick = {
                     imagePicker.launch(
                         PickVisualMediaRequest.Builder()
@@ -202,7 +205,7 @@ fun AddWordsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Word Preview",
+                    text = stringResource(R.string.add_words_preview_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = scheme.onSurface
@@ -213,7 +216,10 @@ fun AddWordsScreen(
                         .padding(horizontal = AppSpacing.sm + AppSpacing.xs, vertical = AppSpacing.xs)
                 ) {
                     Text(
-                        text = "${state.previewWords.size} Words",
+                        text = stringResource(
+                            R.string.add_words_preview_count_format,
+                            state.previewWords.size
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = scheme.onSurfaceVariant.copy(alpha = 0.82f)
@@ -225,7 +231,7 @@ fun AddWordsScreen(
 
             if (state.isImporting) {
                 Text(
-                    text = "Importing...",
+                    text = stringResource(R.string.add_words_importing),
                     color = scheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.bodySmall
@@ -276,7 +282,9 @@ fun AddWordsScreen(
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
             SaveGreenButton(
-                text = if (state.isEditMode) "Save Changes" else "Save to My Lists",
+                text = stringResource(
+                    if (state.isEditMode) R.string.add_words_save_edit else R.string.add_words_save_new
+                ),
                 onClick = viewModel::save,
                 modifier = Modifier
                     .fillMaxWidth()

@@ -62,7 +62,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -86,20 +85,19 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.vision.digitalink.DigitalInkRecognition
@@ -140,7 +138,9 @@ fun PracticeScreen(
     onFinished: () -> Unit,
     viewModel: PracticeViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle(
+        lifecycleOwner = LocalLifecycleOwner.current
+    )
 
     var showWrongAnswerCard by rememberSaveable { mutableStateOf(false) }
     var showCorrectAnswerCard by rememberSaveable { mutableStateOf(false) }
@@ -149,7 +149,7 @@ fun PracticeScreen(
 
     val recognizer = remember {
         val id = requireNotNull(DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")) {
-            "Digital ink model identifier missing for en-US"
+            "DigitalInkRecognitionModelIdentifier missing for locale en-US"
         }
         val model = DigitalInkRecognitionModel.builder(id).build()
         DigitalInkRecognition.getClient(
@@ -326,7 +326,11 @@ fun PracticeScreen(
                                     } else {
                                         curWord.correctCount.coerceIn(0, required)
                                     }
-                                "Word progress: $cur of $required correct"
+                                stringResource(
+                                    R.string.practice_word_progress_label_format,
+                                    cur,
+                                    required
+                                )
                             }
                         },
                         answerSoundsEnabled = state.answerSoundsEnabled,
@@ -412,7 +416,7 @@ fun PracticeScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                    contentDescription = "Listen",
+                                    contentDescription = stringResource(R.string.content_desc_listen),
                                     tint = scheme.primary,
                                     modifier = Modifier.size(AppDimensions.practiceSpeakerIcon)
                                 )
@@ -422,8 +426,14 @@ fun PracticeScreen(
 
                             SpellCoachSegmentedControl(
                                 options = listOf(
-                                    SegmentedOption("Keyboard", Icons.Rounded.Keyboard),
-                                    SegmentedOption("Handwriting", Icons.Rounded.Draw)
+                                    SegmentedOption(
+                                        stringResource(R.string.input_mode_keyboard),
+                                        Icons.Rounded.Keyboard
+                                    ),
+                                    SegmentedOption(
+                                        stringResource(R.string.input_mode_handwriting),
+                                        Icons.Rounded.Draw
+                                    )
                                 ),
                                 selectedIndex = if (inputMode == PracticeInputMode.Keyboard) 0 else 1,
                                 onSelectIndex = { idx ->
@@ -446,43 +456,15 @@ fun PracticeScreen(
                                     } else {
                                         current.correctCount.coerceIn(0, required)
                                     }
-                                val progressLabel = buildAnnotatedString {
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = scheme.onSurfaceVariant.copy(alpha = 0.92f)
-                                        )
-                                    ) {
-                                        append(cur.toString())
-                                    }
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Medium,
-                                            color = scheme.onSurfaceVariant.copy(alpha = 0.88f)
-                                        )
-                                    ) {
-                                        append(" of ")
-                                    }
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = scheme.onSurfaceVariant.copy(alpha = 0.92f)
-                                        )
-                                    ) {
-                                        append(required.toString())
-                                    }
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Medium,
-                                            color = scheme.onSurfaceVariant.copy(alpha = 0.88f)
-                                        )
-                                    ) {
-                                        append(" correct")
-                                    }
-                                }
                                 Text(
-                                    text = progressLabel,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    text = stringResource(
+                                        R.string.practice_word_progress_format,
+                                        cur,
+                                        required
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = scheme.onSurfaceVariant.copy(alpha = 0.9f)
                                 )
 
                                 Spacer(Modifier.height(AppSpacing.md))
@@ -560,17 +542,17 @@ fun PracticeScreen(
                                                     SpellCoachOutlinedTextField(
                                                         value = state.input,
                                                         onValueChange = viewModel::onInputChange,
-                                                        placeholder = "Type here",
+                                                        placeholder = stringResource(R.string.practice_placeholder_type),
                                                         modifier = Modifier
                                                             .fillMaxWidth()
-                                                            .padding(end = 12.dp)
+                                                            .padding(end = AppSpacing.sm + AppSpacing.xs)
                                                             .focusRequester(focusRequester),
-                                                        height = 64.dp
+                                                        height = AppDimensions.practiceKeyboardInputFieldHeight
                                                     )
 
                                                     Image(
                                                         painter = painterResource(id = R.drawable.fox_neutral),
-                                                        contentDescription = null,
+                                                        contentDescription = stringResource(R.string.content_desc_fox_neutral),
                                                         modifier = Modifier
                                                             .align(Alignment.CenterEnd)
                                                             .padding(end = 10.dp, bottom = 15.dp)
@@ -583,7 +565,7 @@ fun PracticeScreen(
                                                 Spacer(Modifier.height(AppSpacing.md))
 
                                                 SpellCoachPrimaryButton(
-                                                    text = "Check word",
+                                                    text = stringResource(R.string.practice_check_word),
                                                     onClick = {
                                                         showWrongAnswerCard = false
                                                         viewModel.checkWord()
@@ -1047,14 +1029,14 @@ private fun WrongAnswerCard(
     ) {
         Image(
             painter = painterResource(R.drawable.fox_supportive),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.content_desc_fox_supportive),
             modifier = Modifier.size(80.dp)
         )
 
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "Keep trying!",
+            text = stringResource(R.string.practice_wrong_title),
             color = scheme.error,
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.headlineSmall,
@@ -1064,7 +1046,7 @@ private fun WrongAnswerCard(
         Spacer(Modifier.height(AppSpacing.sm))
 
         Text(
-            text = "The correct spelling is:",
+            text = stringResource(R.string.practice_wrong_subtitle),
             color = scheme.onErrorContainer.copy(alpha = 0.82f),
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
@@ -1085,7 +1067,7 @@ private fun WrongAnswerCard(
         Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
         Text(
-            text = "You’re doing great. Try it once more.",
+            text = stringResource(R.string.practice_wrong_encouragement),
             color = scheme.onErrorContainer.copy(alpha = 0.78f),
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
@@ -1094,7 +1076,7 @@ private fun WrongAnswerCard(
         Spacer(Modifier.height(AppSpacing.lg))
 
         SpellCoachPrimaryButton(
-            text = "Try again",
+            text = stringResource(R.string.practice_try_again),
             onClick = onTryAgain,
             leadingIcon = Icons.Filled.Refresh
         )
@@ -1124,7 +1106,7 @@ private fun HintsSection(
         )
     ) {
         Text(
-            text = "Letter hints shown",
+            text = stringResource(R.string.practice_hints_shown),
             color = scheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
@@ -1140,7 +1122,7 @@ private fun HintsSection(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Tip: try a hint to get unstuck",
+                text = stringResource(R.string.practice_hints_nudge),
                 color = scheme.tertiary,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.labelMedium
@@ -1161,7 +1143,7 @@ private fun HintsSection(
                 modifier = Modifier.padding(start = AppSpacing.sm + AppSpacing.xs)
             ) {
                 Text(
-                    text = "Tip:",
+                    text = stringResource(R.string.practice_hints_tip_label),
                     color = scheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.labelMedium
@@ -1170,7 +1152,7 @@ private fun HintsSection(
                 Spacer(Modifier.width(AppSpacing.sm + AppSpacing.xs))
 
                 Text(
-                    text = "Tap letters to help spell the word",
+                    text = stringResource(R.string.practice_hints_tip_body),
                     color = scheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.labelMedium
@@ -1253,7 +1235,7 @@ private fun HandwritingInputPanel(
 
         if (detectedText.isNotBlank()) {
             Text(
-                text = "Detected: $detectedText",
+                text = stringResource(R.string.practice_handwriting_detected_format, detectedText),
                 color = scheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Medium,
@@ -1278,7 +1260,7 @@ private fun HandwritingInputPanel(
                     recognizeTick++
                 },
                 imageVector = Icons.Filled.DeleteOutline,
-                contentDescription = "Clear handwriting"
+                contentDescription = stringResource(R.string.content_desc_clear_handwriting)
             )
 
             MinimalCircleOutlineIconButton(
@@ -1288,7 +1270,7 @@ private fun HandwritingInputPanel(
                     recognizeTick++
                 },
                 imageVector = Icons.AutoMirrored.Filled.Undo,
-                contentDescription = "Undo"
+                contentDescription = stringResource(R.string.content_desc_undo_stroke)
             )
         }
 
@@ -1344,7 +1326,11 @@ private fun HandwritingInputPanel(
                 .width(AppDimensions.handwritingSubmitWidth)
         ) {
             Text(
-                text = if (isRecognizing) "Reading…" else "Submit",
+                text = if (isRecognizing) {
+                    stringResource(R.string.practice_handwriting_reading)
+                } else {
+                    stringResource(R.string.practice_handwriting_submit)
+                },
                 fontWeight = FontWeight.SemiBold,
                 color = scheme.onPrimary,
                 style = MaterialTheme.typography.labelLarge
@@ -1354,7 +1340,7 @@ private fun HandwritingInputPanel(
 
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
-                contentDescription = "Submit",
+                contentDescription = stringResource(R.string.content_desc_submit_handwriting),
                 tint = scheme.onPrimary,
                 modifier = Modifier.size(16.dp)
             )
@@ -1376,7 +1362,7 @@ private fun MinimalCircleOutlineIconButton(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier
-            .size(46.dp)
+            .size(dimensionResource(R.dimen.touch_target_min))
             .shadow(
                 elevation = AppElevation.level1,
                 shape = shape,
@@ -1558,14 +1544,14 @@ private fun CorrectAnswerSuccessCard(
         ) {
                 Image(
                     painter = painterResource(R.drawable.fox_happy),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.content_desc_fox_happy),
                     modifier = Modifier.size(95.dp)
                 )
 
             Spacer(Modifier.height(5.dp))
 
             Text(
-                text = "Correct!",
+                text = stringResource(R.string.practice_correct_title),
                 color = extras.success,
                 fontWeight = FontWeight.SemiBold,
                 style = MaterialTheme.typography.headlineSmall,
@@ -1575,7 +1561,7 @@ private fun CorrectAnswerSuccessCard(
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
             Text(
-                text = "Great job, you're a spelling star!",
+                text = stringResource(R.string.practice_correct_subtitle),
                 color = scheme.onSurfaceVariant.copy(alpha = 0.82f),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
@@ -1585,7 +1571,7 @@ private fun CorrectAnswerSuccessCard(
                 Spacer(Modifier.height(AppSpacing.md))
 
                 Text(
-                    text = "Word mastered!",
+                    text = stringResource(R.string.practice_word_mastered),
                     color = extras.success,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.titleMedium,
@@ -1611,7 +1597,7 @@ private fun CorrectAnswerSuccessCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Progress",
+                    text = stringResource(R.string.practice_progress_label),
                     color = scheme.onSurfaceVariant.copy(alpha = 0.78f),
                     style = MaterialTheme.typography.labelMedium
                 )
@@ -1619,7 +1605,7 @@ private fun CorrectAnswerSuccessCard(
                 Spacer(Modifier.weight(1f))
 
                 Text(
-                    text = "$completed / $total words",
+                    text = stringResource(R.string.practice_progress_words_format, completed, total),
                     color = extras.success,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.labelMedium
@@ -1636,7 +1622,7 @@ private fun CorrectAnswerSuccessCard(
             Spacer(Modifier.height(AppSpacing.xl + AppSpacing.sm))
 
             SpellCoachPrimaryButton(
-                text = "Next word",
+                text = stringResource(R.string.practice_next_word),
                 onClick = onNextWord,
                 leadingIcon = Icons.AutoMirrored.Filled.ArrowForward
             )

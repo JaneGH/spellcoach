@@ -1,6 +1,7 @@
 package com.itclimb.spellcoach.feature.managewords.presentation
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -530,6 +531,7 @@ private fun ManageWordsFilterChip(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ManageWordRowCard(
     word: Word,

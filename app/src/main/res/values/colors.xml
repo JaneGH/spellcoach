@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#1A86AE</color>
+    <!-- Window scrim behind gesture navigation; pairs with values-night/themes.xml for dark mode. -->
+    <color name="navigation_bar_scrim_light">#FFFFFFFF</color>
+    <color name="navigation_bar_scrim_dark">#FF000000</color>
 </resources>

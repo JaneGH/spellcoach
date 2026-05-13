@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -78,19 +79,19 @@ fun ResultsScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.img_results),
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.content_desc_results_illustration)
                 )
             }
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             Text(
-                text = "Good job!",
+                text = stringResource(R.string.results_headline),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = scheme.onSurface
             )
             Spacer(Modifier.height(AppSpacing.xs + AppSpacing.xxs))
             Text(
-                text = "You worked hard and learned\nsome tricky words today.",
+                text = stringResource(R.string.results_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant.copy(alpha = 0.78f)
             )
@@ -106,13 +107,13 @@ fun ResultsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "$correct",
+                        text = stringResource(R.string.results_score_format, correct),
                         fontSize = 38.sp,
                         fontWeight = FontWeight.Black,
                         color = extras.success
                     )
                     Text(
-                        text = " / $total",
+                        text = stringResource(R.string.results_score_total_format, total),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = scheme.onSurface,
@@ -138,8 +139,9 @@ fun ResultsScreen(
                                 tint = extras.success,
                                 modifier = Modifier.size(16.dp)
                             )
+                            Spacer(Modifier.width(AppSpacing.sm))
                             Text(
-                                text = "  Words Correct",
+                                text = stringResource(R.string.results_words_correct),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = extras.onSuccessContainer
@@ -158,7 +160,7 @@ fun ResultsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "$toPractice",
+                        text = stringResource(R.string.results_score_format, toPractice),
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Black,
                         color = scheme.tertiary
@@ -182,8 +184,9 @@ fun ResultsScreen(
                                 tint = scheme.tertiary,
                                 modifier = Modifier.size(16.dp)
                             )
+                            Spacer(Modifier.width(AppSpacing.sm))
                             Text(
-                                text = "  To Practice",
+                                text = stringResource(R.string.results_to_practice),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = scheme.onTertiaryContainer
@@ -198,13 +201,13 @@ fun ResultsScreen(
             LearningCard(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
-                        text = "Goal",
+                        text = stringResource(R.string.results_goal_label),
                         fontWeight = FontWeight.SemiBold,
                         color = scheme.onSurface,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "80%",
+                        text = stringResource(R.string.results_goal_value),
                         fontWeight = FontWeight.SemiBold,
                         color = extras.success,
                         style = MaterialTheme.typography.titleMedium
@@ -214,7 +217,7 @@ fun ResultsScreen(
                 SpellCoachProgressBar(progress = 0.8f, fullMastered = false)
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 Text(
-                    text = "Just 2 more sessions to reach your\ndiamond badge!",
+                    text = stringResource(R.string.results_goal_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant.copy(alpha = 0.78f)
                 )
@@ -223,7 +226,7 @@ fun ResultsScreen(
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
 
             SpellCoachPrimaryButton(
-                text = "Practice Again",
+                text = stringResource(R.string.results_practice_again),
                 onClick = {
                     val id = result?.listId
                     if (id != null) onPracticeAgain(id)
@@ -232,7 +235,7 @@ fun ResultsScreen(
             )
             Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
             SpellCoachSecondaryButton(
-                text = "Go to Lists",
+                text = stringResource(R.string.results_go_to_lists),
                 onClick = onGoToLists,
                 leadingIcon = Icons.AutoMirrored.Filled.List
             )

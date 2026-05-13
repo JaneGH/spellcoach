@@ -4,6 +4,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object AppDimensions {
+    /** Keep in sync with `res/values/dimens.xml` `touch_target_min`. */
     val minTouchTarget: Dp = 48.dp
     val buttonHeightDefault: Dp = 48.dp
     val topBarAvatar: Dp = 40.dp
@@ -13,6 +14,9 @@ object AppDimensions {
     val handwritingPanelMinHeight: Dp = 320.dp
     val resultsHeroImage: Dp = 150.dp
     val addWordsFieldHeight: Dp = 160.dp
+    val addWordsListNameFieldHeight: Dp = 56.dp
+    val addWordsAddButtonMinWidth: Dp = 160.dp
+    val practiceKeyboardInputFieldHeight: Dp = 64.dp
 
     val progressBarTrackSlim: Dp = 6.dp
     val letterChipMinSize: Dp = 52.dp

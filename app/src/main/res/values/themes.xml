@@ -2,7 +2,7 @@
 <resources>
     <style name="Theme.SpellCoach" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:navigationBarColor">@color/navigation_bar_scrim_light</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>
