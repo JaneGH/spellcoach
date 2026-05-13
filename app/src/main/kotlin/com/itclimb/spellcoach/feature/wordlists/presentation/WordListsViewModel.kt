@@ -43,6 +43,12 @@ class WordListsViewModel @Inject constructor(
     }
 
     fun deleteList(listId: Long) {
-        viewModelScope.launch { wordRepository.deleteWordList(listId) }
+        viewModelScope.launch {
+            wordRepository.deleteWordList(listId)
+
+            if (practiceListHolder.lastListId == listId) {
+                practiceListHolder.lastListId = null
+            }
+        }
     }
 }

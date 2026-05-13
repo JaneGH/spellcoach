@@ -138,6 +138,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun PracticeScreen(
+    listId: Long,
     onBack: () -> Unit,
     onFinished: () -> Unit,
     viewModel: PracticeViewModel = hiltViewModel()
@@ -145,6 +146,10 @@ fun PracticeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle(
         lifecycleOwner = LocalLifecycleOwner.current
     )
+
+//    LaunchedEffect(listId) {
+//        viewModel.startPractice(listId)
+//    }
 
     var showWrongAnswerCard by rememberSaveable { mutableStateOf(false) }
     var showCorrectAnswerCard by rememberSaveable { mutableStateOf(false) }
@@ -272,33 +277,19 @@ fun PracticeScreen(
                         .padding(vertical = AppSpacing.lg),
                     contentAlignment = Alignment.Center
                 ) {
-                    when {
-                        totalWords <= 0 -> {
-                            SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
-                                PracticeCompletionEmptyBody(
-                                    onPracticeAgain = viewModel::practiceAgain,
-                                    onBackToLists = onBack,
-                                    onResetProgress = viewModel::resetListProgress
-                                )
-                            }
-                        }
-
-                        listFullyMastered -> {
-                            PracticeCompletionListMasteredCard(
-                                onReviewMastered = viewModel::practiceAgain,
-                                onBackToLists = onBack,
-                                onResetProgress = viewModel::resetListProgress
-                            )
-                        }
-
-                        else -> {
-                            PracticeCompletionDailyDoneCard(
-                                masteredWords = masteredWords,
-                                stillLearningWords = stillLearning,
-                                onContinueLearning = viewModel::practiceAgain,
-                                onBackToLists = onBack
-                            )
-                        }
+                    if (listFullyMastered) {
+                        PracticeCompletionListMasteredCard(
+                            onReviewMastered = viewModel::practiceAgain,
+                            onBackToLists = onBack,
+                            onResetProgress = viewModel::resetListProgress
+                        )
+                    } else {
+                        PracticeCompletionDailyDoneCard(
+                            masteredWords = masteredWords,
+                            stillLearningWords = stillLearning,
+                            onContinueLearning = viewModel::practiceAgain,
+                            onBackToLists = onBack
+                        )
                     }
                 }
                 return@Column
@@ -969,61 +960,6 @@ private fun PracticeCompletionListMasteredCard(
         }
     }
 }
-
-@Composable
-private fun PracticeCompletionEmptyBody(
-    onPracticeAgain: () -> Unit,
-    onBackToLists: () -> Unit,
-    onResetProgress: () -> Unit
-) {
-    val scheme = MaterialTheme.colorScheme
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = stringResource(R.string.practice_completed_title_empty),
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.headlineSmall,
-            color = scheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-
-        Text(
-            text = stringResource(R.string.practice_completed_body_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = scheme.onSurfaceVariant.copy(alpha = 0.86f),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.md))
-
-        SpellCoachPrimaryButton(
-            text = stringResource(R.string.practice_again),
-            onClick = onPracticeAgain
-        )
-
-        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-
-        SpellCoachSecondaryButton(
-            text = stringResource(R.string.practice_back_to_lists),
-            onClick = onBackToLists
-        )
-
-        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
-
-        TextButton(
-            onClick = onResetProgress,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = stringResource(R.string.practice_reset_progress),
-                color = scheme.error,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-
 
 @Composable
 private fun WrongAnswerCard(

@@ -74,7 +74,7 @@
     <string name="lists_menu_manage_words">Manage words</string>
 
     <!-- Practice tab empty -->
-    <string name="practice_pick_list_message">Pick a word list, then tap Practice on that list to start.</string>
+    <string name="practice_pick_list_message">Pick a word list to start.</string>
     <string name="practice_go_to_lists">Go to Lists</string>
 
     <!-- Practice screen -->
@@ -86,9 +86,7 @@
     <string name="practice_word_progress_format">%1$d of %2$d correct</string>
     <string name="practice_placeholder_type">Type here</string>
     <string name="practice_check_word">Check word</string>
-    <string name="practice_completed_title_empty">No words to practice yet</string>
     <string name="practice_completed_title">Practice completed!</string>
-    <string name="practice_completed_body_empty">Add some words to start your spelling practice.</string>
     <string name="practice_completed_body_all_reviewed">Great job. All words are ready for review!</string>
     <string name="practice_completed_body_progress">Great progress today. %1$d / %2$d words mastered.</string>
     <string name="practice_completed_review_none">No review needed today.</string>

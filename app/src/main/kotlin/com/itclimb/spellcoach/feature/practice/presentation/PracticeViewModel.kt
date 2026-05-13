@@ -87,7 +87,6 @@ sealed interface PracticeEvent {
 @HiltViewModel
 class PracticeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    practiceListHolder: PracticeListHolder,
     private val wordRepository: WordRepository,
     private val processSpelling: ProcessSpellingResultUseCase,
     private val observeSettingsUseCase: ObserveSettingsUseCase,
@@ -109,9 +108,6 @@ class PracticeViewModel @Inject constructor(
     val events: SharedFlow<PracticeEvent> = _events.asSharedFlow()
 
     init {
-        if (listId > 0L) {
-            practiceListHolder.lastListId = listId
-        }
         viewModelScope.launch {
             val name = wordRepository.getWordListName(listId).orEmpty()
             _state.update {
@@ -170,6 +166,7 @@ class PracticeViewModel @Inject constructor(
                 val hasWords = words.isNotEmpty()
                 val nextSessionTarget = when {
                     cur.sessionTargetSelections > 0 -> cur.sessionTargetSelections
+                    !hasWords -> 0
                     else -> words.size.coerceAtMost(maxShortSessionWords).coerceAtLeast(1)
                 }
 
@@ -201,7 +198,7 @@ class PracticeViewModel @Inject constructor(
 
                 val nextSessionComplete =
                     if (!hasWords) {
-                        true
+                        false
                     } else {
                         cur.sessionComplete || (cur.sessionTargetSelections > 0 && cur.selectionStep >= cur.sessionTargetSelections)
                     }
@@ -223,6 +220,15 @@ class PracticeViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Called when the session route becomes active. Keeps [PracticeListHolder] in sync with the
+     * list shown in this ViewModel (backed by navigation [listId] in [SavedStateHandle]).
+     */
+//    fun startPractice(id: Long) {
+//        if (id <= 0L || id != listId) return
+//        practiceListHolder.lastListId = id
+//    }
 
     fun showHints() {
         _state.update { cur ->

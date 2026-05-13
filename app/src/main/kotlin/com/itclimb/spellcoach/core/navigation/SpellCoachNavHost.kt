@@ -197,6 +197,7 @@ private fun SpellCoachNavGraph(
             ) { entry ->
                 val listId = entry.arguments?.getLong("listId") ?: return@composable
                 PracticeScreen(
+                    listId = listId,
                     onBack = {
                         navController.navigateToRootTab(AppNav.TAB_LISTS)
                     },
