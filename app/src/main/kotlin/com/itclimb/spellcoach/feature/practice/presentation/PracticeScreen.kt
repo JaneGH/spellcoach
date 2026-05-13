@@ -1,5 +1,6 @@
 package com.itclimb.spellcoach.feature.practice.presentation
 
+import android.annotation.SuppressLint
 import android.os.SystemClock
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -136,20 +137,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun PracticeScreen(
-    listId: Long,
     onBack: () -> Unit,
-    onFinished: () -> Unit,
     viewModel: PracticeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle(
         lifecycleOwner = LocalLifecycleOwner.current
     )
 
-//    LaunchedEffect(listId) {
-//        viewModel.startPractice(listId)
-//    }
 
     var showWrongAnswerCard by rememberSaveable { mutableStateOf(false) }
     var showCorrectAnswerCard by rememberSaveable { mutableStateOf(false) }
@@ -205,11 +202,6 @@ fun PracticeScreen(
         viewModel.clearAnimationHint()
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { e ->
-            if (e is PracticeEvent.Finished) onFinished()
-        }
-    }
 
     LaunchedEffect(state.currentIndex, state.feedbackCorrect) {
         when (state.feedbackCorrect) {
@@ -616,6 +608,7 @@ fun PracticeScreen(
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun PracticeCompletionDailyDoneCard(
     masteredWords: Int,
@@ -751,6 +744,7 @@ private fun PracticeCompletionDailyDoneCard(
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun PracticeCompletionListMasteredCard(
     onReviewMastered: () -> Unit,
@@ -961,6 +955,7 @@ private fun PracticeCompletionListMasteredCard(
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun WrongAnswerCard(
     spacedCorrectWord: String,
@@ -1492,6 +1487,7 @@ private suspend fun recognizeInkWord(
         .orEmpty()
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun CorrectAnswerSuccessCard(
     completed: Int,

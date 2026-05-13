@@ -1,16 +1,17 @@
 package com.itclimb.spellcoach.core.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,15 +40,14 @@ import com.itclimb.spellcoach.core.designsystem.components.MainTab
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachBottomBar
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachPrimaryButton
 import com.itclimb.spellcoach.core.designsystem.components.SpellCoachScreenContainer
-import com.itclimb.spellcoach.feature.addwords.presentation.AddWordsScreen
-import com.itclimb.spellcoach.feature.managewords.presentation.ManageWordsScreen
-import com.itclimb.spellcoach.feature.practice.presentation.PracticeScreen
-import com.itclimb.spellcoach.feature.results.presentation.ResultsScreen
-import com.itclimb.spellcoach.feature.settings.presentation.SettingsScreen
-import com.itclimb.spellcoach.feature.wordlists.presentation.WordListsScreen
 import com.itclimb.spellcoach.core.designsystem.tokens.AppDimensions
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
+import com.itclimb.spellcoach.feature.addwords.presentation.AddWordsScreen
+import com.itclimb.spellcoach.feature.managewords.presentation.ManageWordsScreen
 import com.itclimb.spellcoach.feature.practice.PracticeListHolder
+import com.itclimb.spellcoach.feature.practice.presentation.PracticeScreen
+import com.itclimb.spellcoach.feature.settings.presentation.SettingsScreen
+import com.itclimb.spellcoach.feature.wordlists.presentation.WordListsScreen
 
 @Composable
 fun SpellCoachNavHost(
@@ -149,6 +149,7 @@ private fun SpellCoachNavGraph(
                 )
             ) { entry ->
                 val listId = entry.arguments?.getLong("listId") ?: return@composable
+
                 ManageWordsScreen(
                     onBack = { navController.popBackStack() },
                     onAddWords = {
@@ -194,39 +195,9 @@ private fun SpellCoachNavGraph(
                         type = NavType.LongType
                     }
                 )
-            ) { entry ->
-                val listId = entry.arguments?.getLong("listId") ?: return@composable
+            ) {
                 PracticeScreen(
-                    listId = listId,
                     onBack = {
-                        navController.navigateToRootTab(AppNav.TAB_LISTS)
-                    },
-                    onFinished = {
-                        navController.navigate(AppNav.Practice.RESULTS) {
-                            popUpTo(AppNav.Practice.SESSION) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-
-            composable(AppNav.Practice.RESULTS) {
-                ResultsScreen(
-                    onBack = {
-                        navController.navigateToRootTab(AppNav.TAB_LISTS)
-                    },
-                    onPracticeAgain = { id ->
-                        practiceListHolder.lastListId = id
-                        navController.navigate(AppNav.practiceSession(id)) {
-                            popUpTo(AppNav.Practice.RESULTS) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    },
-                    onGoToLists = {
                         navController.navigateToRootTab(AppNav.TAB_LISTS)
                     }
                 )
@@ -244,6 +215,7 @@ private fun SpellCoachNavGraph(
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun PracticeTabEntry(
     practiceListHolder: PracticeListHolder,
@@ -295,14 +267,18 @@ private fun PracticeTabEntry(
                                 .alpha(0.95f)
                         )
                     }
+
                     Spacer(Modifier.height(AppSpacing.sm))
+
                     Text(
                         text = stringResource(R.string.practice_pick_list_message),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Spacer(Modifier.height(AppSpacing.lg))
+
                     SpellCoachPrimaryButton(
                         text = stringResource(R.string.practice_go_to_lists),
                         onClick = onOpenListsTab
