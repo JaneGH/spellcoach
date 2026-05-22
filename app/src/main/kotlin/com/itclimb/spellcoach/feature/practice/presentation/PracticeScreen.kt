@@ -1046,7 +1046,28 @@ private fun WrongAnswerCard(
 
                 Spacer(Modifier.height(AppSpacing.sm))
 
+                Text(
+                    text = stringResource(R.string.practice_wrong_subtitle),
+                    color = scheme.onErrorContainer.copy(alpha = 0.82f),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(AppSpacing.sm))
+
+                Text(
+                    text = spacedCorrectWord,
+                    color = scheme.error,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
+                    letterSpacing = 6.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 if (spellingFeedback != null && !spellingFeedback.isCorrect) {
+                    Spacer(Modifier.height(AppSpacing.md))
+
                     Text(
                         text = stringResource(R.string.practice_wrong_your_attempt),
                         color = scheme.onErrorContainer.copy(alpha = 0.82f),
@@ -1095,28 +1116,7 @@ private fun WrongAnswerCard(
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
-
-                    Spacer(Modifier.height(AppSpacing.sm))
                 }
-
-                Text(
-                    text = stringResource(R.string.practice_wrong_subtitle),
-                    color = scheme.onErrorContainer.copy(alpha = 0.82f),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(AppSpacing.sm))
-
-                Text(
-                    text = spacedCorrectWord,
-                    color = scheme.error,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp,
-                    letterSpacing = 6.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
 
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
 
