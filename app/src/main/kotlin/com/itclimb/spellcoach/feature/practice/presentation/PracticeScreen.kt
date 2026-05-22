@@ -43,6 +43,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -95,8 +97,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -132,6 +138,9 @@ import com.itclimb.spellcoach.core.designsystem.tokens.AppIconSize
 import com.itclimb.spellcoach.core.designsystem.tokens.AppRadius
 import com.itclimb.spellcoach.core.designsystem.tokens.AppSpacing
 import com.itclimb.spellcoach.domain.model.isLearnedAtThreshold
+import com.itclimb.spellcoach.domain.practice.SpellingDisplayUnit
+import com.itclimb.spellcoach.domain.practice.SpellingFeedback
+import com.itclimb.spellcoach.domain.practice.SpellingLetterKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -148,8 +157,8 @@ fun PracticeScreen(
     )
 
 
-    var showWrongAnswerCard by rememberSaveable { mutableStateOf(false) }
     var showCorrectAnswerCard by rememberSaveable { mutableStateOf(false) }
+    val showWrongAnswerCard = state.feedbackCorrect == false
     val focusRequester = remember { FocusRequester() }
     var inputMode by rememberSaveable { mutableStateOf(PracticeInputMode.Keyboard) }
 
@@ -205,16 +214,8 @@ fun PracticeScreen(
 
     LaunchedEffect(state.currentIndex, state.feedbackCorrect) {
         when (state.feedbackCorrect) {
-            false -> {
-                showWrongAnswerCard = true
-                showCorrectAnswerCard = false
-            }
-
-            true -> {
-                showWrongAnswerCard = false
-                showCorrectAnswerCard = true
-            }
-
+            true -> showCorrectAnswerCard = true
+            false -> showCorrectAnswerCard = false
             null -> Unit
         }
     }
@@ -347,14 +348,24 @@ fun PracticeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .then(
-                                if (inputMode == PracticeInputMode.Handwriting) {
+                                if (
+                                    inputMode == PracticeInputMode.Handwriting ||
+                                    showWrongAnswerCard
+                                ) {
                                     Modifier.weight(1f)
                                 } else {
                                     Modifier
                                 }
                             )
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            modifier = if (showWrongAnswerCard) {
+                                Modifier.fillMaxSize()
+                            } else {
+                                Modifier.fillMaxWidth()
+                            },
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             val scheme = MaterialTheme.colorScheme
                             val correctWord = state.words.getOrNull(state.currentIndex)?.text.orEmpty()
                             val spacedCorrectWord = remember(correctWord) {
@@ -459,17 +470,20 @@ fun PracticeScreen(
 
                             AnimatedVisibility(
                                 visible = showWrongAnswerCard,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
                                 enter = screenEnterSoft(),
                                 exit = screenExitSoft()
                             ) {
                                 WrongAnswerCard(
                                     spacedCorrectWord = spacedCorrectWord,
+                                    spellingFeedback = state.spellingFeedback,
                                     answerSoundsEnabled = state.answerSoundsEnabled,
                                     onAnswerSound = viewModel::playAnswerRetrySound,
                                     onTryAgain = {
                                         viewModel.onInputChange("")
                                         viewModel.clearFeedback()
-                                        showWrongAnswerCard = false
                                         viewModel.listen()
                                     }
                                 )
@@ -563,10 +577,7 @@ fun PracticeScreen(
 
                                                 SpellCoachPrimaryButton(
                                                     text = stringResource(R.string.practice_check_word),
-                                                    onClick = {
-                                                        showWrongAnswerCard = false
-                                                        viewModel.checkWord()
-                                                    },
+                                                    onClick = viewModel::checkWord,
                                                     leadingIcon = Icons.AutoMirrored.Filled.ArrowForward
                                                 )
                                             }
@@ -959,6 +970,7 @@ private fun PracticeCompletionListMasteredCard(
 @Composable
 private fun WrongAnswerCard(
     spacedCorrectWord: String,
+    spellingFeedback: SpellingFeedback?,
     answerSoundsEnabled: Boolean,
     onAnswerSound: () -> Unit,
     onTryAgain: () -> Unit
@@ -969,86 +981,224 @@ private fun WrongAnswerCard(
         }
     }
     val scheme = MaterialTheme.colorScheme
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val wrongCardMascot =
-            (maxWidth * AppDimensions.mascotWrongCardWidthFraction).coerceIn(
-                AppDimensions.mascotWrongCardMin,
-                AppDimensions.mascotWrongCardMax
-            )
-        Column(
-            modifier = Modifier
+    val scrollState = rememberScrollState()
+    val cardShape = RoundedCornerShape(AppRadius.sheet)
+    val cardModifier = Modifier
+        .fillMaxSize()
+        .shadow(
+            elevation = AppElevation.level2,
+            shape = cardShape,
+            ambientColor = scheme.error.copy(alpha = 0.08f),
+            spotColor = scheme.error.copy(alpha = 0.12f)
+        )
+        .clip(cardShape)
+        .background(scheme.errorContainer.copy(alpha = 0.38f))
+        .border(
+            width = AppBorder.hairline,
+            color = scheme.error.copy(alpha = 0.22f),
+            shape = cardShape
+        )
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(
+            modifier = cardModifier
+                .weight(1f)
                 .fillMaxWidth()
-                .shadow(
-                    elevation = AppElevation.level2,
-                    shape = RoundedCornerShape(AppRadius.sheet),
-                    ambientColor = scheme.error.copy(alpha = 0.08f),
-                    spotColor = scheme.error.copy(alpha = 0.12f)
-                )
-                .clip(RoundedCornerShape(AppRadius.sheet))
-                .background(scheme.errorContainer.copy(alpha = 0.38f))
-                .border(
-                    width = AppBorder.hairline,
-                    color = scheme.error.copy(alpha = 0.22f),
-                    shape = RoundedCornerShape(AppRadius.sheet)
-                )
-                .padding(horizontal = AppSpacing.lg + AppSpacing.xs, vertical = AppSpacing.lg + AppSpacing.xs),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(R.drawable.fox_supportive),
-                contentDescription = stringResource(R.string.content_desc_fox_supportive),
-                modifier = Modifier.size(wrongCardMascot)
-            )
+            val wrongCardMascot =
+                (maxWidth * AppDimensions.mascotWrongCardWidthFraction).coerceIn(
+                    AppDimensions.mascotWrongCardMin,
+                    AppDimensions.mascotWrongCardMax
+                )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(
+                        horizontal = AppSpacing.lg + AppSpacing.xs,
+                        vertical = AppSpacing.lg + AppSpacing.xs
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.fox_supportive),
+                    contentDescription = stringResource(R.string.content_desc_fox_supportive),
+                    modifier = Modifier.size(wrongCardMascot)
+                )
 
-            Spacer(Modifier.height(AppSpacing.sm))
+                Spacer(Modifier.height(AppSpacing.sm))
 
-        Text(
-            text = stringResource(R.string.practice_wrong_title),
-            color = scheme.error,
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center
-        )
+                Text(
+                    text = stringResource(R.string.practice_wrong_title),
+                    color = scheme.error,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center
+                )
 
-        Spacer(Modifier.height(AppSpacing.sm))
+                Spacer(Modifier.height(AppSpacing.sm))
 
-        Text(
-            text = stringResource(R.string.practice_wrong_subtitle),
-            color = scheme.onErrorContainer.copy(alpha = 0.82f),
-            style = MaterialTheme.typography.bodySmall,
-            textAlign = TextAlign.Center
-        )
+                if (spellingFeedback != null && !spellingFeedback.isCorrect) {
+                    Text(
+                        text = stringResource(R.string.practice_wrong_your_attempt),
+                        color = scheme.onErrorContainer.copy(alpha = 0.82f),
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
 
-        Spacer(Modifier.height(AppSpacing.sm))
+                    Spacer(Modifier.height(AppSpacing.sm))
 
-        Text(
-            text = spacedCorrectWord,
-            color = scheme.error,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 20.sp,
-            letterSpacing = 6.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+                    HighlightedAttemptText(
+                        units = spellingFeedback.displayUnits,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-        Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+                    val missingSummary = formatLetterListSummary(
+                        letters = spellingFeedback.missingLetters,
+                        singularRes = R.string.practice_wrong_missing_letters,
+                        pluralRes = R.string.practice_wrong_missing_letters_plural
+                    )
+                    val extraSummary = formatLetterListSummary(
+                        letters = spellingFeedback.extraLetters,
+                        singularRes = R.string.practice_wrong_extra_letters,
+                        pluralRes = R.string.practice_wrong_extra_letters_plural
+                    )
 
-        Text(
-            text = stringResource(R.string.practice_wrong_encouragement),
-            color = scheme.onErrorContainer.copy(alpha = 0.78f),
-            style = MaterialTheme.typography.bodySmall,
-            textAlign = TextAlign.Center
-        )
+                    if (missingSummary != null) {
+                        Spacer(Modifier.height(AppSpacing.sm))
+                        Text(
+                            text = missingSummary,
+                            color = scheme.tertiary,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
-        Spacer(Modifier.height(AppSpacing.lg))
+                    if (extraSummary != null) {
+                        Spacer(Modifier.height(AppSpacing.xs))
+                        Text(
+                            text = extraSummary,
+                            color = scheme.error.copy(alpha = 0.9f),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(Modifier.height(AppSpacing.sm))
+                }
+
+                Text(
+                    text = stringResource(R.string.practice_wrong_subtitle),
+                    color = scheme.onErrorContainer.copy(alpha = 0.82f),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(AppSpacing.sm))
+
+                Text(
+                    text = spacedCorrectWord,
+                    color = scheme.error,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
+                    letterSpacing = 6.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+                Text(
+                    text = stringResource(R.string.practice_wrong_encouragement),
+                    color = scheme.onErrorContainer.copy(alpha = 0.78f),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Spacer(Modifier.height(AppSpacing.md))
 
         SpellCoachPrimaryButton(
             text = stringResource(R.string.practice_try_again),
             onClick = onTryAgain,
-            leadingIcon = Icons.Filled.Refresh
+            leadingIcon = Icons.Filled.Refresh,
+            modifier = Modifier.fillMaxWidth()
         )
-        }
     }
+}
+
+@Composable
+private fun HighlightedAttemptText(
+    units: List<SpellingDisplayUnit>,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+    val extras = SpellCoachThemeExtras.current
+
+    Text(
+        text = buildAnnotatedString {
+            units.forEach { unit ->
+                when (unit) {
+                    is SpellingDisplayUnit.Letter -> {
+                        val style = when (unit.kind) {
+                            SpellingLetterKind.Correct -> SpanStyle(color = scheme.onErrorContainer)
+                            SpellingLetterKind.WrongSubstitution -> SpanStyle(
+                                color = scheme.error,
+                                background = scheme.error.copy(alpha = 0.14f),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            SpellingLetterKind.Extra -> SpanStyle(
+                                color = scheme.error,
+                                background = scheme.error.copy(alpha = 0.22f),
+                                fontWeight = FontWeight.SemiBold,
+                                textDecoration = TextDecoration.LineThrough
+                            )
+                        }
+                        withStyle(style) { append(unit.char) }
+                    }
+                    is SpellingDisplayUnit.Missing -> {
+                        withStyle(
+                            SpanStyle(
+                                color = extras.success.copy(alpha = 0.95f),
+                                background = extras.success.copy(alpha = 0.18f),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        ) {
+                            append(
+                                stringResource(
+                                    R.string.practice_wrong_missing_placeholder,
+                                    unit.expected
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        fontSize = 20.sp,
+        fontWeight = FontWeight.SemiBold,
+        textAlign = TextAlign.Center,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun formatLetterListSummary(
+    letters: List<Char>,
+    singularRes: Int,
+    pluralRes: Int
+): String? {
+    if (letters.isEmpty()) return null
+    val formatted = letters.joinToString(", ") { "'$it'" }
+    return stringResource(
+        if (letters.size == 1) singularRes else pluralRes,
+        formatted
+    )
 }
 
 @Composable

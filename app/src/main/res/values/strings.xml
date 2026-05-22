@@ -109,6 +109,12 @@
 
     <string name="practice_wrong_title">Keep trying!</string>
     <string name="practice_wrong_subtitle">The correct spelling is:</string>
+    <string name="practice_wrong_your_attempt">Your spelling:</string>
+    <string name="practice_wrong_missing_letters">Missing letter: %1$s</string>
+    <string name="practice_wrong_missing_letters_plural">Missing letters: %1$s</string>
+    <string name="practice_wrong_extra_letters">Extra letter: %1$s</string>
+    <string name="practice_wrong_extra_letters_plural">Extra letters: %1$s</string>
+    <string name="practice_wrong_missing_placeholder">%1$s</string>
     <string name="practice_wrong_encouragement">You’re doing great. Try it once more.</string>
     <string name="practice_try_again">Try again</string>
 

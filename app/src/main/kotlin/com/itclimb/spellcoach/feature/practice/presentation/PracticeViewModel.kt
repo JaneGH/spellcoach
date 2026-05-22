@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.itclimb.spellcoach.domain.practice.PracticeResultBuffer
+import com.itclimb.spellcoach.domain.practice.SpellingComparer
+import com.itclimb.spellcoach.domain.practice.SpellingFeedback
 import com.itclimb.spellcoach.domain.speech.RewardSoundPlayer
 import com.itclimb.spellcoach.domain.speech.SpellCoachTextToSpeech
 import com.itclimb.spellcoach.domain.model.Badge
@@ -59,6 +61,7 @@ data class PracticeUiState(
     val incorrectSubmissions: Int = 0,
     val loading: Boolean = true,
     val feedbackCorrect: Boolean? = null,
+    val spellingFeedback: SpellingFeedback? = null,
     val animationHint: PracticeAnimHint = PracticeAnimHint.None,
     val answerSoundsEnabled: Boolean = true,
     val requiredCorrectAnswers: Int = 3,
@@ -263,7 +266,7 @@ class PracticeViewModel @Inject constructor(
 
     fun clearFeedback() {
         _state.update {
-            it.copy(feedbackCorrect = null)
+            it.copy(feedbackCorrect = null, spellingFeedback = null)
         }
     }
 
@@ -272,9 +275,11 @@ class PracticeViewModel @Inject constructor(
         viewModelScope.launch {
             val settings = observeSettingsUseCase().first()
             val required = settings.requiredCorrectAnswers.coerceAtLeast(1)
+            val attempt = _state.value.input
+            val spellingFeedback = SpellingComparer.compare(attempt, w.text)
             val result = processSpelling(
                 w,
-                _state.value.input,
+                attempt,
                 required,
                 settings.mistakeBehavior
             )
@@ -320,6 +325,7 @@ class PracticeViewModel @Inject constructor(
                     it.copy(
                         sessionCorrect = newSessionCorrect,
                         feedbackCorrect = true,
+                        spellingFeedback = spellingFeedback,
                         animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
                         allWords = updatedAllWords,
                         words = updatedAllWords,
@@ -334,6 +340,7 @@ class PracticeViewModel @Inject constructor(
                     it.copy(
                         incorrectSubmissions = it.incorrectSubmissions + 1,
                         feedbackCorrect = false,
+                        spellingFeedback = spellingFeedback,
                         animationHint = if (settings.animationsEnabled) PracticeAnimHint.ShakeWrong else PracticeAnimHint.None,
                         input = "",
                         wordJustMastered = false,
@@ -357,6 +364,7 @@ class PracticeViewModel @Inject constructor(
         _state.update {
             it.copy(
                 feedbackCorrect = null,
+                spellingFeedback = null,
                 input = "",
                 showHints = false,
                 wordJustMastered = false
@@ -383,6 +391,7 @@ class PracticeViewModel @Inject constructor(
                         sessionComplete = true,
                         selectionStep = nextStep,
                         feedbackCorrect = null,
+                        spellingFeedback = null,
                         input = "",
                         showHints = false,
                         wordJustMastered = false
@@ -462,6 +471,7 @@ class PracticeViewModel @Inject constructor(
                 sessionCorrect = 0,
                 incorrectSubmissions = 0,
                 feedbackCorrect = null,
+                spellingFeedback = null,
                 animationHint = PracticeAnimHint.None,
                 input = "",
                 showHints = false,
