@@ -56,6 +56,17 @@ class SpellingComparisonTest {
     }
 
     @Test
+    fun trdsh_vs_rash_doesNotMarkMatchedLetterAsMissing() {
+        val result = SpellingComparer.compare("trdsh", "rash")
+        assertFalse(result.isCorrect)
+        assertTrue(result.missingLetters.isEmpty())
+        assertEquals(listOf('t'), result.extraLetters)
+        assertEquals(1, result.wrongSubstitutions.size)
+        assertEquals('d', result.wrongSubstitutions.single().attempt)
+        assertEquals('a', result.wrongSubstitutions.single().expected)
+    }
+
+    @Test
     fun enviroment_vs_environment_marksMissingSeparately() {
         val result = SpellingComparer.compare("enviroment", "environment")
         assertFalse(result.isCorrect)

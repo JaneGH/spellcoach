@@ -125,51 +125,27 @@ object SpellingComparer {
                 continue
             }
 
-            val canInsertMissing =
-                j > 0 && (i == 0 || dp[i][j] == dp[i][j - 1] + 1)
             val canSubstitute =
                 i > 0 && j > 0 && dp[i][j] == dp[i - 1][j - 1] + 1
             val canDeleteExtra =
-                i > 0 && (j == 0 || dp[i][j] == dp[i - 1][j] + 1)
+                i > 0 && dp[i][j] == dp[i - 1][j] + 1
+            val canInsertMissing =
+                j > 0 && dp[i][j] == dp[i][j - 1] + 1
 
-            if (
-                canInsertMissing &&
-                i > 0 &&
-                j < m &&
-                a[i - 1].equals(b[j], ignoreCase = true)
-            ) {
-                ops.add(DiffOp.Missing(b[j - 1]))
-                j--
-                continue
-            }
-
-            if (
-                canDeleteExtra &&
-                j > 0 &&
-                i < n &&
-                a[i].equals(b[j - 1], ignoreCase = true)
-            ) {
-                ops.add(DiffOp.Extra(a[i - 1]))
-                i--
-                continue
-            }
-
-            if (canInsertMissing) {
-                ops.add(DiffOp.Missing(b[j - 1]))
-                j--
-                continue
-            }
-
-            if (canSubstitute) {
-                ops.add(DiffOp.Substitute(a[i - 1], b[j - 1]))
-                i--
-                j--
-                continue
-            }
-
-            if (canDeleteExtra) {
-                ops.add(DiffOp.Extra(a[i - 1]))
-                i--
+            when {
+                canSubstitute -> {
+                    ops.add(DiffOp.Substitute(a[i - 1], b[j - 1]))
+                    i--
+                    j--
+                }
+                canDeleteExtra -> {
+                    ops.add(DiffOp.Extra(a[i - 1]))
+                    i--
+                }
+                canInsertMissing -> {
+                    ops.add(DiffOp.Missing(b[j - 1]))
+                    j--
+                }
             }
         }
 
