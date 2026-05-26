@@ -36,6 +36,7 @@ class SettingsDataStore @Inject constructor(
         val rewardSounds = booleanPreferencesKey("reward_sounds")
         val animations = booleanPreferencesKey("animations")
         val themePreference = stringPreferencesKey("theme_preference")
+        val excludeMasteredWordsFromPractice = booleanPreferencesKey("exclude_mastered_words_from_practice")
         val totalCorrectLifetime = intPreferencesKey("total_correct_lifetime")
         val currentStreak = intPreferencesKey("current_streak")
         val longestStreak = intPreferencesKey("longest_streak")
@@ -56,7 +57,8 @@ class SettingsDataStore @Inject constructor(
             animationsEnabled = prefs[Keys.animations] ?: true,
             themePreference = prefs[Keys.themePreference]?.let {
                 runCatching { ThemePreference.valueOf(it) }.getOrDefault(ThemePreference.SYSTEM)
-            } ?: ThemePreference.SYSTEM
+            } ?: ThemePreference.SYSTEM,
+            excludeMasteredWordsFromPractice = prefs[Keys.excludeMasteredWordsFromPractice] ?: false
         )
     }
 
@@ -86,7 +88,8 @@ class SettingsDataStore @Inject constructor(
                 animationsEnabled = prefs[Keys.animations] ?: true,
                 themePreference = prefs[Keys.themePreference]?.let {
                     runCatching { ThemePreference.valueOf(it) }.getOrDefault(ThemePreference.SYSTEM)
-                } ?: ThemePreference.SYSTEM
+                } ?: ThemePreference.SYSTEM,
+                excludeMasteredWordsFromPractice = prefs[Keys.excludeMasteredWordsFromPractice] ?: false
             )
             val next = transform(cur)
             prefs[Keys.requiredCorrect] = next.requiredCorrectAnswers
@@ -97,6 +100,7 @@ class SettingsDataStore @Inject constructor(
             prefs[Keys.rewardSounds] = next.rewardSoundsEnabled
             prefs[Keys.animations] = next.animationsEnabled
             prefs[Keys.themePreference] = next.themePreference.name
+            prefs[Keys.excludeMasteredWordsFromPractice] = next.excludeMasteredWordsFromPractice
         }
     }
 

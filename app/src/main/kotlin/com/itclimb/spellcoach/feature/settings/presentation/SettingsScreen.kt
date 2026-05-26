@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -46,9 +47,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.itclimb.spellcoach.R
 import com.itclimb.spellcoach.core.designsystem.components.LearningCard
@@ -101,12 +104,19 @@ fun SettingsScreen(
                     .clip(RoundedCornerShape(AppRadius.xxxl))
                     .background(mascotBg)
             ) {
-                BoxWithConstraints(Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val configuration = LocalConfiguration.current
+                    val screenWidth = configuration.screenWidthDp.dp
+
                     val bannerMascot =
-                        (maxWidth * AppDimensions.mascotSettingsBannerWidthFraction).coerceIn(
-                            AppDimensions.mascotSettingsBannerMin,
-                            AppDimensions.mascotSettingsBannerMax
-                        )
+                        (screenWidth * AppDimensions.mascotSettingsBannerWidthFraction)
+                            .coerceIn(
+                                AppDimensions.mascotSettingsBannerMin,
+                                AppDimensions.mascotSettingsBannerMax
+                            )
+
                     Text(
                         text = stringResource(R.string.settings_mascot_quote),
                         color = mascotFg,
@@ -301,6 +311,63 @@ fun SettingsScreen(
                     selected = settings.mistakeBehavior == MistakeBehavior.RESET_PROGRESS,
                     onClick = { viewModel.setMistakeBehavior(MistakeBehavior.RESET_PROGRESS) }
                 )
+            }
+
+            Spacer(Modifier.height(AppSpacing.sectionGap))
+
+            LearningCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = AppSpacing.sm),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(AppDimensions.topBarAvatar)
+                                .clip(RoundedCornerShape(AppRadius.md))
+                                .background(scheme.primaryContainer.copy(alpha = 0.45f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Filled.FilterList,
+                                contentDescription = stringResource(R.string.content_desc_exclude_mastered_icon),
+                                tint = scheme.primary
+                            )
+                        }
+                        Spacer(Modifier.width(AppSpacing.sm + AppSpacing.md))
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
+                            Text(
+                                text = stringResource(R.string.settings_exclude_mastered_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = scheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_exclude_mastered_body),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = scheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier.width(AppDimensions.settingsToggleSlotWidth),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Switch(
+                            checked = settings.excludeMasteredWordsFromPractice,
+                            onCheckedChange = viewModel::setExcludeMasteredWordsFromPractice,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = scheme.onPrimary,
+                                checkedTrackColor = scheme.primary
+                            )
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(AppSpacing.sectionGap))

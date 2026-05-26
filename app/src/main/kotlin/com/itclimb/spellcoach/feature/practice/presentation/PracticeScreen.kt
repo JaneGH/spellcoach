@@ -260,6 +260,31 @@ fun PracticeScreen(
                 )
             )
 
+            val showAllMasteredExcludedEmpty =
+                !state.loading &&
+                    state.allWords.isNotEmpty() &&
+                    state.words.isEmpty() &&
+                    state.excludeMasteredWords &&
+                    !state.includeMasteredInSession &&
+                    !state.sessionComplete
+
+            if (showAllMasteredExcludedEmpty) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .spellCoachScreenHorizontalPadding()
+                        .padding(vertical = AppSpacing.lg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PracticeAllMasteredExcludedCard(
+                        onPracticeMastered = viewModel::practiceMasteredWords,
+                        onBackToLists = onBack,
+                        onResetProgress = viewModel::resetListProgress
+                    )
+                }
+                return@Column
+            }
+
             if (!state.loading && state.sessionComplete && !showCorrectAnswerCard) {
                 val totalWords = state.allWords.size
                 val masteredWords = state.masteredWordsCount.coerceIn(0, totalWords)
@@ -759,6 +784,66 @@ private fun PracticeCompletionDailyDoneCard(
                 }
             }
             }
+        }
+    }
+}
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+private fun PracticeAllMasteredExcludedCard(
+    onPracticeMastered: () -> Unit,
+    onBackToLists: () -> Unit,
+    onResetProgress: () -> Unit
+) {
+    val scheme = MaterialTheme.colorScheme
+    val extras = SpellCoachThemeExtras.current
+
+    SpellCoachCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.fox_practice_completed_all),
+                contentDescription = null,
+                modifier = Modifier.size(
+                    AppDimensions.mascotCompletionMasteredRingMin *
+                        AppDimensions.mascotCompletionMasteredImageOfRing
+                )
+            )
+
+            Spacer(Modifier.height(AppSpacing.md))
+
+            Text(
+                text = stringResource(R.string.practice_all_mastered_empty_title),
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineSmall,
+                color = extras.success,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(AppSpacing.lg))
+
+            SpellCoachPrimaryButton(
+                text = stringResource(R.string.practice_all_mastered_empty_primary),
+                onClick = onPracticeMastered
+            )
+
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+            SpellCoachSecondaryButton(
+                text = stringResource(R.string.practice_reset_progress),
+                onClick = onResetProgress
+            )
+
+            Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+
+            SpellCoachSecondaryButton(
+                text = stringResource(R.string.practice_back_to_lists),
+                onClick = onBackToLists
+            )
         }
     }
 }

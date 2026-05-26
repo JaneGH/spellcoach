@@ -101,11 +101,13 @@
     <string name="practice_complete_daily_progress_hint">%1$d words mastered • %2$d still learning</string>
     <string name="practice_complete_daily_primary">Continue learning</string>
 
-    <!-- Practice session complete: entire list mastered -->
     <string name="practice_complete_list_mastered_title">List mastered!</string>
     <string name="practice_complete_list_mastered_subtitle">You’ve mastered every word in this list.</string>
     <string name="practice_complete_list_mastered_supporting">Fantastic progress — keep it up!</string>
     <string name="practice_complete_list_mastered_primary">Review words</string>
+
+    <string name="practice_all_mastered_empty_title">All words in this list are mastered 🎉</string>
+    <string name="practice_all_mastered_empty_primary">Practice mastered words</string>
 
     <string name="practice_wrong_title">Keep trying!</string>
     <string name="practice_wrong_subtitle">The correct spelling is:</string>
@@ -196,6 +198,10 @@
     <string name="settings_mistake_decrease">Decrease progress</string>
     <string name="settings_mistake_reset">Reset progress</string>
     <string name="content_desc_mistake_behavior_icon">Mistake behavior</string>
+
+    <string name="settings_exclude_mastered_title">Exclude mastered words from practice</string>
+    <string name="settings_exclude_mastered_body">When enabled, words that have reached the mastery threshold will no longer appear in practice sessions.</string>
+    <string name="content_desc_exclude_mastered_icon">Exclude mastered words</string>
 
     <string name="settings_progress_title">Progress</string>
     <string name="settings_progress_body">Reset your mastery progress for all lists.</string>

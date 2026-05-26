@@ -71,6 +71,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setExcludeMasteredWordsFromPractice(enabled: Boolean) {
+        viewModelScope.launch {
+            updateSettings { it.copy(excludeMasteredWordsFromPractice = enabled) }
+        }
+    }
+
     fun setSpeechRate(rate: Float) {
         viewModelScope.launch {
             updateSettings { it.copy(speechRate = rate) }

@@ -65,6 +65,9 @@ data class PracticeUiState(
     val animationHint: PracticeAnimHint = PracticeAnimHint.None,
     val answerSoundsEnabled: Boolean = true,
     val requiredCorrectAnswers: Int = 3,
+    val excludeMasteredWords: Boolean = false,
+    /** When true, mastered words are included for this session (overrides [excludeMasteredWords]). */
+    val includeMasteredInSession: Boolean = false,
     val wordJustMastered: Boolean = false,
     val lastWordId: Long? = null,
     val selectionStep: Long = 0L, // increments when user taps "Next word"
@@ -125,11 +128,19 @@ class PracticeViewModel @Inject constructor(
             val settingsFlow = observeSettingsUseCase()
             settingsFlow.collect { s ->
                 _state.update { cur ->
+                    val excludeChanged =
+                        cur.excludeMasteredWords != s.excludeMasteredWordsFromPractice
                     cur.copy(
                         answerSoundsEnabled = s.answerSoundsEnabled,
                         hintsEnabled = s.letterHintsEnabled,
                         showHints = if (s.letterHintsEnabled) cur.showHints else false,
-                        requiredCorrectAnswers = s.requiredCorrectAnswers
+                        requiredCorrectAnswers = s.requiredCorrectAnswers,
+                        excludeMasteredWords = s.excludeMasteredWordsFromPractice,
+                        includeMasteredInSession = if (excludeChanged) {
+                            false
+                        } else {
+                            cur.includeMasteredInSession
+                        }
                     )
                 }
                 tts.setSpeechRate(s.speechRate)
@@ -151,13 +162,24 @@ class PracticeViewModel @Inject constructor(
 
             combine(
                 wordsFlow,
-                settingsFlow.map { it.requiredCorrectAnswers }.distinctUntilChanged()
-            ) { words, required ->
-                required to words
-            }.collect { (required, words) ->
+                settingsFlow
+                    .map {
+                        it.requiredCorrectAnswers to it.excludeMasteredWordsFromPractice
+                    }
+                    .distinctUntilChanged()
+            ) { words, (required, excludeMastered) ->
+                Triple(required, excludeMastered, words)
+            }.collect { (required, excludeMastered, words) ->
                 val maxShortSessionWords = 15
                 val requiredCoerced = required.coerceAtLeast(1)
                 val cur = _state.value
+
+                val practiceWords = wordsForPractice(
+                    allWords = words,
+                    requiredCorrectAnswers = requiredCoerced,
+                    excludeMasteredWords = excludeMastered,
+                    includeMasteredInSession = cur.includeMasteredInSession
+                )
 
                 // Update/reconcile in-memory metadata used for weighting.
                 val nextReviewMeta = reconcileReviewMeta(
@@ -166,11 +188,11 @@ class PracticeViewModel @Inject constructor(
                     currentMeta = cur.reviewMetaByWordId
                 )
 
-                val hasWords = words.isNotEmpty()
+                val hasPracticeWords = practiceWords.isNotEmpty()
                 val nextSessionTarget = when {
                     cur.sessionTargetSelections > 0 -> cur.sessionTargetSelections
-                    !hasWords -> 0
-                    else -> words.size.coerceAtMost(maxShortSessionWords).coerceAtLeast(1)
+                    !hasPracticeWords -> 0
+                    else -> practiceWords.size.coerceAtMost(maxShortSessionWords).coerceAtLeast(1)
                 }
 
                 val masteredCount = words.count { it.isLearnedAtThreshold(requiredCoerced) }
@@ -182,39 +204,50 @@ class PracticeViewModel @Inject constructor(
                 }
 
                 val currentWordId = cur.words.getOrNull(cur.currentIndex)?.id
-                val currentWordStillExists = currentWordId != null && words.any { it.id == currentWordId }
+                val currentWordStillExists =
+                    currentWordId != null && practiceWords.any { it.id == currentWordId }
 
-                val nextIndex = if (hasWords && currentWordStillExists) {
-                    words.indexOfFirst { it.id == currentWordId }.coerceAtLeast(0)
-                } else {
+                val nextIndex = if (hasPracticeWords && currentWordStillExists) {
+                    practiceWords.indexOfFirst { it.id == currentWordId }.coerceAtLeast(0)
+                } else if (hasPracticeWords) {
                     selectNextWord(
-                        allWords = words,
+                        allWords = practiceWords,
                         requiredCorrectAnswers = requiredCoerced,
                         reviewMetaByWordId = nextReviewMeta,
                         lastWordId = null,
                         selectionStep = 0L
-                    )?.let { chosen -> words.indexOfFirst { it.id == chosen.id }.takeIf { it >= 0 } }
-                        ?: 0
+                    )?.let { chosen ->
+                        practiceWords.indexOfFirst { it.id == chosen.id }.takeIf { it >= 0 }
+                    } ?: 0
+                } else {
+                    0
                 }
 
-                val nextWord = words.getOrNull(nextIndex)
+                val nextWord = practiceWords.getOrNull(nextIndex)
 
                 val nextSessionComplete =
-                    if (!hasWords) {
+                    if (!hasPracticeWords) {
                         false
                     } else {
-                        cur.sessionComplete || (cur.sessionTargetSelections > 0 && cur.selectionStep >= cur.sessionTargetSelections)
+                        cur.sessionComplete ||
+                            (cur.sessionTargetSelections > 0 &&
+                                cur.selectionStep >= cur.sessionTargetSelections)
                     }
 
                 _state.update { s ->
                     s.copy(
                         allWords = words,
-                        words = words,
-                        currentIndex = nextIndex.coerceIn(0, (words.size - 1).coerceAtLeast(0)),
+                        words = practiceWords,
+                        excludeMasteredWords = excludeMastered,
+                        currentIndex = nextIndex.coerceIn(0, (practiceWords.size - 1).coerceAtLeast(0)),
                         letters = nextWord?.let { shuffleLetters(it.text) }.orEmpty(),
                         requiredCorrectAnswers = requiredCoerced,
                         reviewMetaByWordId = nextReviewMeta,
-                        sessionTargetSelections = if (s.sessionTargetSelections > 0) s.sessionTargetSelections else nextSessionTarget,
+                        sessionTargetSelections = if (s.sessionTargetSelections > 0) {
+                            s.sessionTargetSelections
+                        } else {
+                            nextSessionTarget
+                        },
                         sessionComplete = nextSessionComplete,
                         masteredWordsCount = masteredCount,
                         wordsNeedingReviewCount = needsReviewCount
@@ -293,6 +326,9 @@ class PracticeViewModel @Inject constructor(
                 val idx = list.indexOfFirst { it.id == updatedWord.id }
                 if (idx >= 0) list[idx] = updatedWord
             }
+            val updatedPracticeWords = _state.value.words.map { w ->
+                if (w.id == updatedWord.id) updatedWord else w
+            }
 
             val nextReviewMeta = _state.value.reviewMetaByWordId.toMutableMap().also { meta ->
                 val curMeta = meta[updatedWord.id] ?: PracticeWordReviewMeta(wordId = updatedWord.id)
@@ -328,7 +364,7 @@ class PracticeViewModel @Inject constructor(
                         spellingFeedback = spellingFeedback,
                         animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
                         allWords = updatedAllWords,
-                        words = updatedAllWords,
+                        words = updatedPracticeWords,
                         reviewMetaByWordId = nextReviewMeta,
                         masteredWordsCount = masteredCount,
                         wordsNeedingReviewCount = needsReviewCount,
@@ -345,7 +381,7 @@ class PracticeViewModel @Inject constructor(
                         input = "",
                         wordJustMastered = false,
                         allWords = updatedAllWords,
-                        words = updatedAllWords,
+                        words = updatedPracticeWords,
                         reviewMetaByWordId = nextReviewMeta,
                         masteredWordsCount = masteredCount,
                         wordsNeedingReviewCount = needsReviewCount
@@ -435,8 +471,19 @@ class PracticeViewModel @Inject constructor(
     }
 
     fun practiceAgain() {
-        val words = _state.value.words
-        if (words.isEmpty()) return
+        val cur = _state.value
+        val words = wordsForPractice(
+            allWords = cur.allWords,
+            requiredCorrectAnswers = cur.requiredCorrectAnswers,
+            excludeMasteredWords = cur.excludeMasteredWords,
+            includeMasteredInSession = false
+        )
+        if (words.isEmpty()) {
+            if (cur.allWords.isNotEmpty()) {
+                practiceMasteredWords()
+            }
+            return
+        }
 
         isSessionFinalized = false
         val now = System.currentTimeMillis()
@@ -468,6 +515,8 @@ class PracticeViewModel @Inject constructor(
 
         _state.update {
             it.copy(
+                includeMasteredInSession = false,
+                words = words,
                 sessionCorrect = 0,
                 incorrectSubmissions = 0,
                 feedbackCorrect = null,
@@ -483,8 +532,73 @@ class PracticeViewModel @Inject constructor(
                 currentIndex = firstIndex,
                 letters = shuffleLetters(firstWord.text),
                 reviewMetaByWordId = seededMeta,
-                masteredWordsCount = words.count { w -> w.isLearnedAtThreshold(required) },
-                wordsNeedingReviewCount = words.count { w ->
+                masteredWordsCount = it.allWords.count { w -> w.isLearnedAtThreshold(required) },
+                wordsNeedingReviewCount = it.allWords.count { w ->
+                    w.needsReview(
+                        meta = seededMeta[w.id],
+                        requiredCorrectAnswers = required
+                    )
+                }
+            )
+        }
+
+        listen()
+    }
+
+    /** Start a session that includes mastered words (ignores exclude-mastered for this session). */
+    fun practiceMasteredWords() {
+        val cur = _state.value
+        val allWords = cur.allWords
+        if (allWords.isEmpty()) return
+
+        isSessionFinalized = false
+        val now = System.currentTimeMillis()
+        val required = cur.requiredCorrectAnswers.coerceAtLeast(1)
+
+        val resetMeta = allWords.associate { w ->
+            w.id to PracticeWordReviewMeta(
+                wordId = w.id,
+                incorrectAttempts = w.incorrectCount,
+                lastSeenTimestamp = 0L,
+                needsReview = w.incorrectCount > 0 && !w.isLearnedAtThreshold(required)
+            )
+        }
+
+        val target = allWords.size.coerceAtMost(15).coerceAtLeast(1)
+        val firstWord = selectNextWord(
+            allWords = allWords,
+            requiredCorrectAnswers = required,
+            reviewMetaByWordId = resetMeta,
+            lastWordId = null,
+            selectionStep = 0L
+        ) ?: allWords.first()
+
+        val firstIndex = allWords.indexOfFirst { it.id == firstWord.id }.takeIf { it >= 0 } ?: 0
+        val seededMeta = resetMeta.toMutableMap().also { m ->
+            m[firstWord.id] = m[firstWord.id]!!.copy(lastSeenTimestamp = now)
+        }
+
+        _state.update {
+            it.copy(
+                includeMasteredInSession = true,
+                words = allWords,
+                sessionCorrect = 0,
+                incorrectSubmissions = 0,
+                feedbackCorrect = null,
+                spellingFeedback = null,
+                animationHint = PracticeAnimHint.None,
+                input = "",
+                showHints = false,
+                wordJustMastered = false,
+                selectionStep = 0L,
+                lastWordId = firstWord.id,
+                sessionTargetSelections = target,
+                sessionComplete = false,
+                currentIndex = firstIndex,
+                letters = shuffleLetters(firstWord.text),
+                reviewMetaByWordId = seededMeta,
+                masteredWordsCount = allWords.count { w -> w.isLearnedAtThreshold(required) },
+                wordsNeedingReviewCount = allWords.count { w ->
                     w.needsReview(
                         meta = seededMeta[w.id],
                         requiredCorrectAnswers = required
@@ -680,6 +794,17 @@ class PracticeViewModel @Inject constructor(
         meta: PracticeWordReviewMeta?,
         requiredCorrectAnswers: Int
     ): Boolean = meta?.needsReview == true && !isLearnedAtThreshold(requiredCorrectAnswers)
+
+    private fun wordsForPractice(
+        allWords: List<Word>,
+        requiredCorrectAnswers: Int,
+        excludeMasteredWords: Boolean,
+        includeMasteredInSession: Boolean
+    ): List<Word> {
+        if (includeMasteredInSession || !excludeMasteredWords) return allWords
+        val required = requiredCorrectAnswers.coerceAtLeast(1)
+        return allWords.filterNot { it.isLearnedAtThreshold(required) }
+    }
 
     private fun shuffleLetters(text: String): List<String> {
         val lettersOnly = text.filter { it.isLetter() }.map { it.toString() }
