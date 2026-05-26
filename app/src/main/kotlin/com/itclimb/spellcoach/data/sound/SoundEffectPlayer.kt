@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 
 @Singleton
 class SoundEffectPlayer @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val settingsDataStore: SettingsDataStore
 ) : RewardSoundPlayer {
     private val pool: SoundPool = SoundPool.Builder()

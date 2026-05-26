@@ -30,7 +30,7 @@ import kotlin.math.min
 
 @HiltViewModel
 class AddWordsViewModel @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle,
     private val wordRepository: WordRepository,
     private val createWordList: CreateWordListUseCase

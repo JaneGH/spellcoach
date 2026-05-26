@@ -24,8 +24,8 @@ import kotlinx.coroutines.launch
 
 @Singleton
 class TtsManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @ApplicationScope private val applicationScope: CoroutineScope
+    @param:ApplicationContext private val context: Context,
+    @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : TextToSpeech.OnInitListener, SpellCoachTextToSpeech {
     private var tts: TextToSpeech? = null
     private val _availability =
