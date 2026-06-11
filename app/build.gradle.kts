@@ -41,10 +41,21 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("test") {
+            java.srcDir("src/sharedTest/kotlin")
+        }
+        getByName("androidTest") {
+            java.srcDir("src/sharedTest/kotlin")
+        }
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
@@ -86,7 +97,21 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("com.google.truth:truth:1.4.4")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+    testImplementation("app.cash.turbine:turbine:1.2.0")
+
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.activity:activity-compose:1.13.0")
+}
+
+// Robolectric Compose UI tests do not run reliably against the release variant manifest.
+tasks.withType<Test>().configureEach {
+    if (name == "testReleaseUnitTest") {
+        enabled = false
+    }
 }
