@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlin.random.Random
 
 data class PracticeWordReviewMeta(
@@ -106,6 +107,7 @@ class PracticeViewModel @Inject constructor(
 
     private val sessionBadges = mutableListOf<Badge>()
     private var isSessionFinalized: Boolean = false
+    private val checkWordMutex = Mutex()
 
     private val _state = MutableStateFlow(PracticeUiState(listId = listId))
     val state: StateFlow<PracticeUiState> = _state.asStateFlow()
@@ -305,88 +307,97 @@ class PracticeViewModel @Inject constructor(
 
     fun checkWord() {
         val w = currentWord() ?: return
+        if (_state.value.feedbackCorrect != null) return
+
         viewModelScope.launch {
-            val settings = observeSettingsUseCase().first()
-            val required = settings.requiredCorrectAnswers.coerceAtLeast(1)
-            val attempt = _state.value.input
-            val spellingFeedback = SpellingComparer.compare(attempt, w.text)
-            val result = processSpelling(
-                w,
-                attempt,
-                required,
-                settings.mistakeBehavior
-            )
-            val updatedWord = result.updatedWord
-            val justMastered =
-                result.isSpellingCorrect && w.masteredAt == null && updatedWord.masteredAt != null
-            val masteredNow = updatedWord.isLearnedAtThreshold(required)
-            val now = System.currentTimeMillis()
+            if (!checkWordMutex.tryLock()) return@launch
+            try {
+                if (_state.value.feedbackCorrect != null) return@launch
 
-            val updatedAllWords = _state.value.allWords.toMutableList().also { list ->
-                val idx = list.indexOfFirst { it.id == updatedWord.id }
-                if (idx >= 0) list[idx] = updatedWord
-            }
-            val updatedPracticeWords = _state.value.words.map { w ->
-                if (w.id == updatedWord.id) updatedWord else w
-            }
+                val settings = observeSettingsUseCase().first()
+                val required = settings.requiredCorrectAnswers.coerceAtLeast(1)
+                val attempt = _state.value.input
+                val spellingFeedback = SpellingComparer.compare(attempt, w.text)
+                val result = processSpelling(
+                    w,
+                    attempt,
+                    required,
+                    settings.mistakeBehavior
+                )
+                val updatedWord = result.updatedWord
+                val justMastered =
+                    result.isSpellingCorrect && w.masteredAt == null && updatedWord.masteredAt != null
+                val masteredNow = updatedWord.isLearnedAtThreshold(required)
+                val now = System.currentTimeMillis()
 
-            val nextReviewMeta = _state.value.reviewMetaByWordId.toMutableMap().also { meta ->
-                val curMeta = meta[updatedWord.id] ?: PracticeWordReviewMeta(wordId = updatedWord.id)
-                meta[updatedWord.id] = curMeta.copy(
-                    incorrectAttempts = updatedWord.incorrectCount,
-                    lastSeenTimestamp = now,
-                    needsReview = if (result.isSpellingCorrect) {
-                        if (masteredNow) false else curMeta.needsReview
-                    } else {
-                        true
+                val updatedAllWords = _state.value.allWords.toMutableList().also { list ->
+                    val idx = list.indexOfFirst { it.id == updatedWord.id }
+                    if (idx >= 0) list[idx] = updatedWord
+                }
+                val updatedPracticeWords = _state.value.words.map { w ->
+                    if (w.id == updatedWord.id) updatedWord else w
+                }
+
+                val nextReviewMeta = _state.value.reviewMetaByWordId.toMutableMap().also { meta ->
+                    val curMeta = meta[updatedWord.id] ?: PracticeWordReviewMeta(wordId = updatedWord.id)
+                    meta[updatedWord.id] = curMeta.copy(
+                        incorrectAttempts = updatedWord.incorrectCount,
+                        lastSeenTimestamp = now,
+                        needsReview = if (result.isSpellingCorrect) {
+                            if (masteredNow) false else curMeta.needsReview
+                        } else {
+                            true
+                        }
+                    )
+                }
+
+                val masteredCount = updatedAllWords.count { it.isLearnedAtThreshold(required) }
+                val needsReviewCount = updatedAllWords.count { word0 ->
+                    word0.needsReview(
+                        meta = nextReviewMeta[word0.id],
+                        requiredCorrectAnswers = required
+                    )
+                }
+
+                if (result.isSpellingCorrect) {
+                    val before = rewardRepository.rewardState.first()
+                    val isFirstEver = before.totalCorrectLifetime == 0
+                    sessionBadges += rewardRepository.onCorrectAnswer(isFirstEver)
+                    val newSessionCorrect = _state.value.sessionCorrect + 1
+
+                    _state.update {
+                        it.copy(
+                            sessionCorrect = newSessionCorrect,
+                            feedbackCorrect = true,
+                            spellingFeedback = spellingFeedback,
+                            animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
+                            allWords = updatedAllWords,
+                            words = updatedPracticeWords,
+                            reviewMetaByWordId = nextReviewMeta,
+                            masteredWordsCount = masteredCount,
+                            wordsNeedingReviewCount = needsReviewCount,
+                            wordJustMastered = justMastered
+                        )
                     }
-                )
-            }
-
-            val masteredCount = updatedAllWords.count { it.isLearnedAtThreshold(required) }
-            val needsReviewCount = updatedAllWords.count { word0 ->
-                word0.needsReview(
-                    meta = nextReviewMeta[word0.id],
-                    requiredCorrectAnswers = required
-                )
-            }
-
-            if (result.isSpellingCorrect) {
-                val before = rewardRepository.rewardState.first()
-                val isFirstEver = before.totalCorrectLifetime == 0
-                sessionBadges += rewardRepository.onCorrectAnswer(isFirstEver)
-                val newSessionCorrect = _state.value.sessionCorrect + 1
-
-                _state.update {
-                    it.copy(
-                        sessionCorrect = newSessionCorrect,
-                        feedbackCorrect = true,
-                        spellingFeedback = spellingFeedback,
-                        animationHint = if (settings.animationsEnabled) PracticeAnimHint.BounceOk else PracticeAnimHint.None,
-                        allWords = updatedAllWords,
-                        words = updatedPracticeWords,
-                        reviewMetaByWordId = nextReviewMeta,
-                        masteredWordsCount = masteredCount,
-                        wordsNeedingReviewCount = needsReviewCount,
-                        wordJustMastered = justMastered
-                    )
+                } else {
+                    _state.update {
+                        it.copy(
+                            incorrectSubmissions = it.incorrectSubmissions + 1,
+                            feedbackCorrect = false,
+                            spellingFeedback = spellingFeedback,
+                            animationHint = if (settings.animationsEnabled) PracticeAnimHint.ShakeWrong else PracticeAnimHint.None,
+                            input = "",
+                            wordJustMastered = false,
+                            allWords = updatedAllWords,
+                            words = updatedPracticeWords,
+                            reviewMetaByWordId = nextReviewMeta,
+                            masteredWordsCount = masteredCount,
+                            wordsNeedingReviewCount = needsReviewCount
+                        )
+                    }
                 }
-            } else {
-                _state.update {
-                    it.copy(
-                        incorrectSubmissions = it.incorrectSubmissions + 1,
-                        feedbackCorrect = false,
-                        spellingFeedback = spellingFeedback,
-                        animationHint = if (settings.animationsEnabled) PracticeAnimHint.ShakeWrong else PracticeAnimHint.None,
-                        input = "",
-                        wordJustMastered = false,
-                        allWords = updatedAllWords,
-                        words = updatedPracticeWords,
-                        reviewMetaByWordId = nextReviewMeta,
-                        masteredWordsCount = masteredCount,
-                        wordsNeedingReviewCount = needsReviewCount
-                    )
-                }
+            } finally {
+                checkWordMutex.unlock()
             }
         }
     }
