@@ -44,6 +44,11 @@ class AddWordsViewModel @Inject constructor(
 
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
+    override fun onCleared() {
+        textRecognizer.close()
+        super.onCleared()
+    }
+
     private val listIdArg: Long? = savedStateHandle.get<Long>("listId")?.takeIf { it > 0 }
 
     init {
