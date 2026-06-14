@@ -9,7 +9,7 @@ import com.itclimb.spellcoach.data.local.entity.WordListEntity
 @Database(
     entities = [WordListEntity::class, WordEntity::class],
     version = 3,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class SpellCoachDatabase : RoomDatabase() {
     abstract fun spellCoachDao(): SpellCoachDao

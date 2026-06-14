@@ -16,10 +16,14 @@ import javax.inject.Singleton
 object DatabaseModule {
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): SpellCoachDatabase =
-        Room.databaseBuilder(context, SpellCoachDatabase::class.java, "spellcoach.db")
-            .fallbackToDestructiveMigration()
-            .build()
+    fun provideDatabase(@ApplicationContext context: Context): SpellCoachDatabase {
+        val builder = Room.databaseBuilder(
+            context,
+            SpellCoachDatabase::class.java,
+            "spellcoach.db"
+        )
+        return builder.build()
+    }
 
     @Provides
     fun provideDao(db: SpellCoachDatabase): SpellCoachDao = db.spellCoachDao()
