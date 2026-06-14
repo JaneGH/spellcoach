@@ -205,27 +205,38 @@ class PracticeViewModel @Inject constructor(
                     )
                 }
 
-                val currentWordId = cur.words.getOrNull(cur.currentIndex)?.id
-                val currentWordStillExists =
-                    currentWordId != null && practiceWords.any { it.id == currentWordId }
+                val preserveCurrentWord =
+                    cur.feedbackCorrect != null || cur.input.isNotBlank()
 
-                val nextIndex = if (hasPracticeWords && currentWordStillExists) {
-                    practiceWords.indexOfFirst { it.id == currentWordId }.coerceAtLeast(0)
-                } else if (hasPracticeWords) {
-                    selectNextWord(
-                        allWords = practiceWords,
-                        requiredCorrectAnswers = requiredCoerced,
-                        reviewMetaByWordId = nextReviewMeta,
-                        lastWordId = null,
-                        selectionStep = 0L
-                    )?.let { chosen ->
-                        practiceWords.indexOfFirst { it.id == chosen.id }.takeIf { it >= 0 }
-                    } ?: 0
+                val nextIndex: Int
+                val nextLetters: List<String>
+                if (preserveCurrentWord) {
+                    nextIndex = cur.currentIndex
+                    nextLetters = cur.letters
                 } else {
-                    0
-                }
+                    val currentWordId = cur.words.getOrNull(cur.currentIndex)?.id
+                    val currentWordStillExists =
+                        currentWordId != null && practiceWords.any { it.id == currentWordId }
 
-                val nextWord = practiceWords.getOrNull(nextIndex)
+                    nextIndex = if (hasPracticeWords && currentWordStillExists) {
+                        practiceWords.indexOfFirst { it.id == currentWordId }.coerceAtLeast(0)
+                    } else if (hasPracticeWords) {
+                        selectNextWord(
+                            allWords = practiceWords,
+                            requiredCorrectAnswers = requiredCoerced,
+                            reviewMetaByWordId = nextReviewMeta,
+                            lastWordId = null,
+                            selectionStep = 0L
+                        )?.let { chosen ->
+                            practiceWords.indexOfFirst { it.id == chosen.id }.takeIf { it >= 0 }
+                        } ?: 0
+                    } else {
+                        0
+                    }
+
+                    val nextWord = practiceWords.getOrNull(nextIndex)
+                    nextLetters = nextWord?.let { shuffleLetters(it.text) }.orEmpty()
+                }
 
                 val nextSessionComplete =
                     if (!hasPracticeWords) {
@@ -237,12 +248,17 @@ class PracticeViewModel @Inject constructor(
                     }
 
                 _state.update { s ->
+                    val preserve = s.feedbackCorrect != null || s.input.isNotBlank()
                     s.copy(
                         allWords = words,
                         words = practiceWords,
                         excludeMasteredWords = excludeMastered,
-                        currentIndex = nextIndex.coerceIn(0, (practiceWords.size - 1).coerceAtLeast(0)),
-                        letters = nextWord?.let { shuffleLetters(it.text) }.orEmpty(),
+                        currentIndex = if (preserve) {
+                            s.currentIndex
+                        } else {
+                            nextIndex.coerceIn(0, (practiceWords.size - 1).coerceAtLeast(0))
+                        },
+                        letters = if (preserve) s.letters else nextLetters,
                         requiredCorrectAnswers = requiredCoerced,
                         reviewMetaByWordId = nextReviewMeta,
                         sessionTargetSelections = if (s.sessionTargetSelections > 0) {
