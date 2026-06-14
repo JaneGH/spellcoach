@@ -166,13 +166,20 @@ fun PracticeScreen(
     var inputMode by rememberSaveable { mutableStateOf(PracticeInputMode.Keyboard) }
 
     val recognizer = remember {
-        val id = requireNotNull(DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")) {
-            "DigitalInkRecognitionModelIdentifier missing for locale en-US"
-        }
+        val id = DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")
+            ?: return@remember null
+
         val model = DigitalInkRecognitionModel.builder(id).build()
         DigitalInkRecognition.getClient(
             DigitalInkRecognizerOptions.builder(model).build()
         )
+    }
+    val handwritingAvailable = recognizer != null
+
+    LaunchedEffect(handwritingAvailable) {
+        if (!handwritingAvailable && inputMode == PracticeInputMode.Handwriting) {
+            inputMode = PracticeInputMode.Keyboard
+        }
     }
 
 
@@ -450,27 +457,29 @@ fun PracticeScreen(
 
                             Spacer(Modifier.height(AppSpacing.lg))
 
-                            SpellCoachSegmentedControl(
-                                options = listOf(
-                                    SegmentedOption(
-                                        stringResource(R.string.input_mode_keyboard),
-                                        Icons.Rounded.Keyboard
+                            if (handwritingAvailable) {
+                                SpellCoachSegmentedControl(
+                                    options = listOf(
+                                        SegmentedOption(
+                                            stringResource(R.string.input_mode_keyboard),
+                                            Icons.Rounded.Keyboard
+                                        ),
+                                        SegmentedOption(
+                                            stringResource(R.string.input_mode_handwriting),
+                                            Icons.Rounded.Draw
+                                        )
                                     ),
-                                    SegmentedOption(
-                                        stringResource(R.string.input_mode_handwriting),
-                                        Icons.Rounded.Draw
-                                    )
-                                ),
-                                selectedIndex = if (inputMode == PracticeInputMode.Keyboard) 0 else 1,
-                                onSelectIndex = { idx ->
-                                    inputMode = if (idx == 0) {
-                                        PracticeInputMode.Keyboard
-                                    } else {
-                                        PracticeInputMode.Handwriting
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                    selectedIndex = if (inputMode == PracticeInputMode.Keyboard) 0 else 1,
+                                    onSelectIndex = { idx ->
+                                        inputMode = if (idx == 0) {
+                                            PracticeInputMode.Keyboard
+                                        } else {
+                                            PracticeInputMode.Handwriting
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
 
                             Spacer(Modifier.height(AppSpacing.md + AppSpacing.xs))
 
@@ -617,14 +626,21 @@ fun PracticeScreen(
                                         }
 
                                         PracticeInputMode.Handwriting -> {
-                                            HandwritingInputPanel(
-                                                modifier = Modifier.fillMaxSize(),
-                                                recognizer = recognizer,
-                                                onRecognized = { recognized ->
-                                                    viewModel.onInputChange(recognized)
-                                                    viewModel.checkWord()
-                                                }
-                                            )
+                                            val inkRecognizer = recognizer
+                                            if (inkRecognizer != null) {
+                                                HandwritingInputPanel(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    recognizer = inkRecognizer,
+                                                    onRecognized = { recognized ->
+                                                        viewModel.onInputChange(recognized)
+                                                        viewModel.checkWord()
+                                                    }
+                                                )
+                                            } else {
+                                                HandwritingUnavailablePanel(
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -1388,6 +1404,27 @@ private fun HintsSection(
 }
 
 @Composable
+private fun HandwritingUnavailablePanel(modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = AppDimensions.handwritingPanelMinHeight)
+            .clip(RoundedCornerShape(AppRadius.glassCard))
+            .background(scheme.surfaceVariant.copy(alpha = 0.34f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.practice_handwriting_unavailable),
+            color = scheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = AppSpacing.lg)
+        )
+    }
+}
+
+@Composable
 private fun HandwritingInputPanel(
     modifier: Modifier = Modifier,
     recognizer: DigitalInkRecognizer,
@@ -1695,39 +1732,45 @@ private suspend fun recognizeInkWord(
     recognizer: DigitalInkRecognizer,
     strokes: List<HandwritingStroke>
 ): String = withContext(Dispatchers.Default) {
-    val id = requireNotNull(DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US"))
+    if (strokes.isEmpty()) return@withContext ""
+
+    val id = DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")
+        ?: return@withContext ""
+
     val model = DigitalInkRecognitionModel.builder(id).build()
     val conditions = DownloadConditions.Builder().build()
 
-    RemoteModelManager.getInstance()
-        .download(model, conditions)
-        .await()
+    runCatching {
+        RemoteModelManager.getInstance()
+            .download(model, conditions)
+            .await()
 
-    val inkBuilder = Ink.builder()
+        val inkBuilder = Ink.builder()
 
-    for (stroke in strokes) {
-        val strokeBuilder = Ink.Stroke.builder()
+        for (stroke in strokes) {
+            val strokeBuilder = Ink.Stroke.builder()
 
-        stroke.points.forEach { p ->
-            strokeBuilder.addPoint(
-                Ink.Point.create(
-                    p.offset.x,
-                    p.offset.y,
-                    p.timeMs
+            stroke.points.forEach { p ->
+                strokeBuilder.addPoint(
+                    Ink.Point.create(
+                        p.offset.x,
+                        p.offset.y,
+                        p.timeMs
+                    )
                 )
-            )
+            }
+
+            inkBuilder.addStroke(strokeBuilder.build())
         }
 
-        inkBuilder.addStroke(strokeBuilder.build())
-    }
+        val result = recognizer.recognize(inkBuilder.build()).await()
 
-    val result = recognizer.recognize(inkBuilder.build()).await()
-
-    result.candidates
-        .firstOrNull()
-        ?.text
-        ?.trim()
-        .orEmpty()
+        result.candidates
+            .firstOrNull()
+            ?.text
+            ?.trim()
+            .orEmpty()
+    }.getOrElse { "" }
 }
 
 @SuppressLint("UnusedBoxWithConstraintsScope")

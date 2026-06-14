@@ -125,6 +125,7 @@
     <string name="practice_hints_tip_label">Tip:</string>
     <string name="practice_hints_tip_body">Tap letters to help spell the word</string>
 
+    <string name="practice_handwriting_unavailable">Handwriting is not available on this device.</string>
     <string name="practice_handwriting_detected_format">Detected: %1$s</string>
     <string name="content_desc_clear_handwriting">Clear handwriting</string>
     <string name="content_desc_undo_stroke">Undo stroke</string>
