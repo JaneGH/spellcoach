@@ -25,6 +25,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -101,6 +103,44 @@ private fun NavHostController.navigateToRootTab(route: String) {
     }
 }
 
+/**
+ * Opens practice for [listId] without restoring a previously saved practice back stack.
+ * Prefer [popUpToEntryId] (concrete back stack entry id) over route templates when replacing
+ * a stale session destination.
+ */
+private fun NavHostController.navigateToPracticeSession(
+    listId: Long,
+    popUpToEntryId: String? = null,
+    popUpToListsTab: Boolean = false,
+) {
+    navigate(AppNav.practiceSession(listId)) {
+        when {
+            popUpToEntryId != null -> {
+                popUpTo(popUpToEntryId) {
+                    inclusive = true
+                    saveState = false
+                }
+            }
+            popUpToListsTab -> {
+                popUpTo(AppNav.TAB_LISTS) {
+                    saveState = true
+                    inclusive = false
+                }
+            }
+        }
+        launchSingleTop = true
+        restoreState = false
+    }
+}
+
+private fun NavHostController.requestPracticeSession(
+    listId: Long,
+    practiceListHolder: PracticeListHolder,
+) {
+    practiceListHolder.pendingPracticeListId = listId
+    navigateToPracticeSession(listId, popUpToListsTab = true)
+}
+
 @Composable
 private fun SpellCoachNavGraph(
     padding: PaddingValues,
@@ -122,14 +162,7 @@ private fun SpellCoachNavGraph(
                         navController.navigate(AppNav.listsAddWords(-1L))
                     },
                     onPracticeList = { listId ->
-                        practiceListHolder.lastListId = listId
-                        navController.navigate(AppNav.TAB_PRACTICE) {
-                            popUpTo(AppNav.TAB_LISTS) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navController.requestPracticeSession(listId, practiceListHolder)
                     },
                     onEditList = { listId ->
                         navController.navigate(AppNav.listsAddWords(listId))
@@ -195,12 +228,22 @@ private fun SpellCoachNavGraph(
                         type = NavType.LongType
                     }
                 )
-            ) {
-                PracticeScreen(
-                    onBack = {
-                        navController.navigateToRootTab(AppNav.TAB_LISTS)
-                    }
-                )
+            ) { entry ->
+                val sessionListId = entry.arguments?.getLong("listId") ?: return@composable
+
+                PracticeSessionRouteGuard(
+                    entry = entry,
+                    sessionListId = sessionListId,
+                    practiceListHolder = practiceListHolder,
+                    navController = navController,
+                ) {
+                    PracticeScreen(
+                        onBack = {
+                            navController.navigateToRootTab(AppNav.TAB_LISTS)
+                        },
+                        viewModel = hiltViewModel(entry),
+                    )
+                }
             }
         }
 
@@ -211,6 +254,46 @@ private fun SpellCoachNavGraph(
             composable(AppNav.Settings.SCREEN) {
                 SettingsScreen()
             }
+        }
+    }
+}
+
+/**
+ * Blocks interaction until the route's [sessionListId] matches an explicit pending request.
+ * Replaces stale sessions using [NavBackStackEntry.id], not route templates.
+ */
+@Composable
+private fun PracticeSessionRouteGuard(
+    entry: NavBackStackEntry,
+    sessionListId: Long,
+    practiceListHolder: PracticeListHolder,
+    navController: NavHostController,
+    content: @Composable () -> Unit,
+) {
+    val pending = practiceListHolder.pendingPracticeListId
+    val sessionReady = practiceListHolder.isExplicitSessionReady(sessionListId)
+
+    LaunchedEffect(entry.id, sessionListId, pending) {
+        if (sessionReady) {
+            practiceListHolder.clearPendingIfMatches(sessionListId)
+            return@LaunchedEffect
+        }
+
+        val pendingListId = practiceListHolder.pendingPracticeListId ?: return@LaunchedEffect
+        navController.navigateToPracticeSession(
+            listId = pendingListId,
+            popUpToEntryId = entry.id,
+        )
+    }
+
+    if (sessionReady) {
+        content()
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
         }
     }
 }
@@ -226,12 +309,15 @@ private fun PracticeTabEntry(
 
     LaunchedEffect(id) {
         if (id != null) {
-            navController.navigate(AppNav.practiceSession(id)) {
-                popUpTo(AppNav.Practice.ENTRY) {
-                    inclusive = true
-                }
-                launchSingleTop = true
-            }
+            val entry = navController.currentBackStackEntry ?: return@LaunchedEffect
+            val onMatchingSession = entry.destination.route == AppNav.Practice.SESSION &&
+                entry.arguments?.getLong("listId") == id
+            if (onMatchingSession) return@LaunchedEffect
+
+            navController.navigateToPracticeSession(
+                listId = id,
+                popUpToEntryId = entry.id,
+            )
         }
     }
 

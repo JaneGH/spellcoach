@@ -8,4 +8,19 @@ import javax.inject.Singleton
 class PracticeListHolder @Inject constructor() {
     @Volatile
     var lastListId: Long? = null
+
+    @Volatile
+    var pendingPracticeListId: Long? = null
+
+    /** True when [sessionListId] matches an explicit pending request, or no request is pending. */
+    fun isExplicitSessionReady(sessionListId: Long): Boolean {
+        val pending = pendingPracticeListId ?: return true
+        return pending == sessionListId
+    }
+
+    fun clearPendingIfMatches(sessionListId: Long) {
+        if (pendingPracticeListId == sessionListId) {
+            pendingPracticeListId = null
+        }
+    }
 }

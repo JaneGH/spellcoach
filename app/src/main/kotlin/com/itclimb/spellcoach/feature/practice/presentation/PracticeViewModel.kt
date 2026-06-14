@@ -50,6 +50,9 @@ enum class WordMasteryLevel {
 
 data class PracticeUiState(
     val listId: Long = 0L,
+    val listIdValid: Boolean = false,
+    /** True when an explicit pending session targets a different list than this route. */
+    val sessionWriteBlocked: Boolean = false,
     val listName: String = "",
     val allWords: List<Word> = emptyList(),
     val words: List<Word> = emptyList(),
@@ -89,6 +92,8 @@ enum class PracticeAnimHint { None, BounceOk, ShakeWrong }
 
 sealed interface PracticeEvent {
     data object Finished : PracticeEvent
+    /** Emitted when a write was blocked because this route is stale vs a pending session. */
+    data object StaleSessionBlocked : PracticeEvent
 }
 
 @HiltViewModel
@@ -100,22 +105,58 @@ class PracticeViewModel @Inject constructor(
     private val rewardRepository: RewardRepository,
     private val practiceResultBuffer: PracticeResultBuffer,
     private val sound: RewardSoundPlayer,
-    private val tts: SpellCoachTextToSpeech
+    private val tts: SpellCoachTextToSpeech,
+    private val practiceListHolder: PracticeListHolder,
 ) : ViewModel() {
 
     private val listId: Long = savedStateHandle.get<Long>("listId") ?: 0L
+    private val listIdValid: Boolean = listId > 0L
 
     private val sessionBadges = mutableListOf<Badge>()
     private var isSessionFinalized: Boolean = false
     private val checkWordMutex = Mutex()
 
-    private val _state = MutableStateFlow(PracticeUiState(listId = listId))
+    private val _state = MutableStateFlow(
+        PracticeUiState(
+            listId = listId,
+            listIdValid = listIdValid,
+            loading = listIdValid,
+        )
+    )
     val state: StateFlow<PracticeUiState> = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<PracticeEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<PracticeEvent> = _events.asSharedFlow()
 
     init {
+        when {
+            !listIdValid -> _state.update { it.copy(loading = false) }
+            !isSessionAuthorizedForWrites() -> {
+                _state.update {
+                    it.copy(loading = false, sessionWriteBlocked = true)
+                }
+            }
+            else -> loadPracticeSession()
+        }
+    }
+
+    /**
+     * Route [listId] is authoritative. When the user explicitly requested a different pending
+     * session, block all progress writes for this stale entry.
+     */
+    private fun isSessionAuthorizedForWrites(): Boolean {
+        if (!listIdValid) return false
+        return practiceListHolder.isExplicitSessionReady(listId)
+    }
+
+    private fun blockWriteOperation(): Boolean {
+        if (isSessionAuthorizedForWrites()) return false
+        _state.update { it.copy(sessionWriteBlocked = true) }
+        _events.tryEmit(PracticeEvent.StaleSessionBlocked)
+        return true
+    }
+
+    private fun loadPracticeSession() {
         viewModelScope.launch {
             val name = wordRepository.getWordListName(listId).orEmpty()
             _state.update {
@@ -275,15 +316,6 @@ class PracticeViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Called when the session route becomes active. Keeps [PracticeListHolder] in sync with the
-     * list shown in this ViewModel (backed by navigation [listId] in [SavedStateHandle]).
-     */
-//    fun startPractice(id: Long) {
-//        if (id <= 0L || id != listId) return
-//        practiceListHolder.lastListId = id
-//    }
-
     fun showHints() {
         _state.update { cur ->
             if (!cur.hintsEnabled) cur.copy(showHints = false) else cur.copy(showHints = true)
@@ -322,6 +354,7 @@ class PracticeViewModel @Inject constructor(
     }
 
     fun checkWord() {
+        if (blockWriteOperation()) return
         val w = currentWord() ?: return
         if (_state.value.feedbackCorrect != null) return
 
@@ -329,6 +362,10 @@ class PracticeViewModel @Inject constructor(
             if (!checkWordMutex.tryLock()) return@launch
             try {
                 if (_state.value.feedbackCorrect != null) return@launch
+                if (!isSessionAuthorizedForWrites()) {
+                    blockWriteOperation()
+                    return@launch
+                }
 
                 val settings = observeSettingsUseCase().first()
                 val required = settings.requiredCorrectAnswers.coerceAtLeast(1)
@@ -419,6 +456,7 @@ class PracticeViewModel @Inject constructor(
     }
 
     fun onNextWord() {
+        if (blockWriteOperation()) return
         val cur = _state.value
 
         if (cur.sessionComplete) return
@@ -498,6 +536,7 @@ class PracticeViewModel @Inject constructor(
     }
 
     fun practiceAgain() {
+        if (blockWriteOperation()) return
         val cur = _state.value
         val words = wordsForPractice(
             allWords = cur.allWords,
@@ -575,6 +614,7 @@ class PracticeViewModel @Inject constructor(
 
     /** Start a session that includes mastered words (ignores exclude-mastered for this session). */
     fun practiceMasteredWords() {
+        if (blockWriteOperation()) return
         val cur = _state.value
         val allWords = cur.allWords
         if (allWords.isEmpty()) return
@@ -640,12 +680,14 @@ class PracticeViewModel @Inject constructor(
     }
 
     fun resetListProgress() {
+        if (blockWriteOperation()) return
         viewModelScope.launch {
             wordRepository.resetProgress(listId)
         }
     }
 
     private suspend fun finishSession(finalCorrect: Int) {
+        if (!isSessionAuthorizedForWrites()) return
         val s = _state.value
         val total = s.allWords.size
         if (total == 0) {
@@ -678,6 +720,7 @@ class PracticeViewModel @Inject constructor(
     }
 
     private fun completeSessionIfNeeded(finalCorrect: Int) {
+        if (!isSessionAuthorizedForWrites()) return
         if (isSessionFinalized) return
         isSessionFinalized = true
         viewModelScope.launch { finishSession(finalCorrect) }

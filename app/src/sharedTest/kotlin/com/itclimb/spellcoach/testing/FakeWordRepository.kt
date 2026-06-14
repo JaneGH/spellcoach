@@ -19,6 +19,9 @@ class FakeWordRepository(
     val deleteWordCalls = mutableListOf<Long>()
     val resetAllProgressCalls = mutableListOf<Unit>()
     val reconcileMasteryCalls = mutableListOf<Int>()
+    val getWordListNameCalls = mutableListOf<Long>()
+    val observeWordsForListCalls = mutableListOf<Long>()
+    val updateWordCalls = mutableListOf<Word>()
     var lastUpdatedWord: Word? = null
         private set
 
@@ -32,8 +35,10 @@ class FakeWordRepository(
 
     override fun observeWordLists(): Flow<List<WordList>> = lists.asStateFlow()
 
-    override fun observeWordsForList(listId: Long): Flow<List<Word>> =
-        wordsByListId.getOrPut(listId) { MutableStateFlow(emptyList()) }.asStateFlow()
+    override fun observeWordsForList(listId: Long): Flow<List<Word>> {
+        observeWordsForListCalls.add(listId)
+        return wordsByListId.getOrPut(listId) { MutableStateFlow(emptyList()) }.asStateFlow()
+    }
 
     override suspend fun createWordListWithWords(name: String, words: List<String>): Long {
         error("Not implemented in fake")
@@ -44,6 +49,7 @@ class FakeWordRepository(
     }
 
     override suspend fun updateWord(word: Word) {
+        updateWordCalls.add(word)
         lastUpdatedWord = word
         val flow = wordsByListId[word.listId] ?: return
         flow.value = flow.value.map { if (it.id == word.id) word else it }
@@ -77,8 +83,10 @@ class FakeWordRepository(
         }
     }
 
-    override suspend fun getWordListName(listId: Long): String? =
-        lists.value.firstOrNull { it.id == listId }?.name
+    override suspend fun getWordListName(listId: Long): String? {
+        getWordListNameCalls.add(listId)
+        return lists.value.firstOrNull { it.id == listId }?.name
+    }
 
     override suspend fun getWordsForList(listId: Long): List<Word> =
         wordsByListId[listId]?.value.orEmpty()

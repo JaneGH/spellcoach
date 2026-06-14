@@ -61,6 +61,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -160,6 +161,43 @@ fun PracticeScreen(
         lifecycleOwner = LocalLifecycleOwner.current
     )
 
+    if (!state.listIdValid) {
+        SpellCoachScreenContainer {
+            Column(modifier = Modifier.fillMaxSize()) {
+                SpellCoachTopBar(
+                    variant = SpellCoachTopBarVariant.Inner,
+                    onBack = onBack,
+                    innerTitle = stringResource(R.string.practice_title),
+                    innerCaption = null,
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(AppSpacing.xxl),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.manage_words_invalid_list),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        return
+    }
+
+    if (state.sessionWriteBlocked) {
+        SpellCoachScreenContainer {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        return
+    }
 
     var showCorrectAnswerCard by rememberSaveable { mutableStateOf(false) }
     val showWrongAnswerCard = state.feedbackCorrect == false
