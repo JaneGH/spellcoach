@@ -510,7 +510,8 @@ class PracticeViewModel @Inject constructor(
 
         val firstIndex = words.indexOfFirst { it.id == firstWord.id }.takeIf { it >= 0 } ?: 0
         val seededMeta = resetMeta.toMutableMap().also { m ->
-            m[firstWord.id] = m[firstWord.id]!!.copy(lastSeenTimestamp = now)
+            val curMeta = m[firstWord.id] ?: PracticeWordReviewMeta(wordId = firstWord.id)
+            m[firstWord.id] = curMeta.copy(lastSeenTimestamp = now)
         }
 
         _state.update {
@@ -575,7 +576,8 @@ class PracticeViewModel @Inject constructor(
 
         val firstIndex = allWords.indexOfFirst { it.id == firstWord.id }.takeIf { it >= 0 } ?: 0
         val seededMeta = resetMeta.toMutableMap().also { m ->
-            m[firstWord.id] = m[firstWord.id]!!.copy(lastSeenTimestamp = now)
+            val curMeta = m[firstWord.id] ?: PracticeWordReviewMeta(wordId = firstWord.id)
+            m[firstWord.id] = curMeta.copy(lastSeenTimestamp = now)
         }
 
         _state.update {
