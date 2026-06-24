@@ -8,7 +8,8 @@ data class AddWordsState(
     val previewWords: List<String> = emptyList(),
     val isImporting: Boolean = false,
     val saving: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val importNotice: String? = null,
 )
 
 sealed interface AddWordsEvent {

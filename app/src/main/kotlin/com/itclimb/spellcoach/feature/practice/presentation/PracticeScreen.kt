@@ -191,11 +191,36 @@ fun PracticeScreen(
 
     if (state.sessionWriteBlocked) {
         SpellCoachScreenContainer {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
+            Column(modifier = Modifier.fillMaxSize()) {
+                SpellCoachTopBar(
+                    variant = SpellCoachTopBarVariant.Inner,
+                    onBack = onBack,
+                    innerTitle = stringResource(R.string.practice_title),
+                    innerCaption = null,
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .spellCoachScreenHorizontalPadding()
+                        .padding(vertical = AppSpacing.xxl),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.practice_stale_session_message),
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        SpellCoachPrimaryButton(
+                            text = stringResource(R.string.practice_back_to_lists),
+                            onClick = onBack,
+                        )
+                    }
+                }
             }
         }
         return

@@ -67,18 +67,23 @@ class AddWordsViewModel @Inject constructor(
     }
 
     fun setListName(value: String) {
-        _state.value = _state.value.copy(listName = value, errorMessage = null)
+        _state.value = _state.value.copy(listName = value, errorMessage = null, importNotice = null)
     }
 
     fun setRawInput(value: String) {
-        _state.value = _state.value.copy(rawInput = value, errorMessage = null)
+        _state.value = _state.value.copy(rawInput = value, errorMessage = null, importNotice = null)
     }
 
     fun addParsedWordsFromInput() {
         val words = parseWords(_state.value.rawInput)
         if (words.isEmpty()) return
         val merged = mergeDistinctWords(_state.value.previewWords, words)
-        _state.value = _state.value.copy(previewWords = merged, rawInput = "", errorMessage = null)
+        _state.value = _state.value.copy(
+            previewWords = merged,
+            rawInput = "",
+            errorMessage = null,
+            importNotice = null,
+        )
     }
 
     fun removeWord(word: String) {
@@ -91,15 +96,16 @@ class AddWordsViewModel @Inject constructor(
         if (uri == null) return
         viewModelScope.launch {
             if (_state.value.isImporting) return@launch
-            _state.value = _state.value.copy(isImporting = true, errorMessage = null)
+            _state.value = _state.value.copy(isImporting = true, errorMessage = null, importNotice = null)
             val result = runCatching { extractWordsFromPdf(uri) }
             result.fold(
-                onSuccess = { imported ->
-                    val merged = mergeDistinctWords(_state.value.previewWords, imported)
+                onSuccess = { extraction ->
+                    val merged = mergeDistinctWords(_state.value.previewWords, extraction.words)
                     _state.value = _state.value.copy(
                         previewWords = merged,
                         isImporting = false,
-                        errorMessage = if (imported.isEmpty()) "No words found in PDF." else null
+                        errorMessage = if (extraction.words.isEmpty()) "No words found in PDF." else null,
+                        importNotice = extraction.truncationNotice,
                     )
                 },
                 onFailure = { e ->
@@ -116,7 +122,7 @@ class AddWordsViewModel @Inject constructor(
         if (uri == null) return
         viewModelScope.launch {
             if (_state.value.isImporting) return@launch
-            _state.value = _state.value.copy(isImporting = true, errorMessage = null)
+            _state.value = _state.value.copy(isImporting = true, errorMessage = null, importNotice = null)
             val result = runCatching { extractWordsFromImage(uri) }
             result.fold(
                 onSuccess = { imported ->
@@ -241,14 +247,15 @@ class AddWordsViewModel @Inject constructor(
         normalizeAndFilterWords(tokens)
     }
 
-    private suspend fun extractWordsFromPdf(uri: Uri): List<String> = withContext(Dispatchers.IO) {
+    private suspend fun extractWordsFromPdf(uri: Uri): PdfExtractionResult = withContext(Dispatchers.IO) {
         val pfd = appContext.contentResolver.openFileDescriptor(uri, "r")
             ?: throw IllegalStateException("Could not open PDF.")
 
         pfd.use {
             PdfRenderer(it).use { renderer ->
                 val all = LinkedHashSet<String>()
-                for (i in 0 until renderer.pageCount) {
+                val pagesToScan = min(renderer.pageCount, MAX_PDF_PAGES)
+                for (i in 0 until pagesToScan) {
                     renderer.openPage(i).use { page ->
                         val bitmap = renderPdfPageToBitmap(page)
                         val recognized = textRecognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
@@ -257,9 +264,26 @@ class AddWordsViewModel @Inject constructor(
                         bitmap.recycle()
                     }
                 }
-                all.toList()
+                val truncationNotice = if (renderer.pageCount > MAX_PDF_PAGES) {
+                    "Only the first $MAX_PDF_PAGES pages were scanned."
+                } else {
+                    null
+                }
+                PdfExtractionResult(
+                    words = all.toList(),
+                    truncationNotice = truncationNotice,
+                )
             }
         }
+    }
+
+    private data class PdfExtractionResult(
+        val words: List<String>,
+        val truncationNotice: String?,
+    )
+
+    private companion object {
+        const val MAX_PDF_PAGES = 20
     }
 
     private fun renderPdfPageToBitmap(page: PdfRenderer.Page): Bitmap {

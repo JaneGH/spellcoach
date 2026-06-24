@@ -270,12 +270,22 @@ fun AddWordsScreen(
                 }
             }
 
-            if (state.errorMessage != null) {
+            state.errorMessage?.let { message ->
                 Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
                 Text(
-                    text = state.errorMessage!!,
+                    text = message,
                     color = scheme.error,
                     fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            state.importNotice?.let { notice ->
+                Spacer(Modifier.height(AppSpacing.sm + AppSpacing.xs))
+                Text(
+                    text = notice,
+                    color = scheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

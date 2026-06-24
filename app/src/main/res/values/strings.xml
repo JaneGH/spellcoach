@@ -93,6 +93,7 @@
     <string name="practice_completed_review_format">%1$d words still need practice</string>
     <string name="practice_again">Practice again</string>
     <string name="practice_back_to_lists">Back to Lists</string>
+    <string name="practice_stale_session_message">This practice session is no longer active. Go back to your lists and try again.</string>
     <string name="practice_reset_progress">Reset progress</string>
     <string name="practice_word_progress_label_format">Word progress: %1$d of %2$d correct</string>
 
