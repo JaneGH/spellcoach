@@ -22,7 +22,7 @@ class ProcessSpellingResultUseCase @Inject constructor(
     ): SpellingProcessResult {
         // Student-friendly mastery rules:
         // - Correct: increment correctCount, capped at requiredCorrectStreak
-        // - Wrong: decrement correctCount by 1 (never reset to 0), and increment incorrectCount
+        // - Wrong: adjust correctCount per mistakeBehavior, and increment incorrectCount
         val guess = attempt.trim()
         val target = word.text.trim()
         val isCorrect = guess.equals(target, ignoreCase = true)
@@ -52,8 +52,10 @@ class ProcessSpellingResultUseCase @Inject constructor(
                 masteredAt = nextMasteredAt
             )
         } else {
-            // Always decrement on wrong attempts; never reset to 0.
-            val nextCorrect = (word.correctCount - 1).coerceAtLeast(0)
+            val nextCorrect = when (mistakeBehavior) {
+                MistakeBehavior.RESET_PROGRESS -> 0
+                MistakeBehavior.DECREASE_PROGRESS -> (word.correctCount - 1).coerceAtLeast(0)
+            }
             val mastered = alreadyMastered || (nextCorrect >= required)
             val nextMasteredAt = when {
                 alreadyMastered -> word.masteredAt
@@ -61,7 +63,6 @@ class ProcessSpellingResultUseCase @Inject constructor(
                 else -> null
             }
 
-            // mistakeBehavior is intentionally ignored to keep behavior consistent with the practice loop.
             word.copy(
                 correctCount = nextCorrect,
                 incorrectCount = word.incorrectCount + 1,

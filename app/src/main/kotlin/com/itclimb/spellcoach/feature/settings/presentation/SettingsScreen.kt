@@ -38,7 +38,8 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,8 +75,12 @@ import com.itclimb.spellcoach.domain.model.ThemePreference
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val settings by viewModel.settings.collectAsState()
-    val ttsAvailability by viewModel.ttsAvailability.collectAsState()
+    val settings by viewModel.settings.collectAsStateWithLifecycle(
+        lifecycleOwner = LocalLifecycleOwner.current
+    )
+    val ttsAvailability by viewModel.ttsAvailability.collectAsStateWithLifecycle(
+        lifecycleOwner = LocalLifecycleOwner.current
+    )
     var showResetAllConfirm by remember { mutableStateOf(false) }
     val scheme = MaterialTheme.colorScheme
     val extras = SpellCoachThemeExtras.current
