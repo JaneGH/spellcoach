@@ -19,6 +19,7 @@ import com.itclimb.spellcoach.domain.usecase.ProcessSpellingResultUseCase
 import com.itclimb.spellcoach.feature.practice.PracticeListHolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -27,11 +28,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.random.Random
 
 data class PracticeWordReviewMeta(
@@ -65,6 +66,7 @@ data class PracticeUiState(
     val incorrectSubmissions: Int = 0,
     val loading: Boolean = true,
     val feedbackCorrect: Boolean? = null,
+    val isCheckingWord: Boolean = false,
     val spellingFeedback: SpellingFeedback? = null,
     val animationHint: PracticeAnimHint = PracticeAnimHint.None,
     val answerSoundsEnabled: Boolean = true,
@@ -350,15 +352,16 @@ class PracticeViewModel @Inject constructor(
         if (_state.value.feedbackCorrect != null) return
 
         viewModelScope.launch {
-            if (!checkWordMutex.tryLock()) return@launch
-            try {
-                if (_state.value.feedbackCorrect != null) return@launch
+            checkWordMutex.withLock {
+                if (_state.value.feedbackCorrect != null) return@withLock
                 if (!isSessionAuthorizedForWrites()) {
                     blockWriteOperation()
-                    return@launch
+                    return@withLock
                 }
 
-                val settings = observeSettingsUseCase().first()
+                _state.update { it.copy(isCheckingWord = true) }
+                try {
+                    val settings = observeSettingsUseCase().first()
                 val required = settings.requiredCorrectAnswers.coerceAtLeast(1)
                 val attempt = _state.value.input
                 val spellingFeedback = SpellingComparer.compare(attempt, w.text)
@@ -440,8 +443,13 @@ class PracticeViewModel @Inject constructor(
                         )
                     }
                 }
-            } finally {
-                checkWordMutex.unlock()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    // Keep input/feedback unchanged so the user can retry after transient failures.
+                } finally {
+                    _state.update { it.copy(isCheckingWord = false) }
+                }
             }
         }
     }

@@ -148,6 +148,8 @@ import com.itclimb.spellcoach.domain.practice.SpellingFeedback
 import com.itclimb.spellcoach.domain.practice.SpellingLetterKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -221,6 +223,13 @@ fun PracticeScreen(
     }
 
     val handwritingAvailable = recognizer != null
+    val inkModelDownloader = remember(recognizer) { InkModelDownloader() }
+
+    LaunchedEffect(handwritingAvailable, inputMode) {
+        if (handwritingAvailable && inputMode == PracticeInputMode.Handwriting) {
+            runCatching { inkModelDownloader.ensureInkModelDownloaded() }
+        }
+    }
 
     LaunchedEffect(handwritingAvailable) {
         if (!handwritingAvailable && inputMode == PracticeInputMode.Handwriting) {
@@ -666,6 +675,8 @@ fun PracticeScreen(
                                                 SpellCoachPrimaryButton(
                                                     text = stringResource(R.string.practice_check_word),
                                                     onClick = viewModel::checkWord,
+                                                    enabled = !state.isCheckingWord &&
+                                                        state.feedbackCorrect == null,
                                                     leadingIcon = Icons.AutoMirrored.Filled.ArrowForward
                                                 )
                                             }
@@ -677,6 +688,7 @@ fun PracticeScreen(
                                                 HandwritingInputPanel(
                                                     modifier = Modifier.fillMaxSize(),
                                                     recognizer = inkRecognizer,
+                                                    inkModelDownloader = inkModelDownloader,
                                                     onRecognized = { recognized ->
                                                         viewModel.onInputChange(recognized)
                                                         viewModel.checkWord()
@@ -1474,6 +1486,7 @@ private fun HandwritingUnavailablePanel(modifier: Modifier = Modifier) {
 private fun HandwritingInputPanel(
     modifier: Modifier = Modifier,
     recognizer: DigitalInkRecognizer,
+    inkModelDownloader: InkModelDownloader,
     onRecognized: (String) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -1500,6 +1513,7 @@ private fun HandwritingInputPanel(
         isRecognizing = true
 
         val recognized = runCatching {
+            inkModelDownloader.ensureInkModelDownloaded()
             recognizeInkWord(
                 recognizer = recognizer,
                 strokes = strokes.toList()
@@ -1590,6 +1604,7 @@ private fun HandwritingInputPanel(
                     isRecognizing = true
 
                     val recognized = runCatching {
+                        inkModelDownloader.ensureInkModelDownloaded()
                         recognizeInkWord(
                             recognizer = recognizer,
                             strokes = strokes.toList()
@@ -1774,23 +1789,47 @@ private data class HandwritingStroke(
     val path: Path
 )
 
+private class InkModelDownloader {
+    @Volatile
+    private var modelReady = false
+    private val mutex = Mutex()
+
+    private val model: DigitalInkRecognitionModel? by lazy {
+        val id = DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")
+            ?: return@lazy null
+        DigitalInkRecognitionModel.builder(id).build()
+    }
+
+    suspend fun ensureInkModelDownloaded() {
+        if (modelReady) return
+        val inkModel = model ?: return
+
+        mutex.withLock {
+            if (modelReady) return@withLock
+
+            val downloaded = runCatching {
+                withContext(Dispatchers.Default) {
+                    val conditions = DownloadConditions.Builder().build()
+                    RemoteModelManager.getInstance()
+                        .download(inkModel, conditions)
+                        .await()
+                }
+            }.isSuccess
+
+            if (downloaded) {
+                modelReady = true
+            }
+        }
+    }
+}
+
 private suspend fun recognizeInkWord(
     recognizer: DigitalInkRecognizer,
     strokes: List<HandwritingStroke>
 ): String = withContext(Dispatchers.Default) {
     if (strokes.isEmpty()) return@withContext ""
 
-    val id = DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")
-        ?: return@withContext ""
-
-    val model = DigitalInkRecognitionModel.builder(id).build()
-    val conditions = DownloadConditions.Builder().build()
-
     runCatching {
-        RemoteModelManager.getInstance()
-            .download(model, conditions)
-            .await()
-
         val inkBuilder = Ink.builder()
 
         for (stroke in strokes) {

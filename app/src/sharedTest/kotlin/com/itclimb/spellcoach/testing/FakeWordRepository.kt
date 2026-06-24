@@ -24,6 +24,7 @@ class FakeWordRepository(
     val updateWordCalls = mutableListOf<Word>()
     var lastUpdatedWord: Word? = null
         private set
+    var beforeUpdateWord: (suspend (Word) -> Unit)? = null
 
     fun setLists(newLists: List<WordList>) {
         lists.value = newLists
@@ -49,6 +50,7 @@ class FakeWordRepository(
     }
 
     override suspend fun updateWord(word: Word) {
+        beforeUpdateWord?.invoke(word)
         updateWordCalls.add(word)
         lastUpdatedWord = word
         val flow = wordsByListId[word.listId] ?: return

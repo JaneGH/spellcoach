@@ -18,9 +18,11 @@ import com.itclimb.spellcoach.testing.FakeSpellCoachTextToSpeech
 import com.itclimb.spellcoach.testing.FakeWordRepository
 import com.itclimb.spellcoach.testing.MainDispatcherRule
 import com.itclimb.spellcoach.testing.WordListFixtures
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -90,10 +92,26 @@ class PracticeViewModelTest {
         repo: FakeWordRepository = repoWithWords(listId),
         practiceListHolder: PracticeListHolder = PracticeListHolder(),
     ): PracticeViewModel {
+        return createViewModel(
+            listId = listId,
+            savedStateHandle = savedStateHandle,
+            repo = repo,
+            practiceListHolder = practiceListHolder,
+            processSpelling = ProcessSpellingResultUseCase(repo),
+        )
+    }
+
+    private fun createViewModel(
+        listId: Long,
+        savedStateHandle: SavedStateHandle,
+        repo: FakeWordRepository,
+        practiceListHolder: PracticeListHolder,
+        processSpelling: ProcessSpellingResultUseCase,
+    ): PracticeViewModel {
         return PracticeViewModel(
             savedStateHandle = savedStateHandle,
             wordRepository = repo,
-            processSpelling = ProcessSpellingResultUseCase(repo),
+            processSpelling = processSpelling,
             observeSettingsUseCase = ObserveSettingsUseCase(FakeSettingsRepository()),
             rewardRepository = NoOpRewardRepository(),
             practiceResultBuffer = NoOpPracticeResultBuffer(),
@@ -102,6 +120,9 @@ class PracticeViewModelTest {
             practiceListHolder = practiceListHolder,
         )
     }
+
+    private fun authorizedHolder(listId: Long) =
+        PracticeListHolder().apply { pendingPracticeListId = listId }
 
     @Test
     fun invalidListId_exposesErrorStateAndSkipsListRepositoryCalls() = runTest {
@@ -219,5 +240,105 @@ class PracticeViewModelTest {
         assertThat(vm.state.value.sessionWriteBlocked).isFalse()
         assertThat(repo.updateWordCalls).hasSize(1)
         assertThat(repo.updateWordCalls.single().listId).isEqualTo(listB)
+    }
+
+    @Test
+    fun checkWord_doubleTap_onlyOneCheckRunsAndSecondWaitsForFirst() = runTest {
+        val updateGate = CompletableDeferred<Unit>()
+        val repo = repoWithWords(listB).apply {
+            beforeUpdateWord = { updateGate.await() }
+        }
+        val holder = authorizedHolder(listB)
+
+        val vm = createViewModel(
+            listId = listB,
+            repo = repo,
+            practiceListHolder = holder,
+        )
+
+        advanceUntilIdle()
+        vm.onInputChange("cat")
+
+        vm.checkWord()
+        runCurrent()
+
+        assertThat(vm.state.value.isCheckingWord).isTrue()
+        assertThat(repo.updateWordCalls).isEmpty()
+
+        vm.checkWord()
+        runCurrent()
+
+        assertThat(repo.updateWordCalls).isEmpty()
+
+        updateGate.complete(Unit)
+        advanceUntilIdle()
+
+        assertThat(repo.updateWordCalls).hasSize(1)
+        assertThat(vm.state.value.feedbackCorrect).isTrue()
+        assertThat(vm.state.value.isCheckingWord).isFalse()
+    }
+
+    @Test
+    fun checkWord_setsCheckingFlagDuringProcessing() = runTest {
+        val updateGate = CompletableDeferred<Unit>()
+        val repo = repoWithWords(listB).apply {
+            beforeUpdateWord = { updateGate.await() }
+        }
+        val holder = authorizedHolder(listB)
+
+        val vm = createViewModel(
+            listId = listB,
+            repo = repo,
+            practiceListHolder = holder,
+        )
+
+        advanceUntilIdle()
+        vm.onInputChange("cat")
+        vm.checkWord()
+        runCurrent()
+
+        assertThat(vm.state.value.isCheckingWord).isTrue()
+
+        updateGate.complete(Unit)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.isCheckingWord).isFalse()
+    }
+
+    @Test
+    fun checkWord_releasesCheckingStateAfterError_allowingRetry() = runTest {
+        var failNextUpdate = true
+        val repo = repoWithWords(listB).apply {
+            beforeUpdateWord = {
+                if (failNextUpdate) {
+                    failNextUpdate = false
+                    error("update failed")
+                }
+            }
+        }
+        val holder = authorizedHolder(listB)
+
+        val vm = createViewModel(
+            listId = listB,
+            repo = repo,
+            practiceListHolder = holder,
+        )
+
+        advanceUntilIdle()
+        vm.onInputChange("cat")
+
+        vm.checkWord()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.isCheckingWord).isFalse()
+        assertThat(vm.state.value.feedbackCorrect).isNull()
+        assertThat(repo.updateWordCalls).isEmpty()
+
+        vm.checkWord()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.isCheckingWord).isFalse()
+        assertThat(repo.updateWordCalls).hasSize(1)
+        assertThat(vm.state.value.feedbackCorrect).isTrue()
     }
 }
