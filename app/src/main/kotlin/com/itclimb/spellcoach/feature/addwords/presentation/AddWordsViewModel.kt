@@ -139,6 +139,7 @@ class AddWordsViewModel @Inject constructor(
 
     fun save() {
         viewModelScope.launch {
+            if (_state.value.saving) return@launch
             if (_state.value.previewWords.isEmpty()) {
                 _state.value = _state.value.copy(errorMessage = "Add at least one word.")
                 return@launch

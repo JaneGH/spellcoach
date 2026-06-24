@@ -287,6 +287,7 @@ fun AddWordsScreen(
                     if (state.isEditMode) R.string.add_words_save_edit else R.string.add_words_save_new
                 ),
                 onClick = viewModel::save,
+                enabled = !state.saving && !state.isImporting,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = AppSpacing.sm + AppSpacing.md)

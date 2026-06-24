@@ -90,6 +90,7 @@ fun PrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     containerColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = MaterialTheme.colorScheme.onPrimary
 ) {
@@ -102,6 +103,7 @@ fun PrimaryButton(
     val interactionSource = remember { MutableInteractionSource() }
     Button(
         onClick = onClick,
+        enabled = enabled,
         interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
@@ -121,7 +123,9 @@ fun PrimaryButton(
         ),
         colors = ButtonDefaults.buttonColors(
             containerColor = fill,
-            contentColor = contentColor
+            contentColor = contentColor,
+            disabledContainerColor = fill.copy(alpha = 0.38f),
+            disabledContentColor = contentColor.copy(alpha = 0.65f)
         )
     ) {
         Text(
@@ -197,12 +201,14 @@ fun SecondaryOutlinedButton(
 fun SaveGreenButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     PrimaryButton(
         text = text,
         onClick = onClick,
         modifier = modifier,
+        enabled = enabled,
         containerColor = SpellCoachThemeExtras.current.positiveAction,
         contentColor = Color.White
     )

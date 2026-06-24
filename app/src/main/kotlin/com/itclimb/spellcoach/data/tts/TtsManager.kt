@@ -27,7 +27,12 @@ class TtsManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : TextToSpeech.OnInitListener, SpellCoachTextToSpeech {
+    private val ttsLock = Any()
     private var tts: TextToSpeech? = null
+    private var isShutdown = false
+    private var engineGeneration = 0
+    private var lastCreatedGeneration = -1
+
     private val _availability =
         MutableStateFlow<TtsAvailability>(TtsAvailability.Checking)
     override val availability: StateFlow<TtsAvailability> = _availability.asStateFlow()
@@ -42,28 +47,54 @@ class TtsManager @Inject constructor(
 
     init {
         applicationScope.launch {
+            initialize()
+        }
+    }
+
+    internal fun initialize() {
+        synchronized(ttsLock) {
+            if (tts != null) return
+            isShutdown = false
+            lastCreatedGeneration = ++engineGeneration
+            _availability.value = TtsAvailability.Checking
             tts = TextToSpeech(context, this@TtsManager)
         }
     }
 
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = tts?.setLanguage(Locale.US) ?: TextToSpeech.LANG_NOT_SUPPORTED
-            _availability.value = if (
-                result == TextToSpeech.LANG_MISSING_DATA ||
-                result == TextToSpeech.LANG_NOT_SUPPORTED
-            ) {
-                TtsAvailability.MissingData
-            } else {
-                TtsAvailability.Ready
-            }
-        } else {
+    fun shutdown() {
+        synchronized(ttsLock) {
+            if (isShutdown && tts == null) return
+            isShutdown = true
+            engineGeneration++
+            val engine = tts
+            tts = null
+            engine?.stop()
+            engine?.shutdown()
             _availability.value = TtsAvailability.Unavailable
         }
     }
 
+    override fun onInit(status: Int) {
+        synchronized(ttsLock) {
+            if (isShutdown || tts == null || lastCreatedGeneration != engineGeneration) return
+            if (status == TextToSpeech.SUCCESS) {
+                val result = tts?.setLanguage(Locale.US) ?: TextToSpeech.LANG_NOT_SUPPORTED
+                _availability.value = if (
+                    result == TextToSpeech.LANG_MISSING_DATA ||
+                    result == TextToSpeech.LANG_NOT_SUPPORTED
+                ) {
+                    TtsAvailability.MissingData
+                } else {
+                    TtsAvailability.Ready
+                }
+            } else {
+                _availability.value = TtsAvailability.Unavailable
+            }
+        }
+    }
+
     override fun speak(text: String) {
-        val engine = tts ?: return
+        val engine = synchronized(ttsLock) { tts } ?: return
         if (_availability.value != TtsAvailability.Ready) {
             applicationScope.launch { _events.emit(TtsEvent.EngineNotReady) }
             return
@@ -73,13 +104,13 @@ class TtsManager @Inject constructor(
     }
 
     override fun stop() {
-        tts?.stop()
+        synchronized(ttsLock) { tts }?.stop()
     }
 
     override fun setSpeechRate(rate: Float) {
         val r = rate.coerceIn(0.5f, 2f)
         _speechRate.value = r
-        tts?.setSpeechRate(r)
+        synchronized(ttsLock) { tts }?.setSpeechRate(r)
     }
 
     override fun openSystemTtsSettings() {
@@ -95,11 +126,5 @@ class TtsManager @Inject constructor(
                 runCatching { context.startActivity(fallback) }
             }
         }
-    }
-
-    fun shutdown() {
-        tts?.stop()
-        tts?.shutdown()
-        tts = null
     }
 }
