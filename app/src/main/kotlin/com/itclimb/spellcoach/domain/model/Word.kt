@@ -12,8 +12,15 @@ data class Word(
 
 fun Word.hasPersistedMastery(): Boolean = isMastered || masteredAt != null
 
-fun Word.isLearnedAtThreshold(requiredCorrectAnswers: Int): Boolean {
-    if (hasPersistedMastery()) return true
-    val r = requiredCorrectAnswers.coerceAtLeast(1)
-    return correctCount >= r
+fun isLearnedAtThreshold(
+    isMastered: Boolean,
+    masteredAt: Long?,
+    correctCount: Int,
+    requiredCorrectAnswers: Int,
+): Boolean {
+    val required = requiredCorrectAnswers.coerceAtLeast(1)
+    return isMastered || masteredAt != null || correctCount >= required
 }
+
+fun Word.isLearnedAtThreshold(requiredCorrectAnswers: Int): Boolean =
+    isLearnedAtThreshold(isMastered, masteredAt, correctCount, requiredCorrectAnswers)

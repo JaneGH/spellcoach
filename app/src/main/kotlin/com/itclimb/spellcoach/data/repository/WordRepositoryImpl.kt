@@ -6,18 +6,27 @@ import com.itclimb.spellcoach.data.local.entity.WordListEntity
 import com.itclimb.spellcoach.data.mapper.toDomain
 import com.itclimb.spellcoach.domain.model.Word
 import com.itclimb.spellcoach.domain.model.WordList
+import com.itclimb.spellcoach.domain.repository.SettingsRepository
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 @Singleton
 class WordRepositoryImpl @Inject constructor(
-    private val dao: SpellCoachDao
+    private val dao: SpellCoachDao,
+    private val settingsRepository: SettingsRepository,
 ) : WordRepository {
     override fun observeWordLists(): Flow<List<WordList>> =
-        dao.observeWordListsWithProgress().map { rows -> rows.map { it.toDomain() } }
+        combine(
+            dao.observeWordListsWithProgress(),
+            settingsRepository.settings,
+        ) { rows, settings ->
+            val required = settings.requiredCorrectAnswers
+            rows.map { it.toDomain(required) }
+        }
 
     override fun observeWordsForList(listId: Long): Flow<List<Word>> =
         dao.observeWordsForList(listId).map { list -> list.map { it.toDomain() } }

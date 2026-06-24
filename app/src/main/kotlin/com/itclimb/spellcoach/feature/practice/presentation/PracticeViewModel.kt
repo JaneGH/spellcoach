@@ -191,15 +191,6 @@ class PracticeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            observeSettingsUseCase()
-                .map { it.requiredCorrectAnswers }
-                .distinctUntilChanged()
-                .collect { required ->
-                    wordRepository.reconcileMastery(required)
-                }
-        }
-
-        viewModelScope.launch {
             val settingsFlow = observeSettingsUseCase()
             val wordsFlow = wordRepository.observeWordsForList(listId)
 

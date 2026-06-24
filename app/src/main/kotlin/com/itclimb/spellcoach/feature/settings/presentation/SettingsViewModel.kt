@@ -14,8 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -35,17 +33,6 @@ class SettingsViewModel @Inject constructor(
         )
 
     val ttsAvailability: StateFlow<TtsAvailability> = textToSpeech.availability
-
-    init {
-        viewModelScope.launch {
-            settings
-                .map { it.requiredCorrectAnswers }
-                .distinctUntilChanged()
-                .collect { required ->
-                    wordRepository.reconcileMastery(required)
-                }
-        }
-    }
 
     fun setRequiredCorrect(n: Int) {
         viewModelScope.launch {
