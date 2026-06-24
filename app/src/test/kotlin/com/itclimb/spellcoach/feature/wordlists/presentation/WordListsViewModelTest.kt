@@ -4,10 +4,12 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.itclimb.spellcoach.domain.usecase.ObserveWordListsUseCase
 import com.itclimb.spellcoach.feature.practice.PracticeListHolder
+import com.itclimb.spellcoach.testing.FakeLastPracticeListStore
 import com.itclimb.spellcoach.testing.FakeWordRepository
 import com.itclimb.spellcoach.testing.MainDispatcherRule
 import com.itclimb.spellcoach.testing.WordListFixtures
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -21,18 +23,23 @@ class WordListsViewModelTest {
 
     private fun createViewModel(
         repository: FakeWordRepository = FakeWordRepository(),
-        practiceListHolder: PracticeListHolder = PracticeListHolder(),
-    ): Pair<WordListsViewModel, FakeWordRepository> {
-        return WordListsViewModel(
-            observeWordLists = ObserveWordListsUseCase(repository),
-            wordRepository = repository,
-            practiceListHolder = practiceListHolder
-        ) to repository
+        store: FakeLastPracticeListStore = FakeLastPracticeListStore(),
+        practiceListHolder: PracticeListHolder = PracticeListHolder(store),
+    ): Triple<WordListsViewModel, FakeWordRepository, FakeLastPracticeListStore> {
+        return Triple(
+            WordListsViewModel(
+                observeWordLists = ObserveWordListsUseCase(repository),
+                wordRepository = repository,
+                practiceListHolder = practiceListHolder
+            ),
+            repository,
+            store
+        )
     }
 
     @Test
     fun uiState_startsLoading_thenEmitsLists() = runTest {
-        val (viewModel, repository) = createViewModel()
+        val (viewModel, repository, _) = createViewModel()
 
         viewModel.uiState.test {
             assertThat(awaitItem().loading).isTrue()
@@ -48,18 +55,42 @@ class WordListsViewModelTest {
     }
 
     @Test
-    fun rememberPracticeList_storesListIdInHolder() {
-        val holder = PracticeListHolder()
-        val (viewModel, _) = createViewModel(practiceListHolder = holder)
+    fun rememberPracticeList_persistsListId() = runTest {
+        val (viewModel, _, store) = createViewModel()
 
         viewModel.rememberPracticeList(42L)
+        advanceUntilIdle()
 
-        assertThat(holder.lastListId).isEqualTo(42L)
+        assertThat(store.lastPracticeListId.first()).isEqualTo(42L)
+    }
+
+    @Test
+    fun rememberPracticeList_survivesViewModelRecreation() = runTest {
+        val store = FakeLastPracticeListStore()
+        val repository = FakeWordRepository()
+        val holder = PracticeListHolder(store)
+        val viewModel1 = WordListsViewModel(
+            observeWordLists = ObserveWordListsUseCase(repository),
+            wordRepository = repository,
+            practiceListHolder = holder
+        )
+
+        viewModel1.rememberPracticeList(42L)
+        advanceUntilIdle()
+
+        val viewModel2 = WordListsViewModel(
+            observeWordLists = ObserveWordListsUseCase(repository),
+            wordRepository = repository,
+            practiceListHolder = PracticeListHolder(store)
+        )
+
+        assertThat(viewModel2).isNotNull()
+        assertThat(store.lastPracticeListId.first()).isEqualTo(42L)
     }
 
     @Test
     fun resetListProgress_delegatesToRepository() = runTest {
-        val (viewModel, repository) = createViewModel()
+        val (viewModel, repository, _) = createViewModel()
 
         viewModel.resetListProgress(7L)
         advanceUntilIdle()
@@ -69,7 +100,33 @@ class WordListsViewModelTest {
 
     @Test
     fun deleteList_removesFromRepositoryAndClearsPracticeHolderWhenMatching() = runTest {
-        val holder = PracticeListHolder().apply { lastListId = 3L }
+        val store = FakeLastPracticeListStore(initial = 3L)
+        val (viewModel, repository) = createViewModel(store = store)
+        repository.setLists(listOf(WordListFixtures.sampleList(id = 3L)))
+
+        viewModel.deleteList(3L)
+        advanceUntilIdle()
+
+        assertThat(repository.deleteListCalls).containsExactly(3L)
+        assertThat(store.lastPracticeListId.first()).isNull()
+    }
+
+    @Test
+    fun deleteList_keepsPracticeHolderWhenDifferentList() = runTest {
+        val store = FakeLastPracticeListStore(initial = 99L)
+        val (viewModel, _) = createViewModel(store = store)
+
+        viewModel.deleteList(3L)
+        advanceUntilIdle()
+
+        assertThat(store.lastPracticeListId.first()).isEqualTo(99L)
+    }
+
+    @Test
+    fun deleteList_clearsPendingPracticeListIdWhenMatching() = runTest {
+        val holder = PracticeListHolder(FakeLastPracticeListStore()).apply {
+            pendingPracticeListId = 3L
+        }
         val (viewModel, repository) = createViewModel(practiceListHolder = holder)
         repository.setLists(listOf(WordListFixtures.sampleList(id = 3L)))
 
@@ -77,23 +134,25 @@ class WordListsViewModelTest {
         advanceUntilIdle()
 
         assertThat(repository.deleteListCalls).containsExactly(3L)
-        assertThat(holder.lastListId).isNull()
+        assertThat(holder.pendingPracticeListId).isNull()
     }
 
     @Test
-    fun deleteList_keepsPracticeHolderWhenDifferentList() = runTest {
-        val holder = PracticeListHolder().apply { lastListId = 99L }
+    fun deleteList_keepsPendingPracticeListIdWhenDifferentList() = runTest {
+        val holder = PracticeListHolder(FakeLastPracticeListStore()).apply {
+            pendingPracticeListId = 99L
+        }
         val (viewModel, _) = createViewModel(practiceListHolder = holder)
 
         viewModel.deleteList(3L)
         advanceUntilIdle()
 
-        assertThat(holder.lastListId).isEqualTo(99L)
+        assertThat(holder.pendingPracticeListId).isEqualTo(99L)
     }
 
     @Test
     fun uiState_reflectsEmptyListAfterDelete() = runTest {
-        val (viewModel, repository) = createViewModel()
+        val (viewModel, repository, _) = createViewModel()
         repository.setLists(listOf(WordListFixtures.sampleList(id = 1L)))
 
         viewModel.uiState.test {

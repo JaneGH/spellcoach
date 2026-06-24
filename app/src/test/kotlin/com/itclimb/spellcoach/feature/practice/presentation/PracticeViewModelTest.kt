@@ -13,6 +13,7 @@ import com.itclimb.spellcoach.domain.speech.RewardSoundPlayer
 import com.itclimb.spellcoach.domain.usecase.ObserveSettingsUseCase
 import com.itclimb.spellcoach.domain.usecase.ProcessSpellingResultUseCase
 import com.itclimb.spellcoach.feature.practice.PracticeListHolder
+import com.itclimb.spellcoach.testing.FakeLastPracticeListStore
 import com.itclimb.spellcoach.testing.FakeSettingsRepository
 import com.itclimb.spellcoach.testing.FakeSpellCoachTextToSpeech
 import com.itclimb.spellcoach.testing.FakeWordRepository
@@ -90,7 +91,7 @@ class PracticeViewModelTest {
         listId: Long,
         savedStateHandle: SavedStateHandle = SavedStateHandle(mapOf("listId" to listId)),
         repo: FakeWordRepository = repoWithWords(listId),
-        practiceListHolder: PracticeListHolder = PracticeListHolder(),
+        practiceListHolder: PracticeListHolder = PracticeListHolder(FakeLastPracticeListStore()),
     ): PracticeViewModel {
         return createViewModel(
             listId = listId,
@@ -122,7 +123,7 @@ class PracticeViewModelTest {
     }
 
     private fun authorizedHolder(listId: Long) =
-        PracticeListHolder().apply { pendingPracticeListId = listId }
+        PracticeListHolder(FakeLastPracticeListStore()).apply { pendingPracticeListId = listId }
 
     @Test
     fun invalidListId_exposesErrorStateAndSkipsListRepositoryCalls() = runTest {
@@ -165,7 +166,7 @@ class PracticeViewModelTest {
     @Test
     fun pendingDifferentList_blocksSessionAndSkipsRepositoryLoads() = runTest {
         val repo = repoWithWords(listA)
-        val holder = PracticeListHolder().apply { pendingPracticeListId = listB }
+        val holder = PracticeListHolder(FakeLastPracticeListStore()).apply { pendingPracticeListId = listB }
 
         val vm = createViewModel(
             listId = listA,
@@ -184,7 +185,7 @@ class PracticeViewModelTest {
     @Test
     fun pendingDifferentList_checkWordDoesNotWriteProgress() = runTest {
         val repo = repoWithWords(listA)
-        val holder = PracticeListHolder().apply { pendingPracticeListId = listB }
+        val holder = PracticeListHolder(FakeLastPracticeListStore()).apply { pendingPracticeListId = listB }
 
         val vm = createViewModel(
             listId = listA,
@@ -204,7 +205,7 @@ class PracticeViewModelTest {
     @Test
     fun pendingDifferentList_checkWord_emitsStaleSessionBlockedEvent() = runTest {
         val repo = repoWithWords(listA)
-        val holder = PracticeListHolder().apply { pendingPracticeListId = listB }
+        val holder = PracticeListHolder(FakeLastPracticeListStore()).apply { pendingPracticeListId = listB }
 
         val vm = createViewModel(
             listId = listA,
@@ -224,7 +225,7 @@ class PracticeViewModelTest {
     @Test
     fun pendingMatchingList_allowsWrites() = runTest {
         val repo = repoWithWords(listB)
-        val holder = PracticeListHolder().apply { pendingPracticeListId = listB }
+        val holder = PracticeListHolder(FakeLastPracticeListStore()).apply { pendingPracticeListId = listB }
 
         val vm = createViewModel(
             listId = listB,

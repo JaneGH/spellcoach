@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,7 +28,7 @@ class WordListsViewModel @Inject constructor(
 ) : ViewModel() {
 
     fun rememberPracticeList(listId: Long) {
-        practiceListHolder.lastListId = listId
+        viewModelScope.launch { practiceListHolder.setLastPracticeListId(listId) }
     }
 
     val uiState: StateFlow<WordListsUiState> = observeWordLists()
@@ -46,8 +47,11 @@ class WordListsViewModel @Inject constructor(
         viewModelScope.launch {
             wordRepository.deleteWordList(listId)
 
-            if (practiceListHolder.lastListId == listId) {
-                practiceListHolder.lastListId = null
+            if (practiceListHolder.lastPracticeListId.first() == listId) {
+                practiceListHolder.clearLastPracticeListId()
+            }
+            if (practiceListHolder.pendingPracticeListId == listId) {
+                practiceListHolder.pendingPracticeListId = null
             }
         }
     }

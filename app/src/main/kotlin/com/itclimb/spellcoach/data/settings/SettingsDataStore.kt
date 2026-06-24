@@ -26,7 +26,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Singleton
 class SettingsDataStore @Inject constructor(
     @param:ApplicationContext private val context: Context
-) {
+) : LastPracticeListStore {
     private object Keys {
         val requiredCorrect = intPreferencesKey("required_correct_answers")
         val mistakeBehavior = stringPreferencesKey("mistake_behavior")
@@ -41,7 +41,24 @@ class SettingsDataStore @Inject constructor(
         val currentStreak = intPreferencesKey("current_streak")
         val longestStreak = intPreferencesKey("longest_streak")
         val lastPracticeDay = longPreferencesKey("last_practice_day_epoch")
+        val lastPracticeListId = longPreferencesKey("last_practice_list_id")
         val unlockedBadges = stringPreferencesKey("unlocked_badges")
+    }
+
+    override val lastPracticeListId: Flow<Long?> = context.dataStore.data.map { prefs ->
+        prefs[Keys.lastPracticeListId]
+    }
+
+    override suspend fun setLastPracticeListId(id: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.lastPracticeListId] = id
+        }
+    }
+
+    override suspend fun clearLastPracticeListId() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(Keys.lastPracticeListId)
+        }
     }
 
     val appSettings: Flow<AppSettings> = context.dataStore.data.map { prefs ->

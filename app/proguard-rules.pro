@@ -1,5 +1,17 @@
-# SpellCoach — release shrinking (enable `isMinifyEnabled` when you are ready to validate R8 on device).
-# Hilt / Room ship consumer rules; keep ML Kit and model classes if you turn minification on.
+# SpellCoach — app-specific R8 rules.
+#
+# Consumer rules are already merged from dependencies:
+#   - Hilt / Dagger
+#   - Room
+#   - Navigation Compose
+#   - ML Kit (text-recognition, digital-ink-recognition) — protobuf fields, JNI, Gson manifest models
+#   - Google Play services / Data Transport (transitive via ML Kit)
+#   - OkHttp (transitive via ML Kit digital-ink)
+#   - Kotlin Coroutines
+#
+# Add rules here only for app code patterns that R8 cannot infer from static analysis.
 
--keep class com.google.mlkit.** { *; }
--dontwarn com.google.mlkit.**
+# SettingsDataStore persists enum constant names via Enum.name / Enum.valueOf(String).
+-keepclassmembers enum com.itclimb.spellcoach.domain.model.MistakeBehavior { *; }
+-keepclassmembers enum com.itclimb.spellcoach.domain.model.ThemePreference { *; }
+-keepclassmembers enum com.itclimb.spellcoach.domain.model.Badge { *; }

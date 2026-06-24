@@ -39,6 +39,9 @@ class TtsManager @Inject constructor(
 
     private val _speechRate = MutableStateFlow(1f)
 
+    /** Latest utterance requested while the engine is still [TtsAvailability.Checking]. */
+    private var pendingSpeakText: String? = null
+
     private val _events = MutableSharedFlow<TtsEvent>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
@@ -66,6 +69,7 @@ class TtsManager @Inject constructor(
             if (isShutdown && tts == null) return
             isShutdown = true
             engineGeneration++
+            pendingSpeakText = null
             val engine = tts
             tts = null
             engine?.stop()
@@ -75,6 +79,9 @@ class TtsManager @Inject constructor(
     }
 
     override fun onInit(status: Int) {
+        var flushRequest: Pair<TextToSpeech, String>? = null
+        var emitNotReady = false
+
         synchronized(ttsLock) {
             if (isShutdown || tts == null || lastCreatedGeneration != engineGeneration) return
             if (status == TextToSpeech.SUCCESS) {
@@ -90,21 +97,67 @@ class TtsManager @Inject constructor(
             } else {
                 _availability.value = TtsAvailability.Unavailable
             }
+
+            when (_availability.value) {
+                TtsAvailability.Ready -> {
+                    val pending = pendingSpeakText
+                    pendingSpeakText = null
+                    val engine = tts
+                    if (pending != null && engine != null) {
+                        flushRequest = engine to pending
+                    }
+                }
+                else -> {
+                    emitNotReady = pendingSpeakText != null
+                    pendingSpeakText = null
+                }
+            }
+        }
+
+        flushRequest?.let { (engine, pending) -> speakNow(engine, pending) }
+        if (emitNotReady) {
+            applicationScope.launch { _events.emit(TtsEvent.EngineNotReady) }
         }
     }
 
     override fun speak(text: String) {
-        val engine = synchronized(ttsLock) { tts } ?: return
-        if (_availability.value != TtsAvailability.Ready) {
-            applicationScope.launch { _events.emit(TtsEvent.EngineNotReady) }
-            return
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+
+        var speakImmediately: Pair<TextToSpeech, String>? = null
+        var emitNotReady = false
+
+        synchronized(ttsLock) {
+            when (_availability.value) {
+                TtsAvailability.Ready -> {
+                    val engine = tts
+                    if (engine != null) {
+                        speakImmediately = engine to trimmed
+                    } else {
+                        pendingSpeakText = trimmed
+                    }
+                }
+                TtsAvailability.Checking -> pendingSpeakText = trimmed
+                TtsAvailability.MissingData, TtsAvailability.Unavailable -> emitNotReady = true
+            }
         }
-        engine.setSpeechRate(_speechRate.value.coerceIn(0.5f, 2f))
-        engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "spellcoach-${System.currentTimeMillis()}")
+
+        speakImmediately?.let { (engine, utterance) -> speakNow(engine, utterance) }
+        if (emitNotReady) {
+            applicationScope.launch { _events.emit(TtsEvent.EngineNotReady) }
+        }
     }
 
     override fun stop() {
-        synchronized(ttsLock) { tts }?.stop()
+        synchronized(ttsLock) {
+            pendingSpeakText = null
+            tts?.stop()
+        }
+    }
+
+    private fun speakNow(engine: TextToSpeech, text: String) {
+        engine.setSpeechRate(_speechRate.value.coerceIn(0.5f, 2f))
+        engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "spellcoach-${System.currentTimeMillis()}")
     }
 
     override fun setSpeechRate(rate: Float) {

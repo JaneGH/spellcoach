@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.itclimb.spellcoach.core.designsystem.theme.SpellCoachTheme
 import com.itclimb.spellcoach.domain.usecase.ObserveWordListsUseCase
 import com.itclimb.spellcoach.feature.practice.PracticeListHolder
+import com.itclimb.spellcoach.testing.FakeLastPracticeListStore
 import com.itclimb.spellcoach.testing.FakeWordRepository
 import com.itclimb.spellcoach.testing.WordListFixtures
 import org.junit.Assert.assertEquals
@@ -96,7 +97,7 @@ class WordListsScreenInstrumentedTest {
         return WordListsViewModel(
             observeWordLists = ObserveWordListsUseCase(repository),
             wordRepository = repository,
-            practiceListHolder = PracticeListHolder()
+            practiceListHolder = PracticeListHolder(FakeLastPracticeListStore())
         )
     }
 }

@@ -3,6 +3,8 @@ package com.itclimb.spellcoach.di
 import com.itclimb.spellcoach.data.repository.RewardRepositoryImpl
 import com.itclimb.spellcoach.data.repository.SettingsRepositoryImpl
 import com.itclimb.spellcoach.data.repository.WordRepositoryImpl
+import com.itclimb.spellcoach.data.settings.LastPracticeListStore
+import com.itclimb.spellcoach.data.settings.SettingsDataStore
 import com.itclimb.spellcoach.domain.repository.RewardRepository
 import com.itclimb.spellcoach.domain.repository.SettingsRepository
 import com.itclimb.spellcoach.domain.repository.WordRepository
@@ -26,4 +28,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindRewardRepository(impl: RewardRepositoryImpl): RewardRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindLastPracticeListStore(impl: SettingsDataStore): LastPracticeListStore
 }

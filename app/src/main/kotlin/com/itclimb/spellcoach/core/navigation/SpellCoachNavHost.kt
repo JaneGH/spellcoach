@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -305,20 +306,19 @@ private fun PracticeTabEntry(
     navController: NavHostController,
     onOpenListsTab: () -> Unit
 ) {
-    val id = practiceListHolder.lastListId
+    val id by practiceListHolder.lastPracticeListId.collectAsStateWithLifecycle(initialValue = null)
 
     LaunchedEffect(id) {
-        if (id != null) {
-            val entry = navController.currentBackStackEntry ?: return@LaunchedEffect
-            val onMatchingSession = entry.destination.route == AppNav.Practice.SESSION &&
-                entry.arguments?.getLong("listId") == id
-            if (onMatchingSession) return@LaunchedEffect
+        val listId = id ?: return@LaunchedEffect
+        val entry = navController.currentBackStackEntry ?: return@LaunchedEffect
+        val onMatchingSession = entry.destination.route == AppNav.Practice.SESSION &&
+            entry.arguments?.getLong("listId") == listId
+        if (onMatchingSession) return@LaunchedEffect
 
-            navController.navigateToPracticeSession(
-                listId = id,
-                popUpToEntryId = entry.id,
-            )
-        }
+        navController.navigateToPracticeSession(
+            listId = listId,
+            popUpToEntryId = entry.id,
+        )
     }
 
     if (id == null) {
