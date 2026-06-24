@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -171,16 +170,21 @@ class PracticeViewModel @Inject constructor(
         }
         viewModelScope.launch {
             val settingsFlow = observeSettingsUseCase()
-            settingsFlow.collect { s ->
+            val wordsFlow = wordRepository.observeWordsForList(listId)
+            var lastWordsReconcileKey: Triple<List<Word>, Int, Boolean>? = null
+
+            combine(wordsFlow, settingsFlow) { words, settings ->
+                words to settings
+            }.collect { (words, settings) ->
                 _state.update { cur ->
                     val excludeChanged =
-                        cur.excludeMasteredWords != s.excludeMasteredWordsFromPractice
+                        cur.excludeMasteredWords != settings.excludeMasteredWordsFromPractice
                     cur.copy(
-                        answerSoundsEnabled = s.answerSoundsEnabled,
-                        hintsEnabled = s.letterHintsEnabled,
-                        showHints = if (s.letterHintsEnabled) cur.showHints else false,
-                        requiredCorrectAnswers = s.requiredCorrectAnswers,
-                        excludeMasteredWords = s.excludeMasteredWordsFromPractice,
+                        answerSoundsEnabled = settings.answerSoundsEnabled,
+                        hintsEnabled = settings.letterHintsEnabled,
+                        showHints = if (settings.letterHintsEnabled) cur.showHints else false,
+                        requiredCorrectAnswers = settings.requiredCorrectAnswers,
+                        excludeMasteredWords = settings.excludeMasteredWordsFromPractice,
                         includeMasteredInSession = if (excludeChanged) {
                             false
                         } else {
@@ -188,26 +192,15 @@ class PracticeViewModel @Inject constructor(
                         }
                     )
                 }
-                tts.setSpeechRate(s.speechRate)
-            }
-        }
+                tts.setSpeechRate(settings.speechRate)
 
-        viewModelScope.launch {
-            val settingsFlow = observeSettingsUseCase()
-            val wordsFlow = wordRepository.observeWordsForList(listId)
+                val requiredCoerced = settings.requiredCorrectAnswers.coerceAtLeast(1)
+                val excludeMastered = settings.excludeMasteredWordsFromPractice
+                val reconcileKey = Triple(words, requiredCoerced, excludeMastered)
+                if (reconcileKey == lastWordsReconcileKey) return@collect
+                lastWordsReconcileKey = reconcileKey
 
-            combine(
-                wordsFlow,
-                settingsFlow
-                    .map {
-                        it.requiredCorrectAnswers to it.excludeMasteredWordsFromPractice
-                    }
-                    .distinctUntilChanged()
-            ) { words, (required, excludeMastered) ->
-                Triple(required, excludeMastered, words)
-            }.collect { (required, excludeMastered, words) ->
                 val maxShortSessionWords = 15
-                val requiredCoerced = required.coerceAtLeast(1)
                 val cur = _state.value
 
                 val practiceWords = wordsForPractice(
