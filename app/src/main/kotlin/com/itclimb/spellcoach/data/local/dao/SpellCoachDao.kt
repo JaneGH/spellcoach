@@ -26,6 +26,36 @@ interface SpellCoachDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertWords(entities: List<WordEntity>)
 
+    @Transaction
+    suspend fun createListWithWords(
+        list: WordListEntity,
+        words: List<WordEntity>
+    ): Long {
+        val listId = insertWordList(list)
+        if (words.isNotEmpty()) {
+            insertWords(words.map { it.copy(listId = listId) })
+        }
+        return listId
+    }
+
+    @Transaction
+    suspend fun updateListWithWords(
+        listId: Long,
+        name: String,
+        toDelete: List<Long>,
+        toInsert: List<WordEntity>
+    ) {
+        if (toDelete.isNotEmpty()) {
+            deleteWordsById(toDelete)
+        }
+        if (toInsert.isNotEmpty()) {
+            insertWords(toInsert)
+        }
+        if (name.isNotEmpty()) {
+            renameWordList(listId, name)
+        }
+    }
+
     @Update
     suspend fun updateWord(entity: WordEntity)
 
@@ -70,10 +100,7 @@ interface SpellCoachDao {
     @Query("DELETE FROM words WHERE id IN (:wordIds)")
     suspend fun deleteWordsById(wordIds: List<Long>)
 
-    /**
-     * Applies the new [requiredCorrectAnswers] only to words that are still learning.
-     * Rows with persisted mastery ([isMastered] or [masteredAt]) are left unchanged.
-     */
+
     @Query(
         """
         UPDATE words

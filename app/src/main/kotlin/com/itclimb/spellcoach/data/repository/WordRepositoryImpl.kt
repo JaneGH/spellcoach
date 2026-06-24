@@ -23,21 +23,18 @@ class WordRepositoryImpl @Inject constructor(
         dao.observeWordsForList(listId).map { list -> list.map { it.toDomain() } }
 
     override suspend fun createWordListWithWords(name: String, words: List<String>): Long {
-        val listId = dao.insertWordList(WordListEntity(name = name.trim(), createdAt = System.currentTimeMillis()))
-        if (words.isNotEmpty()) {
-            val entities = words.map { w ->
-                WordEntity(
-                    listId = listId,
-                    text = w.trim(),
-                    correctCount = 0,
-                    incorrectCount = 0,
-                    isMastered = false,
-                    masteredAt = null
-                )
-            }
-            dao.insertWords(entities)
+        val listEntity = WordListEntity(name = name.trim(), createdAt = System.currentTimeMillis())
+        val wordEntities = words.map { w ->
+            WordEntity(
+                listId = 0,
+                text = w.trim(),
+                correctCount = 0,
+                incorrectCount = 0,
+                isMastered = false,
+                masteredAt = null
+            )
         }
-        return listId
+        return dao.createListWithWords(listEntity, wordEntities)
     }
 
     override suspend fun updateWordListWithWords(listId: Long, name: String, words: List<String>) {
@@ -49,7 +46,6 @@ class WordRepositoryImpl @Inject constructor(
         val keepTexts = normalizedWords.toSet()
 
         val toDeleteIds = existing.filter { it.text.trim() !in keepTexts }.map { it.id }
-        if (toDeleteIds.isNotEmpty()) dao.deleteWordsById(toDeleteIds)
 
         val toInsert = normalizedWords
             .filter { it !in existingByText.keys }
@@ -63,11 +59,8 @@ class WordRepositoryImpl @Inject constructor(
                     masteredAt = null
                 )
             }
-        if (toInsert.isNotEmpty()) dao.insertWords(toInsert)
 
-        if (normalizedName.isNotEmpty()) {
-            dao.renameWordList(listId, normalizedName)
-        }
+        dao.updateListWithWords(listId, normalizedName, toDeleteIds, toInsert)
     }
 
     override suspend fun updateWord(word: Word) {
