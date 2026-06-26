@@ -3,6 +3,7 @@ package com.itclimb.spellcoach.di
 import android.content.Context
 import androidx.room.Room
 import com.itclimb.spellcoach.data.local.dao.SpellCoachDao
+import com.itclimb.spellcoach.data.local.db.MIGRATION_3_4
 import com.itclimb.spellcoach.data.local.db.SpellCoachDatabase
 import dagger.Module
 import dagger.Provides
@@ -17,12 +18,13 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): SpellCoachDatabase {
-        val builder = Room.databaseBuilder(
+        return Room.databaseBuilder(
             context,
             SpellCoachDatabase::class.java,
             "spellcoach.db"
         )
-        return builder.build()
+            .addMigrations(MIGRATION_3_4)
+            .build()
     }
 
     @Provides

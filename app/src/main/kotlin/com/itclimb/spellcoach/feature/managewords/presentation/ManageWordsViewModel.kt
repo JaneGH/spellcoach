@@ -6,16 +6,20 @@ import androidx.lifecycle.viewModelScope
 import com.itclimb.spellcoach.domain.speech.SpellCoachTextToSpeech
 import com.itclimb.spellcoach.domain.model.Word
 import com.itclimb.spellcoach.domain.model.isLearnedAtThreshold
+import com.itclimb.spellcoach.domain.repository.DuplicateWordInListException
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import com.itclimb.spellcoach.domain.usecase.ObserveSettingsUseCase
 import com.itclimb.spellcoach.domain.usecase.ObserveWordsForListUseCase
+import com.itclimb.spellcoach.domain.word.WordTextNormalizer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -48,6 +52,9 @@ class ManageWordsViewModel @Inject constructor(
             listIdValid = listId > 0,
         )
     )
+
+    private val _events = Channel<ManageWordsEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
     val uiState: StateFlow<ManageWordsUiState> = combine(
         if (listId > 0) observeWordsForList(listId) else flowOf(emptyList()),
@@ -107,11 +114,27 @@ class ManageWordsViewModel @Inject constructor(
     }
 
     fun renameWord(wordId: Long, newText: String) {
-        val trimmed = newText.trim()
-        if (trimmed.isEmpty()) return
         viewModelScope.launch {
             val w = wordRepository.getWordById(wordId) ?: return@launch
-            wordRepository.updateWord(w.copy(text = trimmed))
+            val normalized = WordTextNormalizer.normalize(newText)
+            if (normalized == null) {
+                _events.send(ManageWordsEvent.RenameInvalid)
+                return@launch
+            }
+            if (normalized == w.text) {
+                _events.send(ManageWordsEvent.RenameSucceeded)
+                return@launch
+            }
+            runCatching {
+                wordRepository.updateWord(w.copy(text = normalized))
+            }.fold(
+                onSuccess = { _events.send(ManageWordsEvent.RenameSucceeded) },
+                onFailure = { error ->
+                    if (error is DuplicateWordInListException) {
+                        _events.send(ManageWordsEvent.RenameDuplicate)
+                    }
+                },
+            )
         }
     }
 

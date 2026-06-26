@@ -1,6 +1,7 @@
 package com.itclimb.spellcoach.domain.usecase
 
 import com.itclimb.spellcoach.domain.repository.WordRepository
+import com.itclimb.spellcoach.domain.word.WordTextNormalizer
 import javax.inject.Inject
 
 class CreateWordListUseCase @Inject constructor(
@@ -9,7 +10,7 @@ class CreateWordListUseCase @Inject constructor(
     suspend operator fun invoke(name: String, words: List<String>): Result<Long> {
         val n = name.trim()
         if (n.isEmpty()) return Result.failure(IllegalArgumentException("empty_name"))
-        val parsed = words.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        val parsed = WordTextNormalizer.normalizeWords(words)
         if (parsed.isEmpty()) return Result.failure(IllegalArgumentException("no_words"))
         return runCatching { wordRepository.createWordListWithWords(n, parsed) }
     }

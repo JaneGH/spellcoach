@@ -48,6 +48,7 @@ android {
         }
         getByName("androidTest") {
             java.srcDir("src/sharedTest/kotlin")
+            assets.srcDir("$projectDir/schemas")
         }
     }
     packaging {
@@ -115,6 +116,7 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.activity:activity-compose:1.13.0")
+    androidTestImplementation("androidx.room:room-testing:2.8.4")
 }
 
 // Robolectric Compose UI tests do not run reliably against the release variant manifest.

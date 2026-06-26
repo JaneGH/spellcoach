@@ -8,8 +8,10 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.itclimb.spellcoach.domain.repository.DuplicateWordInListException
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import com.itclimb.spellcoach.domain.usecase.CreateWordListUseCase
+import com.itclimb.spellcoach.domain.word.WordTextNormalizer
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -24,7 +26,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.min
 
@@ -158,7 +159,7 @@ class AddWordsViewModel @Inject constructor(
                     _state.value = _state.value.copy(saving = false, errorMessage = "Please enter a list name.")
                     return@launch
                 }
-                val parsed = _state.value.previewWords.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                val parsed = WordTextNormalizer.normalizeWords(_state.value.previewWords)
                 if (parsed.isEmpty()) {
                     _state.value = _state.value.copy(saving = false, errorMessage = "Add at least one word.")
                     return@launch
@@ -171,7 +172,10 @@ class AddWordsViewModel @Inject constructor(
                         _events.send(AddWordsEvent.Saved)
                     },
                     onFailure = { e ->
-                        _state.value = _state.value.copy(saving = false, errorMessage = e.message ?: "Could not save.")
+                        _state.value = _state.value.copy(
+                            saving = false,
+                            errorMessage = wordSaveErrorMessage(e),
+                        )
                     }
                 )
             } else {
@@ -184,11 +188,7 @@ class AddWordsViewModel @Inject constructor(
                     onFailure = { e ->
                         _state.value = _state.value.copy(
                             saving = false,
-                            errorMessage = when (e.message) {
-                                "empty_name" -> "Please enter a list name."
-                                "no_words" -> "Add at least one word."
-                                else -> e.message ?: "Could not save."
-                            }
+                            errorMessage = wordSaveErrorMessage(e),
                         )
                     }
                 )
@@ -196,55 +196,32 @@ class AddWordsViewModel @Inject constructor(
         }
     }
 
+    private fun wordSaveErrorMessage(error: Throwable): String = when {
+        error is DuplicateWordInListException -> "This list contains duplicate words."
+        error.message == "duplicate_word_in_list" -> "This list contains duplicate words."
+        error.message == "empty_name" -> "Please enter a list name."
+        error.message == "no_words" -> "Add at least one word."
+        else -> error.message ?: "Could not save."
+    }
+
     private fun parseWords(input: String): List<String> {
         val tokens = input.split(Regex("[,\\s]+"))
-        return normalizeAndFilterWords(tokens)
+        return WordTextNormalizer.normalizeWords(tokens)
     }
 
     private fun mergeDistinctWords(existing: List<String>, incoming: List<String>): List<String> {
         if (incoming.isEmpty()) return existing
         val set = LinkedHashSet<String>(existing.size + incoming.size)
         existing.forEach { set.add(it) }
-        incoming.forEach { set.add(it) }
+        incoming.forEach { word -> WordTextNormalizer.normalize(word)?.let { set.add(it) } }
         return set.toList()
     }
-
-    private fun normalizeAndFilterWords(tokens: List<String>): List<String> {
-        val out = LinkedHashSet<String>()
-        for (t in tokens) {
-            val w = normalizeWord(t) ?: continue
-            out.add(w)
-        }
-        return out.toList()
-    }
-
-    private fun normalizeWord(token: String): String? {
-        // Keep only English + Ukrainian letters, strip punctuation/digits.
-        val lettersOnly = token
-            .trim()
-            .lowercase(Locale.ROOT)
-            .filter { it.isLetter() }
-
-        if (lettersOnly.isEmpty()) return null
-        if (!lettersOnly.all { isSupportedLetter(it) }) return null
-        return lettersOnly
-    }
-
-    private fun isSupportedLetter(c: Char): Boolean =
-        (c in 'a'..'z') ||
-            (c in 'A'..'Z') ||
-            (c in 'а'..'я') ||
-            (c in 'А'..'Я') ||
-            c == 'і' || c == 'І' ||
-            c == 'ї' || c == 'Ї' ||
-            c == 'є' || c == 'Є' ||
-            c == 'ґ' || c == 'Ґ'
 
     private suspend fun extractWordsFromImage(uri: Uri): List<String> = withContext(Dispatchers.IO) {
         val image = InputImage.fromFilePath(appContext, uri)
         val text = textRecognizer.process(image).await()
         val tokens = text.text.split(Regex("\\s+"))
-        normalizeAndFilterWords(tokens)
+        WordTextNormalizer.normalizeWords(tokens)
     }
 
     private suspend fun extractWordsFromPdf(uri: Uri): PdfExtractionResult = withContext(Dispatchers.IO) {
@@ -260,7 +237,7 @@ class AddWordsViewModel @Inject constructor(
                         val bitmap = renderPdfPageToBitmap(page)
                         val recognized = textRecognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
                         val tokens = recognized.text.split(Regex("\\s+"))
-                        normalizeAndFilterWords(tokens).forEach { all.add(it) }
+                        WordTextNormalizer.normalizeWords(tokens).forEach { all.add(it) }
                         bitmap.recycle()
                     }
                 }

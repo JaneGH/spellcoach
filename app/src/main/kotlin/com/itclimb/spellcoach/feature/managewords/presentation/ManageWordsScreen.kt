@@ -53,6 +53,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
@@ -125,8 +126,28 @@ fun ManageWordsScreen(
     var wordPendingReset by remember { mutableStateOf<Word?>(null) }
     var wordBeingEdited by remember { mutableStateOf<Word?>(null) }
     var editDraft by remember { mutableStateOf("") }
+    var renameError by remember { mutableStateOf<String?>(null) }
     var showBulkDeleteConfirm by remember { mutableStateOf(false) }
     var showBulkResetConfirm by remember { mutableStateOf(false) }
+
+    val duplicateWordMessage = stringResource(R.string.manage_words_duplicate_word)
+    val invalidWordMessage = stringResource(R.string.manage_words_invalid_word)
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                ManageWordsEvent.RenameSucceeded -> {
+                    renameError = null
+                    wordBeingEdited = null
+                }
+                ManageWordsEvent.RenameDuplicate -> {
+                    renameError = duplicateWordMessage
+                }
+                ManageWordsEvent.RenameInvalid -> {
+                    renameError = invalidWordMessage
+                }
+            }
+        }
+    }
 
     if (!state.listIdValid) {
         SpellCoachScreenContainer {
@@ -327,6 +348,7 @@ fun ManageWordsScreen(
                                 onEdit = {
                                     wordBeingEdited = word
                                     editDraft = word.text
+                                    renameError = null
                                 },
                                 onReset = { wordPendingReset = word },
                                 onDelete = { wordPendingDelete = word },
@@ -418,22 +440,37 @@ fun ManageWordsScreen(
 
     wordBeingEdited?.let { w ->
         AlertDialog(
-            onDismissRequest = { wordBeingEdited = null },
+            onDismissRequest = {
+                wordBeingEdited = null
+                renameError = null
+            },
             title = { Text(stringResource(R.string.manage_words_dialog_edit_title)) },
             text = {
-                OutlinedTextField(
-                    value = editDraft,
-                    onValueChange = { editDraft = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(AppRadius.lg)
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+                    OutlinedTextField(
+                        value = editDraft,
+                        onValueChange = {
+                            editDraft = it
+                            renameError = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(AppRadius.lg),
+                        isError = renameError != null,
+                    )
+                    renameError?.let { message ->
+                        Text(
+                            text = message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
             },
             confirmButton = {
                 Button(
                     onClick = {
                         viewModel.renameWord(w.id, editDraft)
-                        wordBeingEdited = null
                     },
                     enabled = editDraft.trim().isNotEmpty()
                 ) {
@@ -441,7 +478,10 @@ fun ManageWordsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { wordBeingEdited = null }) {
+                TextButton(onClick = {
+                    wordBeingEdited = null
+                    renameError = null
+                }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             }

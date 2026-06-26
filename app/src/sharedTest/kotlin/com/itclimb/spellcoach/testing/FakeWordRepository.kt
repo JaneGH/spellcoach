@@ -2,6 +2,7 @@ package com.itclimb.spellcoach.testing
 
 import com.itclimb.spellcoach.domain.model.Word
 import com.itclimb.spellcoach.domain.model.WordList
+import com.itclimb.spellcoach.domain.repository.DuplicateWordInListException
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,6 +52,8 @@ class FakeWordRepository(
 
     override suspend fun updateWord(word: Word) {
         beforeUpdateWord?.invoke(word)
+        val duplicate = getWordsForList(word.listId).any { it.id != word.id && it.text == word.text }
+        if (duplicate) throw DuplicateWordInListException()
         updateWordCalls.add(word)
         lastUpdatedWord = word
         val flow = wordsByListId[word.listId] ?: return

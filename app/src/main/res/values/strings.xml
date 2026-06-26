@@ -67,6 +67,8 @@
     <string name="manage_words_dialog_reset_title">Reset progress?</string>
     <string name="manage_words_dialog_reset_message">Progress for “%1$s” will be cleared.</string>
     <string name="manage_words_dialog_edit_title">Edit word</string>
+    <string name="manage_words_duplicate_word">This word is already in the list.</string>
+    <string name="manage_words_invalid_word">Enter a word using letters only.</string>
     <string name="manage_words_dialog_bulk_delete_title">Delete selected words?</string>
     <string name="manage_words_dialog_bulk_delete_message">%1$d words will be removed from this list. This cannot be undone.</string>
     <string name="manage_words_dialog_bulk_reset_title">Reset selected words?</string>

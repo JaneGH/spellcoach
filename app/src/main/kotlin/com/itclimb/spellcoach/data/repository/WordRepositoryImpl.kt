@@ -1,13 +1,17 @@
 package com.itclimb.spellcoach.data.repository
 
+import android.database.sqlite.SQLiteConstraintException
 import com.itclimb.spellcoach.data.local.dao.SpellCoachDao
 import com.itclimb.spellcoach.data.local.entity.WordEntity
 import com.itclimb.spellcoach.data.local.entity.WordListEntity
 import com.itclimb.spellcoach.data.mapper.toDomain
 import com.itclimb.spellcoach.domain.model.Word
 import com.itclimb.spellcoach.domain.model.WordList
+import com.itclimb.spellcoach.domain.repository.DuplicateWordInListException
+import com.itclimb.spellcoach.domain.repository.InvalidWordTextException
 import com.itclimb.spellcoach.domain.repository.SettingsRepository
 import com.itclimb.spellcoach.domain.repository.WordRepository
+import com.itclimb.spellcoach.domain.word.WordTextNormalizer
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -32,29 +36,34 @@ class WordRepositoryImpl @Inject constructor(
         dao.observeWordsForList(listId).map { list -> list.map { it.toDomain() } }
 
     override suspend fun createWordListWithWords(name: String, words: List<String>): Long {
+        val normalizedWords = WordTextNormalizer.normalizeWords(words)
+        require(normalizedWords.isNotEmpty()) { "no_words" }
         val listEntity = WordListEntity(name = name.trim(), createdAt = System.currentTimeMillis())
-        val wordEntities = words.map { w ->
+        val wordEntities = normalizedWords.map { w ->
             WordEntity(
                 listId = 0,
-                text = w.trim(),
+                text = w,
                 correctCount = 0,
                 incorrectCount = 0,
                 isMastered = false,
                 masteredAt = null
             )
         }
-        return dao.createListWithWords(listEntity, wordEntities)
+        return guardUniqueWord {
+            dao.createListWithWords(listEntity, wordEntities)
+        }
     }
 
     override suspend fun updateWordListWithWords(listId: Long, name: String, words: List<String>) {
         val normalizedName = name.trim()
-        val normalizedWords = words.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        val normalizedWords = WordTextNormalizer.normalizeWords(words)
+        require(normalizedWords.isNotEmpty()) { "no_words" }
 
         val existing = dao.getWordsForList(listId)
-        val existingByText = existing.associateBy { it.text.trim() }
+        val existingByText = existing.associateBy { it.text }
         val keepTexts = normalizedWords.toSet()
 
-        val toDeleteIds = existing.filter { it.text.trim() !in keepTexts }.map { it.id }
+        val toDeleteIds = existing.filter { it.text !in keepTexts }.map { it.id }
 
         val toInsert = normalizedWords
             .filter { it !in existingByText.keys }
@@ -69,21 +78,30 @@ class WordRepositoryImpl @Inject constructor(
                 )
             }
 
-        dao.updateListWithWords(listId, normalizedName, toDeleteIds, toInsert)
+        guardUniqueWord {
+            dao.updateListWithWords(listId, normalizedName, toDeleteIds, toInsert)
+        }
     }
 
     override suspend fun updateWord(word: Word) {
-        dao.updateWord(
-            WordEntity(
-                id = word.id,
-                listId = word.listId,
-                text = word.text,
-                correctCount = word.correctCount,
-                incorrectCount = word.incorrectCount,
-                isMastered = word.isMastered,
-                masteredAt = word.masteredAt
+        val text = WordTextNormalizer.normalize(word.text)
+            ?: throw InvalidWordTextException()
+        if (isDuplicateText(listId = word.listId, text = text, excludeWordId = word.id)) {
+            throw DuplicateWordInListException()
+        }
+        guardUniqueWord {
+            dao.updateWord(
+                WordEntity(
+                    id = word.id,
+                    listId = word.listId,
+                    text = text,
+                    correctCount = word.correctCount,
+                    incorrectCount = word.incorrectCount,
+                    isMastered = word.isMastered,
+                    masteredAt = word.masteredAt
+                )
             )
-        )
+        }
     }
 
     override suspend fun resetProgress(listId: Long) = dao.resetProgress(listId)
@@ -111,4 +129,13 @@ class WordRepositoryImpl @Inject constructor(
     override suspend fun getWordById(wordId: Long): Word? =
         dao.getWord(wordId)?.toDomain()
 
+    private suspend fun isDuplicateText(listId: Long, text: String, excludeWordId: Long): Boolean =
+        dao.getWordsForList(listId).any { it.id != excludeWordId && it.text == text }
+
+    private inline fun <T> guardUniqueWord(block: () -> T): T =
+        try {
+            block()
+        } catch (_: SQLiteConstraintException) {
+            throw DuplicateWordInListException()
+        }
 }

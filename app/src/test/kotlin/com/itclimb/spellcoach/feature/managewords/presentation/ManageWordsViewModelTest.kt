@@ -70,6 +70,56 @@ class ManageWordsViewModelTest {
     }
 
     @Test
+    fun renameWord_duplicate_emitsRenameDuplicate() = runTest {
+        val repo = FakeWordRepository()
+        repo.setWordsForList(
+            listId,
+            listOf(
+                Word(id = 1L, listId = listId, text = "cat", correctCount = 0, incorrectCount = 0, isMastered = false),
+                Word(id = 2L, listId = listId, text = "dog", correctCount = 0, incorrectCount = 0, isMastered = false),
+            )
+        )
+        val vm = createViewModel(repo = repo)
+
+        vm.events.test {
+            vm.renameWord(wordId = 1L, newText = "dog")
+            advanceUntilIdle()
+            assertThat(awaitItem()).isEqualTo(ManageWordsEvent.RenameDuplicate)
+        }
+        assertThat(repo.updateWordCalls).isEmpty()
+    }
+
+    @Test
+    fun renameWord_uniqueWord_emitsRenameSucceeded() = runTest {
+        val repo = FakeWordRepository()
+        val word = Word(id = 1L, listId = listId, text = "cat", correctCount = 0, incorrectCount = 0, isMastered = false)
+        repo.setWordsForList(listId, listOf(word))
+        val vm = createViewModel(repo = repo)
+
+        vm.events.test {
+            vm.renameWord(wordId = 1L, newText = "fox")
+            advanceUntilIdle()
+            assertThat(awaitItem()).isEqualTo(ManageWordsEvent.RenameSucceeded)
+        }
+        assertThat(repo.lastUpdatedWord?.text).isEqualTo("fox")
+    }
+
+    @Test
+    fun renameWord_invalid_emitsRenameInvalid() = runTest {
+        val repo = FakeWordRepository()
+        val word = Word(id = 1L, listId = listId, text = "cat", correctCount = 0, incorrectCount = 0, isMastered = false)
+        repo.setWordsForList(listId, listOf(word))
+        val vm = createViewModel(repo = repo)
+
+        vm.events.test {
+            vm.renameWord(wordId = 1L, newText = "123")
+            advanceUntilIdle()
+            assertThat(awaitItem()).isEqualTo(ManageWordsEvent.RenameInvalid)
+        }
+        assertThat(repo.updateWordCalls).isEmpty()
+    }
+
+    @Test
     fun toggleMastered_marksWordAsMastered() = runTest {
         val repo = FakeWordRepository()
         val word = Word(
