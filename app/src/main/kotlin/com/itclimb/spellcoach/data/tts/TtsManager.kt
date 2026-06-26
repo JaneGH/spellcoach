@@ -79,7 +79,7 @@ class TtsManager @Inject constructor(
     }
 
     override fun onInit(status: Int) {
-        var flushRequest: Pair<TextToSpeech, String>? = null
+        var pendingToSpeak: String? = null
         var emitNotReady = false
 
         synchronized(ttsLock) {
@@ -100,12 +100,8 @@ class TtsManager @Inject constructor(
 
             when (_availability.value) {
                 TtsAvailability.Ready -> {
-                    val pending = pendingSpeakText
+                    pendingToSpeak = pendingSpeakText
                     pendingSpeakText = null
-                    val engine = tts
-                    if (pending != null && engine != null) {
-                        flushRequest = engine to pending
-                    }
                 }
                 else -> {
                     emitNotReady = pendingSpeakText != null
@@ -114,7 +110,7 @@ class TtsManager @Inject constructor(
             }
         }
 
-        flushRequest?.let { (engine, pending) -> speakNow(engine, pending) }
+        pendingToSpeak?.let { speak(it) }
         if (emitNotReady) {
             applicationScope.launch { _events.emit(TtsEvent.EngineNotReady) }
         }

@@ -76,6 +76,24 @@ class TtsManagerTest {
     }
 
     @Test
+    fun speak_beforeOnInit_playsOnceAfterInit() = runTest {
+        val manager = createManagerWithoutInit()
+        val mockTts = mockk<TextToSpeech>(relaxed = true)
+        every { mockTts.setLanguage(Locale.US) } returns TextToSpeech.LANG_AVAILABLE
+        manager.prepareEngineForInitTest(mockTts)
+        manager.setAvailabilityForTest(TtsAvailability.Checking)
+
+        manager.speak("hello")
+        manager.onInit(TextToSpeech.SUCCESS)
+
+        assertThat(manager.pendingSpeakForTest()).isNull()
+        assertThat(manager.availability.value).isEqualTo(TtsAvailability.Ready)
+        verify(exactly = 1) {
+            mockTts.speak("hello", TextToSpeech.QUEUE_FLUSH, null, any())
+        }
+    }
+
+    @Test
     fun onInit_success_flushesPendingSpeak() = runTest {
         val manager = createManagerWithoutInit()
         val mockTts = mockk<TextToSpeech>(relaxed = true)
