@@ -147,6 +147,7 @@ import com.itclimb.spellcoach.domain.practice.SpellingDisplayUnit
 import com.itclimb.spellcoach.domain.practice.SpellingFeedback
 import com.itclimb.spellcoach.domain.practice.SpellingLetterKind
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -1516,10 +1517,27 @@ private fun HandwritingInputPanel(
 ) {
     val scope = rememberCoroutineScope()
     val strokes = remember { mutableStateListOf<HandwritingStroke>() }
+    val recognizeMutex = remember { Mutex() }
 
     var isRecognizing by remember { mutableStateOf(false) }
     var detectedText by rememberSaveable { mutableStateOf("") }
     var recognizeTick by remember { mutableStateOf(0) }
+
+    suspend fun recognizeStrokes(snapshot: List<HandwritingStroke>): String =
+        recognizeMutex.withLock {
+            isRecognizing = true
+            try {
+                runCatching {
+                    inkModelDownloader.ensureInkModelDownloaded()
+                    recognizeInkWord(
+                        recognizer = recognizer,
+                        strokes = snapshot,
+                    )
+                }.getOrNull().orEmpty()
+            } finally {
+                isRecognizing = false
+            }
+        }
 
     val scheme = MaterialTheme.colorScheme
     val cardShape = RoundedCornerShape(AppRadius.glassCard)
@@ -1531,22 +1549,11 @@ private fun HandwritingInputPanel(
             return@LaunchedEffect
         }
 
-        kotlinx.coroutines.delay(700)
+        delay(700)
 
-        if (isRecognizing || strokes.isEmpty()) return@LaunchedEffect
+        if (strokes.isEmpty()) return@LaunchedEffect
 
-        isRecognizing = true
-
-        val recognized = runCatching {
-            inkModelDownloader.ensureInkModelDownloaded()
-            recognizeInkWord(
-                recognizer = recognizer,
-                strokes = strokes.toList()
-            )
-        }.getOrNull().orEmpty()
-
-        detectedText = recognized
-        isRecognizing = false
+        detectedText = recognizeStrokes(strokes.toList())
     }
 
     Box(
@@ -1620,24 +1627,13 @@ private fun HandwritingInputPanel(
 
                 scope.launch {
                     val already = detectedText.trim()
-
                     if (already.isNotBlank()) {
                         onRecognized(already)
                         return@launch
                     }
 
-                    isRecognizing = true
-
-                    val recognized = runCatching {
-                        inkModelDownloader.ensureInkModelDownloaded()
-                        recognizeInkWord(
-                            recognizer = recognizer,
-                            strokes = strokes.toList()
-                        )
-                    }.getOrNull().orEmpty()
-
+                    val recognized = recognizeStrokes(strokes.toList())
                     detectedText = recognized
-                    isRecognizing = false
 
                     val toSubmit = recognized.trim()
                     if (toSubmit.isNotBlank()) onRecognized(toSubmit)
