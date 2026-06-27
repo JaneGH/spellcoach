@@ -129,6 +129,7 @@
     <string name="practice_hints_tip_body">Tap letters to help spell the word</string>
 
     <string name="practice_handwriting_unavailable">Handwriting is not available on this device.</string>
+    <string name="practice_handwriting_model_format">Handwriting model: %1$s</string>
     <string name="practice_handwriting_detected_format">Detected: %1$s</string>
     <string name="content_desc_clear_handwriting">Clear handwriting</string>
     <string name="content_desc_undo_stroke">Undo stroke</string>
@@ -168,6 +169,8 @@
     <string name="error_no_words_image">No words found in image.</string>
     <string name="error_import_pdf_generic">Could not import from PDF.</string>
     <string name="error_scan_photo_generic">Could not scan photo.</string>
+  <string name="add_words_ocr_unsupported_script">Photo and PDF import does not support this script on device. Type or paste words instead.</string>
+  <string name="add_words_pdf_pages_truncated">Only the first %1$d pages were scanned.</string>
     <string name="error_add_at_least_one_word">Add at least one word.</string>
     <string name="error_list_name_required">Please enter a list name.</string>
     <string name="error_save_generic">Could not save.</string>

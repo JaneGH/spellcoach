@@ -8,13 +8,17 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.itclimb.spellcoach.R
+import com.itclimb.spellcoach.data.mlkit.MultilingualOcrClient
+import com.itclimb.spellcoach.data.mlkit.OcrRecognitionResult
+import com.itclimb.spellcoach.data.mlkit.MlKitRecognitionMapping
+import com.itclimb.spellcoach.data.mlkit.OcrScript
 import com.itclimb.spellcoach.domain.repository.DuplicateWordInListException
 import com.itclimb.spellcoach.domain.repository.WordRepository
 import com.itclimb.spellcoach.domain.usecase.CreateWordListUseCase
+import com.itclimb.spellcoach.domain.word.WordScriptDetector
 import com.itclimb.spellcoach.domain.word.WordTextNormalizer
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +28,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.math.min
@@ -34,7 +37,8 @@ class AddWordsViewModel @Inject constructor(
     @param:ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle,
     private val wordRepository: WordRepository,
-    private val createWordList: CreateWordListUseCase
+    private val createWordList: CreateWordListUseCase,
+    private val ocrClient: MultilingualOcrClient,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddWordsState())
@@ -43,10 +47,8 @@ class AddWordsViewModel @Inject constructor(
     private val _events = Channel<AddWordsEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-
     override fun onCleared() {
-        textRecognizer.close()
+        ocrClient.close()
         super.onCleared()
     }
 
@@ -98,21 +100,26 @@ class AddWordsViewModel @Inject constructor(
         viewModelScope.launch {
             if (_state.value.isImporting) return@launch
             _state.value = _state.value.copy(isImporting = true, errorMessage = null, importNotice = null)
-            val result = runCatching { extractWordsFromPdf(uri) }
+            val previewWords = _state.value.previewWords
+            val result = runCatching { extractWordsFromPdf(uri, previewWords) }
             result.fold(
                 onSuccess = { extraction ->
-                    val merged = mergeDistinctWords(_state.value.previewWords, extraction.words)
+                    val merged = mergeDistinctWords(previewWords, extraction.words)
                     _state.value = _state.value.copy(
                         previewWords = merged,
                         isImporting = false,
-                        errorMessage = if (extraction.words.isEmpty()) "No words found in PDF." else null,
-                        importNotice = extraction.truncationNotice,
+                        errorMessage = if (extraction.words.isEmpty() && extraction.notice == null) {
+                            appContext.getString(R.string.error_no_words_pdf)
+                        } else {
+                            null
+                        },
+                        importNotice = extraction.notice,
                     )
                 },
                 onFailure = { e ->
                     _state.value = _state.value.copy(
                         isImporting = false,
-                        errorMessage = e.message ?: "Could not import from PDF."
+                        errorMessage = e.message ?: appContext.getString(R.string.error_import_pdf_generic)
                     )
                 }
             )
@@ -124,20 +131,26 @@ class AddWordsViewModel @Inject constructor(
         viewModelScope.launch {
             if (_state.value.isImporting) return@launch
             _state.value = _state.value.copy(isImporting = true, errorMessage = null, importNotice = null)
-            val result = runCatching { extractWordsFromImage(uri) }
+            val previewWords = _state.value.previewWords
+            val result = runCatching { extractWordsFromImage(uri, previewWords) }
             result.fold(
-                onSuccess = { imported ->
-                    val merged = mergeDistinctWords(_state.value.previewWords, imported)
+                onSuccess = { extraction ->
+                    val merged = mergeDistinctWords(previewWords, extraction.words)
                     _state.value = _state.value.copy(
                         previewWords = merged,
                         isImporting = false,
-                        errorMessage = if (imported.isEmpty()) "No words found in image." else null
+                        errorMessage = if (extraction.words.isEmpty() && extraction.notice == null) {
+                            appContext.getString(R.string.error_no_words_image)
+                        } else {
+                            null
+                        },
+                        importNotice = extraction.notice,
                     )
                 },
                 onFailure = { e ->
                     _state.value = _state.value.copy(
                         isImporting = false,
-                        errorMessage = e.message ?: "Could not scan photo."
+                        errorMessage = e.message ?: appContext.getString(R.string.error_scan_photo_generic)
                     )
                 }
             )
@@ -148,7 +161,9 @@ class AddWordsViewModel @Inject constructor(
         viewModelScope.launch {
             if (_state.value.saving) return@launch
             if (_state.value.previewWords.isEmpty()) {
-                _state.value = _state.value.copy(errorMessage = "Add at least one word.")
+                _state.value = _state.value.copy(
+                    errorMessage = appContext.getString(R.string.error_add_at_least_one_word)
+                )
                 return@launch
             }
             _state.value = _state.value.copy(saving = true, errorMessage = null)
@@ -156,12 +171,18 @@ class AddWordsViewModel @Inject constructor(
             if (editId != null) {
                 val n = _state.value.listName.trim()
                 if (n.isEmpty()) {
-                    _state.value = _state.value.copy(saving = false, errorMessage = "Please enter a list name.")
+                    _state.value = _state.value.copy(
+                        saving = false,
+                        errorMessage = appContext.getString(R.string.error_list_name_required)
+                    )
                     return@launch
                 }
                 val parsed = WordTextNormalizer.normalizeWords(_state.value.previewWords)
                 if (parsed.isEmpty()) {
-                    _state.value = _state.value.copy(saving = false, errorMessage = "Add at least one word.")
+                    _state.value = _state.value.copy(
+                        saving = false,
+                        errorMessage = appContext.getString(R.string.error_add_at_least_one_word)
+                    )
                     return@launch
                 }
                 runCatching {
@@ -199,9 +220,9 @@ class AddWordsViewModel @Inject constructor(
     private fun wordSaveErrorMessage(error: Throwable): String = when {
         error is DuplicateWordInListException -> "This list contains duplicate words."
         error.message == "duplicate_word_in_list" -> "This list contains duplicate words."
-        error.message == "empty_name" -> "Please enter a list name."
-        error.message == "no_words" -> "Add at least one word."
-        else -> error.message ?: "Could not save."
+        error.message == "empty_name" -> appContext.getString(R.string.error_list_name_required)
+        error.message == "no_words" -> appContext.getString(R.string.error_add_at_least_one_word)
+        else -> error.message ?: appContext.getString(R.string.error_save_generic)
     }
 
     private fun parseWords(input: String): List<String> {
@@ -217,46 +238,90 @@ class AddWordsViewModel @Inject constructor(
         return set.toList()
     }
 
-    private suspend fun extractWordsFromImage(uri: Uri): List<String> = withContext(Dispatchers.IO) {
-        val image = InputImage.fromFilePath(appContext, uri)
-        val text = textRecognizer.process(image).await()
-        val tokens = text.text.split(Regex("\\s+"))
-        WordTextNormalizer.normalizeWords(tokens)
-    }
+    private fun ocrScriptFor(previewWords: List<String>) =
+        MlKitRecognitionMapping.ocrScriptFor(WordScriptDetector.resolveScript(previewWords))
 
-    private suspend fun extractWordsFromPdf(uri: Uri): PdfExtractionResult = withContext(Dispatchers.IO) {
-        val pfd = appContext.contentResolver.openFileDescriptor(uri, "r")
-            ?: throw IllegalStateException("Could not open PDF.")
+    private fun unsupportedOcrNotice(): String =
+        appContext.getString(R.string.add_words_ocr_unsupported_script)
 
-        pfd.use {
-            PdfRenderer(it).use { renderer ->
-                val all = LinkedHashSet<String>()
-                val pagesToScan = min(renderer.pageCount, MAX_PDF_PAGES)
-                for (i in 0 until pagesToScan) {
-                    renderer.openPage(i).use { page ->
-                        val bitmap = renderPdfPageToBitmap(page)
-                        val recognized = textRecognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
-                        val tokens = recognized.text.split(Regex("\\s+"))
-                        WordTextNormalizer.normalizeWords(tokens).forEach { all.add(it) }
-                        bitmap.recycle()
-                    }
-                }
-                val truncationNotice = if (renderer.pageCount > MAX_PDF_PAGES) {
-                    "Only the first $MAX_PDF_PAGES pages were scanned."
-                } else {
-                    null
-                }
-                PdfExtractionResult(
-                    words = all.toList(),
-                    truncationNotice = truncationNotice,
+    private suspend fun extractWordsFromImage(uri: Uri, previewWords: List<String>): ImportExtractionResult =
+        withContext(Dispatchers.IO) {
+            if (ocrScriptFor(previewWords) == OcrScript.UNSUPPORTED) {
+                return@withContext ImportExtractionResult(
+                    words = emptyList(),
+                    notice = unsupportedOcrNotice(),
+                )
+            }
+            val image = InputImage.fromFilePath(appContext, uri)
+            when (val result = ocrClient.recognize(image, WordScriptDetector.resolveScript(previewWords))) {
+                is OcrRecognitionResult.Unsupported -> ImportExtractionResult(
+                    words = emptyList(),
+                    notice = unsupportedOcrNotice(),
+                )
+
+                is OcrRecognitionResult.Success -> ImportExtractionResult(
+                    words = wordsFromOcrText(result.text),
+                    notice = null,
                 )
             }
         }
+
+    private suspend fun extractWordsFromPdf(uri: Uri, previewWords: List<String>): ImportExtractionResult =
+        withContext(Dispatchers.IO) {
+            if (ocrScriptFor(previewWords) == OcrScript.UNSUPPORTED) {
+                return@withContext ImportExtractionResult(
+                    words = emptyList(),
+                    notice = unsupportedOcrNotice(),
+                )
+            }
+            val wordScript = WordScriptDetector.resolveScript(previewWords)
+            val pfd = appContext.contentResolver.openFileDescriptor(uri, "r")
+                ?: throw IllegalStateException("Could not open PDF.")
+
+            pfd.use {
+                PdfRenderer(it).use { renderer ->
+                    val all = LinkedHashSet<String>()
+                    val pagesToScan = min(renderer.pageCount, MAX_PDF_PAGES)
+                    for (i in 0 until pagesToScan) {
+                        renderer.openPage(i).use { page ->
+                            val bitmap = renderPdfPageToBitmap(page)
+                            when (val result = ocrClient.recognize(InputImage.fromBitmap(bitmap, 0), wordScript)) {
+                                is OcrRecognitionResult.Unsupported -> {
+                                    bitmap.recycle()
+                                    return@withContext ImportExtractionResult(
+                                        words = emptyList(),
+                                        notice = unsupportedOcrNotice(),
+                                    )
+                                }
+
+                                is OcrRecognitionResult.Success -> {
+                                    wordsFromOcrText(result.text).forEach { word -> all.add(word) }
+                                }
+                            }
+                            bitmap.recycle()
+                        }
+                    }
+                    val truncationNotice = if (renderer.pageCount > MAX_PDF_PAGES) {
+                        appContext.getString(R.string.add_words_pdf_pages_truncated, MAX_PDF_PAGES)
+                    } else {
+                        null
+                    }
+                    ImportExtractionResult(
+                        words = all.toList(),
+                        notice = truncationNotice,
+                    )
+                }
+            }
+        }
+
+    private fun wordsFromOcrText(text: String): List<String> {
+        val tokens = text.split(Regex("\\s+"))
+        return WordTextNormalizer.normalizeWords(tokens)
     }
 
-    private data class PdfExtractionResult(
+    private data class ImportExtractionResult(
         val words: List<String>,
-        val truncationNotice: String?,
+        val notice: String?,
     )
 
     private companion object {
@@ -264,7 +329,6 @@ class AddWordsViewModel @Inject constructor(
     }
 
     private fun renderPdfPageToBitmap(page: PdfRenderer.Page): Bitmap {
-        // Render at ~2x but keep bitmap bounded to avoid OOM.
         val baseW = page.width.coerceAtLeast(1)
         val baseH = page.height.coerceAtLeast(1)
         val maxDim = 2048f

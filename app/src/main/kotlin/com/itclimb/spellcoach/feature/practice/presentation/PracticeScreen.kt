@@ -112,13 +112,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.mlkit.common.model.DownloadConditions
-import com.google.mlkit.common.model.RemoteModelManager
-import com.google.mlkit.vision.digitalink.recognition.DigitalInkRecognition
-import com.google.mlkit.vision.digitalink.recognition.DigitalInkRecognitionModel
-import com.google.mlkit.vision.digitalink.recognition.DigitalInkRecognitionModelIdentifier
 import com.google.mlkit.vision.digitalink.recognition.DigitalInkRecognizer
-import com.google.mlkit.vision.digitalink.recognition.DigitalInkRecognizerOptions
+import com.itclimb.spellcoach.data.mlkit.InkModelDownloader
+import com.itclimb.spellcoach.data.mlkit.MlKitRecognitionMapping
+import com.itclimb.spellcoach.domain.word.WordScriptDetector
 import com.google.mlkit.vision.digitalink.recognition.Ink
 import com.itclimb.spellcoach.R
 import com.itclimb.spellcoach.core.designsystem.components.SegmentedOption
@@ -232,14 +229,16 @@ fun PracticeScreen(
     val focusRequester = remember { FocusRequester() }
     var inputMode by rememberSaveable { mutableStateOf(PracticeInputMode.Keyboard) }
 
-    val recognizer = remember {
-        val id = DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")
-            ?: return@remember null
+    val wordTexts = remember(state.allWords) { state.allWords.map { it.text } }
+    val handwritingScript = remember(wordTexts) {
+        WordScriptDetector.resolveHandwritingScript(wordTexts)
+    }
+    val handwritingLanguageTag = remember(handwritingScript) {
+        MlKitRecognitionMapping.resolveHandwritingLanguageTag(handwritingScript)
+    }
 
-        val model = DigitalInkRecognitionModel.builder(id).build()
-        DigitalInkRecognition.getClient(
-            DigitalInkRecognizerOptions.builder(model).build()
-        )
+    val recognizer = remember(handwritingLanguageTag) {
+        handwritingLanguageTag?.let { MlKitRecognitionMapping.createHandwritingRecognizer(it) }
     }
 
     DisposableEffect(recognizer) {
@@ -249,11 +248,13 @@ fun PracticeScreen(
     }
 
     val handwritingAvailable = recognizer != null
-    val inkModelDownloader = remember(recognizer) { InkModelDownloader() }
+    val inkModelDownloader = remember(handwritingLanguageTag) {
+        handwritingLanguageTag?.let { InkModelDownloader(it) }
+    }
 
-    LaunchedEffect(handwritingAvailable, inputMode) {
+    LaunchedEffect(handwritingAvailable, inputMode, handwritingLanguageTag) {
         if (handwritingAvailable && inputMode == PracticeInputMode.Handwriting) {
-            runCatching { inkModelDownloader.ensureInkModelDownloaded() }
+            runCatching { inkModelDownloader?.ensureInkModelDownloaded() }
         }
     }
 
@@ -560,6 +561,19 @@ fun PracticeScreen(
                                     },
                                     modifier = Modifier.fillMaxWidth()
                                 )
+                                if (inputMode == PracticeInputMode.Handwriting && handwritingLanguageTag != null) {
+                                    Spacer(Modifier.height(AppSpacing.xs))
+                                    Text(
+                                        text = stringResource(
+                                            R.string.practice_handwriting_model_format,
+                                            handwritingLanguageTag,
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
                             }
 
                             Spacer(Modifier.height(AppSpacing.md + AppSpacing.xs))
@@ -710,11 +724,12 @@ fun PracticeScreen(
 
                                         PracticeInputMode.Handwriting -> {
                                             val inkRecognizer = recognizer
-                                            if (inkRecognizer != null) {
+                                            val inkDownloader = inkModelDownloader
+                                            if (inkRecognizer != null && inkDownloader != null) {
                                                 HandwritingInputPanel(
                                                     modifier = Modifier.fillMaxSize(),
                                                     recognizer = inkRecognizer,
-                                                    inkModelDownloader = inkModelDownloader,
+                                                    inkModelDownloader = inkDownloader,
                                                     onRecognized = { recognized ->
                                                         viewModel.onInputChange(recognized)
                                                         viewModel.checkWord()
@@ -1809,40 +1824,6 @@ private data class HandwritingStroke(
     val points: MutableList<HandwritingPoint>,
     val path: Path
 )
-
-private class InkModelDownloader {
-    @Volatile
-    private var modelReady = false
-    private val mutex = Mutex()
-
-    private val model: DigitalInkRecognitionModel? by lazy {
-        val id = DigitalInkRecognitionModelIdentifier.fromLanguageTag("en-US")
-            ?: return@lazy null
-        DigitalInkRecognitionModel.builder(id).build()
-    }
-
-    suspend fun ensureInkModelDownloaded() {
-        if (modelReady) return
-        val inkModel = model ?: return
-
-        mutex.withLock {
-            if (modelReady) return@withLock
-
-            val downloaded = runCatching {
-                withContext(Dispatchers.Default) {
-                    val conditions = DownloadConditions.Builder().build()
-                    RemoteModelManager.getInstance()
-                        .download(inkModel, conditions)
-                        .await()
-                }
-            }.isSuccess
-
-            if (downloaded) {
-                modelReady = true
-            }
-        }
-    }
-}
 
 private suspend fun recognizeInkWord(
     recognizer: DigitalInkRecognizer,
